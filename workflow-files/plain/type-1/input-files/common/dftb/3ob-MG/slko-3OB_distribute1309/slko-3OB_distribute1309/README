@@ -1,0 +1,146 @@
+MICHAEL GAUS (mgaus@wisc.edu) Oct 17th, 2012
+
+All parameters are designed for DFTB3 and are NOT compatible with any MIO parameter 
+files, as we have changed electronic and repulsive parameters. 
+
+CHNO: this set is very well benchmarked and improves over MIO for 
+      non-covalent distances, e.g. water dimer distance. Furthermore 
+      overbinding is removed for most part.
+      Special parameters:  
+      hh-mod.spl --> use if absolute energy of a covalent H-H bond is 
+                     important
+      hn-mod.spl/nh-mod.spl --> use for proton affinities of sp3-
+                     hybridized nitrogen species.
+      cc-freq.spl,cn-freq.spl/nc-freq.spl,co-freq.spl/oc-freq.spl 
+                --> use if stretch-frequencies are important rather 
+                    than energetics (all files are fully compatible
+                    with all other 3ob files!)
+
+S:    Gives reasonable energetics (one exception is SO3!) and overall 
+      good bond lengths/angles/dihedrals. Reveals problems for non-
+      covalent interactions as e.g. in (SH2)-Y (Y=SH2,H2O,NH3) and also
+      its protonated and deprotonated forms.
+
+P:    Reasonable for reaction energies and geometries. Large errors 
+      (MAD ~10 kcal/mol) are found for phosphate hydrolysis reactions, 
+      especially for those including pentavalent phosphorous.  
+      Special parameters:
+      l02 --> those fix the hydrolysis problem, but therefore are bad
+           for other energetics where P-O breaking/forming is involved.
+
+Compression radii:
+c3.3-6.5-h3.0-2.5-n2.8-10.0-o2.5-6.0
+s3.8-4.4-9.0
+p3.6-4.4-9.0
+
+The following zeta and Hubbard derivative parameters should be used:
+(atomic units)
+zeta: 4.00
+C     -0.1492
+H     -0.1857
+N     -0.1535
+O     -0.1575
+S     -0.11   
+P     -0.14
+
+While the Hubbard derivatives are calculated from PBE for C,H,N, and O,
+they are fitted for S and P to improve on proton affinities. If SCC-
+convergence problems appear (please report to me), it might help to 
+change the Hubbard derivatives towards their calculated values,
+-0.0695 and -0.0701 for S and P, respectively. Note, that this change 
+will cause a less good description for proton affinities though!
+
+Below some more information about the electronic part:
+
+c.dat:
+6.0 1 1000                  znuc, lmax, maxscf
+4                           number of exponents for wavefunction expansion
+0.50 1.14 2.62 6.0          exponents for wavefunction expansion
+4 2                         number of exponents, highest power for l= 0
+4 2                         number of exponents, highest power for l= 1
+2 1                         number of occupied orbitals (l= 0 to 0)
+2.0 2.0                     occupation numbers l= 0
+2.0                         occupation numbers l= 1
+nostart                     start potential (nostart for default)
+2                           power for potential
+POT POT                     parameters for additional potential (l= 0 to 0)
+2 2                         basic quantum numbers for LCAO wavefunctions
+noread                      density for two-center evaluation
+
+h.dat:
+1.0 0 1000                  znuc, lmax, maxscf
+3                           number of exponents for wavefunction expansion
+0.50 1.0 2.0          exponents for wavefunction expansion
+3 2                         number of exponents, highest power for l= 0
+1                         number of occupied orbitals (l= 0 to 0)
+1.0                     occupation numbers l= 0
+nostart                     start potential (nostart for default)
+2                           power for potential
+POT
+1                         basic quantum numbers for LCAO wavefunctions
+noread                      density for two-center evaluation
+
+n.dat:
+7.0 1 1000                  znuc, lmax, maxscf
+4                           number of exponents for wavefunction expansion
+0.50 1.21 2.90 7.0          exponents for wavefunction expansion
+4 2                         number of exponents, highest power for l= 0
+4 2                         number of exponents, highest power for l= 1
+2 1                         number of occupied orbitals (l= 0 to 0)
+2.0 2.0                     occupation numbers l= 0
+3.0                         occupation numbers l= 1
+nostart                     start potential (nostart for default)
+2                          basic quantum numbers for LCAO wavefunctions
+POT POT
+2 2
+noread                     density for two-center evaluation
+
+o.dat:
+8.0 1 1000                  znuc, lmax, maxscf
+4                           number of exponents for wavefunction expansion
+0.50 1.26 3.17 8.0          exponents for wavefunction expansion
+4 2                         number of exponents, highest power for l= 0
+4 2                         number of exponents, highest power for l= 1
+2 1                         number of occupied orbitals (l= 0 to 0)
+2.0 2.0                     occupation numbers l= 0
+4.0                         occupation numbers l= 1
+nostart                     start potential (nostart for default)
+2                           power for potential
+POT POT
+2 2                         basic quantum numbers for LCAO wavefunctions
+noread                    density for two-center evaluation
+
+s.dat:
+16.0 2 1000                  znuc, lmax, maxscf
+5                           number of exponents for wavefunction expansion
+0.50 1.19 2.83 6.73 16.0          exponents for wavefunction expansion
+5 2                         number of exponents, highest power for l= 0
+5 2                         number of exponents, highest power for l= 1
+5 2                         number of exponents, highest power for l= 2
+3 2 1                         number of occupied orbitals (l= 0 to 0)
+2.0 2.0 2.0                    occupation numbers l= 0
+6.0  4.0                       occupation numbers l= 1
+0.0                            occupation numbers l= 2
+nostart                     start potential (nostart for default)
+2                           power for potential
+POT POT potd
+3 3 3                       basic quantum numbers for LCAO wavefunctions
+noread                      density for two-center evaluation
+
+p.dat:
+15.0 2 1000                  znuc, lmax, maxscf
+5                           number of exponents for wavefunction expansion
+0.50 1.17 2.74 6.41 15.0          exponents for wavefunction expansion
+5 2                         number of exponents, highest power for l= 0
+5 2                         number of exponents, highest power for l= 1
+5 2                         number of exponents, highest power for l= 2
+3 2 1                         number of occupied orbitals (l= 0 to 0)
+2.0 2.0 2.0                    occupation numbers l= 0
+6.0  3.0                       occupation numbers l= 1
+0.0                            occupation numbers l= 2
+nostart                     start potential (nostart for default)
+2                           power for potential
+POT POT potd
+3 3 3                       basic quantum numbers for LCAO wavefunctions
+noread                      density for two-center evaluation
+

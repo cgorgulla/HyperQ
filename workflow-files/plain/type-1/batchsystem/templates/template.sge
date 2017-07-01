@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# ---------------------------------------------------------------------------
+#
+# SGE Settings
+###############################################################################
+#
+#$ -S /bin/bash
+#$ -cwd
+#$ -N runtimeletter-job_id_placeholder
+#$ -o batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
+#$ -e batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
+#$ -l h_rt=12:00:00
+#$ -l mem_free=600M
+#$ -q wagnerlab
+#$ -m a
+#$ -M cgorgulla@crystal.harvard.edu
+#$ -notify
+#
+#
+# Job Information
+##################################################################################
+
+echo
+echo "                    *** Job Information ***                    "
+echo "==============================================================="
+echo 
+echo "Environment variables"
+echo "------------------------"
+env
+echo
+echo
+echo "*** Job Infos by qstat"
+echo "--------------------------------------------------"
+qstat -j $JOB_ID
+
+
+# Running the Job - Screening of the Ligands
+######################################################################
+echo
+echo "                    *** Job Output ***                    "
+echo "==========================================================="
+echo
+
+# Functions
+# Standard error response 
+error_response_std() {
+    echo "Error was trapped" 1>&2
+    echo "Error in bash script $0" 1>&2
+    echo "Error on line $1" 1>&2
+    echo "Environment variables" 1>&2 
+    echo "----------------------------------" 1>&2
+    env 1>&2
+}
+trap 'error_response_std $LINENO' ERR
+
+# Handling signals
+time_near_limit() {
+    echo "The script ${BASH_SOURCE[0]} caught a time limit signal. Trying to start a new job."
+}
+trap 'time_near_limit' 10
+
+termination_signal() {
+    echo "The script ${BASH_SOURCE[0]} caught a termination signal. Stopping job."
+    exit 1
+}
+trap 'termination_signal' 1 2 3 9 12 15
+
+# Printing final job information
+print_job_infos_end() {
+    # Job information
+    echo
+    echo "                     *** Final Job Information ***                    "
+    echo "======================================================================"
+    echo
+    echo "Starting time:" $STARTINGTIME
+    echo "Ending time:  " $(date)
+    echo
+}
+
+# Work to be done by the job
+command_placeholder
+
+# Printing final information
+print_job_infos_end

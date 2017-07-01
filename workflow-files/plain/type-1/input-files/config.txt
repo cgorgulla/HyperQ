@@ -1,0 +1,143 @@
+*************************************************************************************
+***                                    General                                    ***
+*************************************************************************************
+verbosity=debug
+# Possible values: normal, debug
+# This option mainly effects the screen output and the logfiles
+
+*************************************************************************************
+***                             Structure preparation                             ***
+*************************************************************************************
+
+input_file_format=pdb_3d_h
+# Currently supported are smi, pdbqt, sdf, mol2_2d_h, pdb_3d_h
+# The format should be in lowercase letters
+# If the subsystem is PLS or PL, then the coordinates of the ligands have to be provided in the input files to suit the coordinates of the receptor.
+
+receptor_mode=common
+# possible values: individual, common
+# if individual, then a receptor has to be in the receptor folder for each ligand with the same name as the ligand
+# only needed if the subsystem includes a receptor (e.g. PLS, PL)
+
+receptor_basename=receptor
+# only required if there is a common receptor for all ligands
+# only needed if the subsystem includes a receptor (e.g. PLS, PL)
+
+box_padding_size_L=5
+waterbox_padding_size_LS=5
+waterbox_padding_size_PLS=10
+
+
+*************************************** LOMAP ***************************************
+
+lomap_mol2_folder=mol2-Li
+# for lomap, relative path name wrt to input-files/ligands
+
+draw_pairwise_mcs=False
+# False or True, cases matter (at least for True, all else is considered as "False")
+
+lomap_ncpus=6
+
+mcs_time=1
+# The time which lomap can take for finding the MCS (maximal common substructure) per molecule-pair
+
+
+*************************************************************************************
+***                       Simulations Settings (OPT, MD)                      ***
+*************************************************************************************
+
+************************************** General **************************************
+runtimeletter=a
+# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q
+
+opt_programs=cp2k
+# possible: cp2k, namd
+
+opt_type=MM 
+# Possible values: MM
+
+md_programs=ipi-cp2k-iqi
+# Possible values: namd, ipi-cp2k, ipi-cp2k-iqi
+
+md_type=QMMM
+# Possible values: QMMM, standard
+# standard is used for MM and QM
+# will also be used for the cross evaluation (CE) (since the type should be the same as the MD type)
+# QMMM requires that md_programs contains cp2k (and possibly ipi, iqi)
+
+nbeads=1
+# Minimum value: 1
+# for MD simulation only (doesn't make sense for opt)
+# Needs to match the value in the ipi input file (MD)
+
+opt_timeout=15
+md_timeout=10000
+# in seconds
+# this value is used to detect whether the optimization is completed by checking if the file is still changing or not (because sometimes a program (in particular CP2K is done but the program doesn't terminate, or CP2K fails and ipi doesn't quit)
+# Here should be taken into account that between the start of i-pi and CP2K there is a time difference of 5 seconds 
+
+
+**************************************** CP2K ***************************************
+# Ligand (L) input files
+inputfile_cp2k_opt_L=cp2k.in.opt.MM
+inputfile_cp2k_md_L=cp2k.in.hqmd.md.MM
+
+# Ligand, solvent (LS) input files
+inputfile_cp2k_opt_LS=cp2k.in.hqmd.opt.MM
+inputfile_cp2k_md_LS=cp2k.in.hqmd.md.MM
+
+# Protein, ligand, solvent input files
+inputfile_cp2k_opt_PLS=cp2k.in.hqmd.opt.MM
+inputfile_cp2k_md_PLS=cp2k.in.hqmd.md.QMMM
+
+cp2k_command=cp2k
+
+**************************************** i-PI ***************************************
+# Ligand (L) input files
+inputfile_ipi_md_L=ipi.hqmd.in.md.QM.xml
+
+# Ligand, solvent (LS) input files
+inputfile_ipi_md_LS=ipi.hqmd.in.md.MM.xml
+
+# Protein, ligand, solvent input files
+inputfile_ipi_md_PLS=ipi.hqmd.in.md.QMMM.xml
+
+**************************************** i-QI ***************************************
+# Ligand (L) input files
+inputfile_iqi_md_LS=iqi.hqmd.in.L.xml
+inputfile_iqi_constraints_LS=iqi.in.constraints.L.xml
+
+# Ligand, solvent (LS) input files
+inputfile_iqi_md_LS=iqi.hqmd.in.LS.xml
+inputfile_iqi_constraints_LS=iqi.in.constraints.LS.xml
+
+# Protein, ligand, solvent input files
+inputfile_iqi_md_PLS=iqi.hqmd.in.PLS.xml
+inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
+
+**************************************** NAMD ***************************************
+# Ligand (L) input files
+inputfile_namd_opt_LS=namd.in.opt
+inputfile_namd_md_LS=namd.in.md
+
+# Ligand, solvent (LS) input files
+inputfile_namd_opt_LS=namd.in.opt
+inputfile_namd_md_LS=namd.in.md
+
+# Protein, ligand, solvent input files
+inputfile_namd_opt_PLS=namd.in.opt
+inputfile_namd_md_PLS=namd.in.md
+
+namd_command=namd2 +p6
+#namd_command=namd2-cuda +devices $((${CUDA_VISIBLE_DEVICES} - 1))
+# usually namd2 or namd2-cuda +devices 0
+# additional options should work here for the namd command.
+# +idlepoll and +p<ncpu_namd_md> might be needed to be set in the command
+
+*********************************** Parallelization *********************************
+ncpus_cp2k_opt=6
+ncpus_cp2k_md=6
+
+************************************* Batchsystem **********************************
+batchsystem=lsf
+# supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
