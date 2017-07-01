@@ -1,0 +1,33 @@
+set protein_file_basename [lindex $argv 0]
+set ligand_file_basename [lindex $argv 1]
+set output_file_basename [lindex $argv 2]
+set script_dir [lindex $argv 3]
+set padding_size [lindex $argv 4]
+
+package require psfgen
+resetpsf
+topology ${script_dir}/../common/charmm36/toppar_water_ions_namd.str
+topology ${script_dir}/../common/charmm36/top_all36_prot.rtf
+topology ${ligand_file_basename}.rtf
+#topology protein_ligand.rtf
+pdbalias residue HIS HSE	 
+pdbalias atom ILE CD1 CD	 
+pdbalias atom SER HG HG1
+
+segment PRT {pdb ${protein_file_basename}.pdb}
+segment LIG {pdb ${ligand_file_basename}.pdb}
+
+coordpdb ${protein_file_basename}.pdb PRT
+coordpdb ${ligand_file_basename}.pdb LIG
+guesscoord
+
+writepsf ${output_file_basename}_nosolv.psf
+writepdb ${output_file_basename}_nosolv.pdb
+
+package require solvate
+solvate ${output_file_basename}_nosolv.psf ${output_file_basename}_nosolv.pdb -t $padding_size -o ${output_file_basename}_complete
+
+# set all [atomselect top all]
+# measure minmax $all
+# measure center $all
+# topology ../charmm36/top_all36_cgenff.rtf

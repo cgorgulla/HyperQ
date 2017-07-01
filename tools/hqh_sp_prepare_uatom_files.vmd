@@ -1,0 +1,23 @@
+# Variables
+set system_basename [lindex $argv 0]
+set subsystem [lindex $argv 1]
+
+# Reading in the config files
+set file [open "../../../config.uatoms.${subsystem}" r]
+set file_data [read $file]
+close $file
+set uatom_selection "$file_data"
+
+# Opening molecules
+mol new ${system_basename}.pdb
+mol addfile ${system_basename}.psf
+
+# Setting atom selections
+set uatoms [atomselect top ${uatom_selection}]
+
+# Writing out files
+set data [${uatoms} list]
+set filename "${system_basename}.all.uatoms.indices.0"
+set file [open $filename "w"]
+puts $file $data
+close $file

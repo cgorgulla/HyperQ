@@ -1,0 +1,63 @@
+# Variables
+set system_basename [lindex $argv 0]
+set subsystem [lindex $argv 1]
+
+# Reading in the config files
+set file [open "../../../config.uatoms.${subsystem}" r]
+set file_data_u_all [read $file]
+close $file
+set file [open "../../../config.qatoms.${subsystem}" r]
+set file_data_q_all [read $file]
+close $file
+
+# Creating molecules
+mol new ${system_basename}.pdb
+mol addfile ${system_basename}.psf
+
+# Setting atom selections
+set atomselection_c_all "not $file_data_u_all"
+set atomselection_q_all "$file_data_q_all"
+set atomselection_q_nonsolvent "$file_data_q_all and (chain L P)"
+set atomselection_q_solvent "$file_data_q_all and (not chain L P)"
+
+# Setting atoms
+set qatoms_all [atomselect top ${atomselection_q_all}]
+set qatoms_nonsolvent [atomselect top "${atomselection_q_nonsolvent}"]
+set qatoms_solvent [atomselect top "${atomselection_q_solvent}"]
+set qcatoms_all [atomselect top "${atomselection_q_all} and ${atomselection_c_all}"]
+
+# Writing out files
+# qatoms all
+set data [$qatoms_all list]
+set filename "${system_basename}.all.qatoms.indices.0"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qatoms+elements
+set data [$qatoms_all get {element index}]
+set filename "${system_basename}.all.qatoms.indices+elements.0"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qatoms_nonsolvent + elements
+set data [$qatoms_nonsolvent get {element index}]
+set filename "${system_basename}.nonsolvent.qatoms.indices+elements.0"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qatoms_solvent + elements
+set data [$qatoms_solvent get {element index}]
+set filename "${system_basename}.solvent.qatoms.indices+elements.0"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qcatoms all
+set data [$qcatoms_all list]
+set filename "${system_basename}.all.qcatoms.indices.0"
+set file [open $filename "w"]
+puts $file $data
+close $file
