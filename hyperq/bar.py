@@ -27,12 +27,11 @@ import matplotlib.pyplot as plt
 plt.switch_backend('agg')
 from hyperq.functions import *
 
-
 class BAR:
     
-    def __init__(self, U1_U1_filename, U1_U2_filename, U2_U1_filename, U2_U2_filename, C_filename, outputFilename):
-        
-        
+    def __init__(self, U1_U1_filename, U1_U2_filename, U2_U1_filename, U2_U2_filename, C_filename, temp, outputFilename):
+        # The first potential is always the sampling potential, the second one is the evaluating potential.\n\n
+
         # Reading in the values of the input files into lists
         filenames = [U1_U1_filename, U1_U2_filename, U2_U1_filename, U2_U2_filename, C_filename]
         # value_types = ["U1_U1_values", "U1_U2_values", "U2_U1_values", "U2_U2_values", "C_values"]
@@ -46,11 +45,12 @@ class BAR:
         self.U2_U1_filename = U2_U1_filename
         self.U2_U2_filename = U2_U2_filename
         self.C_filename = C_filename
+        self.C_values_accepted = [] # We only need the C-values for which the sum2 is not zero, since we are skipping such ones
         self.delta_F_1 = []
         self.delta_F_1_reduced = []
         self.delta_F_2 = []
         self.delta_F_2_reduced = []
-        self.temp = 300  # Kelvin
+        self.temp = float(temp)  # Kelvin
         # self.energyFactor = 627.509469           # hartree -> kcal/mole    # https://en.wikipedia.org/wiki/Hartree
         self.energyFactor = 1
         self.k_b = 0.0019872041  # in kcal/(mol*K)
@@ -70,23 +70,30 @@ class BAR:
             n_1 = 0
             n_2 = 0
             # Checking if the number of values provided are the same for each pair
-            if len(self.values[self.U1_U1_filename]) == len(self.values[self.U2_U1_filename]):
+            if len(self.values[self.U1_U1_filename]) == len(self.values[self.U1_U2_filename]):
                 n_1 = len(self.values[self.U1_U1_filename])  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
             else:
-                errorMessage="Error: The files ", self.U1_U1_filename, " and ", self.U2_U1_filename, " contain an unequal number of values."
+                errorMessage="Error: The files " + self.U1_U1_filename + " and " + self.U1_U2_filename + " contain an unequal number of values."
                 raise TypeError(errorMessage)
-            if len(self.values[self.U1_U2_filename]) == len(self.values[self.U2_U2_filename]):
+            if len(self.values[self.U2_U1_filename]) == len(self.values[self.U2_U2_filename]):
                 n_2 = len(self.values[self.U2_U2_filename])  # The number of snapshots from the sampling wrt to U2 -> coordinates of U2 MD
             else:
-                errorMessage="Error: The files ", self.U1_U2_filename, " and ", self.U2_U2_filename, " contain an unequal number of values."
+                errorMessage="Error: The files " + self.U2_U1_filename + " and " + self.U2_U2_filename + " contain an unequal number of values."
                 raise TypeError(errorMessage)
             for i in range(0, n_2 - 1):
-                sum_2 += fermi_function((self.k_b * self.temp) ** (-1) * self.energyFactor * (self.values[self.U1_U2_filename][i] - self.values[self.U2_U2_filename][i]) + C)
+                sum_2 += fermi_function((self.k_b * self.temp) ** (-1) * self.energyFactor * (self.values[self.U2_U1_filename][i] - self.values[self.U2_U2_filename][i]) + C)
             for i in range(0, n_1 - 1):
-                sum_1 += fermi_function((self.k_b * self.temp) ** (-1) * self.energyFactor * (self.values[self.U2_U1_filename][i] - self.values[self.U1_U1_filename][i]) - C)
+                sum_1 += fermi_function((self.k_b * self.temp) ** (-1) * self.energyFactor * (self.values[self.U1_U2_filename][i] - self.values[self.U1_U1_filename][i]) - C)
+
+            # If sum_2 is 0 we cannot use it... -> math error
+            if sum_2 == 0:
+                print("Warning: sum_2 is zero. Skipping this C-value...")
+                continue
+
             self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
             self.delta_F_1.append(-(self.k_b * self.temp) * (math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1)))  # https://en.wikipedia.org/wiki/Boltzmann_constant
-    
+            self.C_values_accepted.append(C)
+
             # Second BAR equation
             self.delta_F_2_reduced.append(C - math.log(n_2 / n_1))
             self.delta_F_2.append(-(self.k_b * self.temp) * (C - math.log(n_2 / n_1)))
@@ -111,7 +118,7 @@ class BAR:
         print
         print "                    Final results"
         print "****************************************************************"
-        print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.values[self.C_filename][self.diff_F_min_index]
+        print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.C_values_accepted[self.diff_F_min_index]
         print "Delta_F equation 1: ", self.diff_F_min_1, " kcal/mol"
         print "Delta_F equation 2: ", self.diff_F_min_2, " kcal/mol"
         print "Delta_F equation 1 reduced: ", self.diff_F_min_1_reduced
@@ -121,19 +128,19 @@ class BAR:
     def write_delta_F_values(self):
         # Writing out the values
         with open("bar.out.eqn_1_reduced", "w") as file:
-            for i in range(0, len(self.values[self.C_filename]) - 1):
+            for i in range(0, len(self.C_values_accepted) - 1):
                 file.write(str(self.delta_F_1_reduced[i]) + "\n")
 
         with open("bar.out.eqn_1", "w") as file:
-            for i in range(0, len(self.values[self.C_filename]) - 1):
+            for i in range(0, len(self.C_values_accepted) - 1):
                 file.write(str(self.delta_F_1[i]) + "\n")
 
         with open("bar.out.eqn_2_reduced", "w") as file:
-            for i in range(0, len(self.values[self.C_filename]) - 1):
+            for i in range(0, len(self.C_values_accepted) - 1):
                 file.write(str(self.delta_F_2_reduced[i]) + "\n")
 
         with open("bar.out.eqn_2", "w") as file:
-            for i in range(0, len(self.values[self.C_filename]) - 1):
+            for i in range(0, len(self.C_values_accepted) - 1):
                 file.write(str(self.delta_F_2[i]) + "\n")
                 
         
@@ -141,7 +148,7 @@ class BAR:
 
         with open(self.outputFilename+".values", "w") as file:
             
-            file.write("Min (Delta F_eqn1 - F_eqn2) at value C=" + str(self.values[self.C_filename][self.diff_F_min_index]) + "\n")
+            file.write("Min (Delta F_eqn1 - F_eqn2) at value C=" + str(self.C_values_accepted[self.diff_F_min_index]) + "\n")
             file.write("Delta_F equation 1: " + str(self.diff_F_min_1) + " kcal/mol" + "\n")
             file.write("Delta_F equation 2: "+ str(self.diff_F_min_2) + " kcal/mol" + "\n")
             file.write("Delta_F equation 1 reduced: " + str(self.diff_F_min_1_reduced) + "\n")
@@ -152,8 +159,8 @@ class BAR:
         
         # Creating the plot for the full (unreduced) equation
         print "\n\n Creating the plot related to the bar-method"
-        plt.plot(self.values[self.C_filename], self.delta_F_1, 'm--', label="Equation 1")
-        plt.plot(self.values[self.C_filename], self.delta_F_2, 'k--', label="Equation 2")
+        plt.plot(self.C_values_accepted, self.delta_F_1, 'm--', label="Equation 1")
+        plt.plot(self.C_values_accepted, self.delta_F_2, 'k--', label="Equation 2")
         plt.xlabel('C')
         plt.ylabel('Free energy difference [kcal/mole]')
 
@@ -171,8 +178,8 @@ class BAR:
         # Creating the plot for the reduced equation
         plt.clf()
         print "\n\n Creating the plot related to the bar-method"
-        plt.plot(self.values[self.C_filename], self.delta_F_1_reduced, 'm--', label="Equation 1")
-        plt.plot(self.values[self.C_filename], self.delta_F_2_reduced, 'k--', label="Equation 2")
+        plt.plot(self.C_values_accepted, self.delta_F_1_reduced, 'm--', label="Equation 1")
+        plt.plot(self.C_values_accepted, self.delta_F_2_reduced, 'k--', label="Equation 2")
         plt.xlabel('C')
         plt.ylabel('Free energy difference [kcal/mole]')
 

@@ -44,6 +44,7 @@ set -u
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 stride_fec="$(grep -m 1 "^stride_fec=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -66,6 +67,6 @@ for TDWindow in */; do
     cd ${TDWindow}
     rm bar.out.* >/dev/null  2>&1 || true
     #hqf_fec_run_bar.py U1_U1 U1_U2 U2_U1 U2_U2 C-values bar.out.results.all 2>&1 1> bar.out.screen.all
-    hqf_fec_run_bar.py U1_U1_stride${stride_fec} U1_U2_stride${stride_fec} U2_U1_stride${stride_fec} U2_U2_stride${stride_fec} C-values bar.out.stride${stride_fec} 1> bar.out.screen.stride${stride_fec}
+    hqf_fec_run_bar.py U1_U1_stride${stride_fec} U1_U2_stride${stride_fec} U2_U1_stride${stride_fec} U2_U2_stride${stride_fec} C-values ${temperature} bar.out.stride${stride_fec} # bar.out.screen.stride${stride_fec}
     cd ..
 done

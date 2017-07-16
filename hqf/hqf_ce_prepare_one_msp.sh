@@ -49,8 +49,8 @@ prepare_restart() {
     trap 'error_response_std $LINENO' ERR
     
     # Variables
-    md_folder_potential_source=${1}
-    md_folder_coordinate_source=${2}
+    md_folder_coordinate_source=${1}
+    md_folder_potential_source=${2}
     restartFile=${3}
     crosseval_folder=${4}
     restartID=${5}
@@ -109,6 +109,7 @@ if [ ! "$crosseval_trajectory_stride" -eq "$crosseval_trajectory_stride" ] 2>/de
     echo "Error regarding the variable crosseval_trajectory_stride in the configuration file. Exiting."
     exit 1
 fi
+
 # Checking if nbeads and ntdsteps are compatible
 echo -e -n " * Checking if the variables <nbeads> and <ntdsteps> are compatible..."
 trap '' ERR
@@ -119,6 +120,13 @@ if [ "${mod}" != "0" ]; then
     exit
 fi
 echo " OK"
+
+# Checking if the md_folder exists
+if [ ! -d "md/${msp_name}/${subsystem}" ]; then
+    echo -e "\nError: The folder md/${msp_name}/${subsystem} does not exist. Exiting\n\n" 1>&2
+    exit 1
+fi
+
 
 # Preparing the folders
 echo -e " * Preparing the main folder"
@@ -141,8 +149,8 @@ for i in $(seq 1 $((nsim-1)) ); do
     bead_count2_next="$((i*beadStepSize))"
     md_folder_1="md.k_${bead_count1}_${bead_count2}"                            
     md_folder_2="md.k_${bead_count1_next}_${bead_count2_next}"                 
-    crosseval_folder_fw="${md_folder_2}-${md_folder_1}"     # md folder1 (positions) is evaluated at folder two's potential: potentialfolder-positionfolder
-    crosseval_folder_bw="${md_folder_1}-${md_folder_2}"     # Opposite of fw
+    crosseval_folder_fw="${md_folder_1}-${md_folder_2}"     # md folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
+    crosseval_folder_bw="${md_folder_2}-${md_folder_1}"     # Opposite of fw
     
     echo "${md_folder_1} ${md_folder_2}" >> TD_windows.list
     
@@ -175,7 +183,7 @@ for i in $(seq 1 $((nsim-1)) ); do
     #    exit 1
     #fi
 
-    # Loop for the restart files in md_folder 1 (forward evaluation)
+    # Loop for preparing the restart files in md_folder 1 (forward evaluation)
     for i in $(seq 1 ${restartFileCountMD1}); do
         restartID=$((i-1))
         restartFile=ipi.out.restart_${restartID}
@@ -183,11 +191,11 @@ for i in $(seq 1 $((nsim-1)) ); do
         mod=$((restartID%crosseval_trajectory_stride))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
-            prepare_restart ${md_folder_2} ${md_folder_1} ${restartFile} ${crosseval_folder_fw} ${restartID}
+            prepare_restart ${md_folder_1} ${md_folder_2} ${restartFile} ${crosseval_folder_fw} ${restartID}
         fi
         counter=$((counter+1))
     done
-    # Loop for the restart files in md_folder_2 (backward evaluation)
+    # Loop for preparing the restart files in md_folder_2 (backward evaluation)
     for i in $(seq 1 ${restartFileCountMD2}); do
         restartID=$((i-1))
         restartFile=ipi.out.restart_${restartID}
@@ -196,7 +204,7 @@ for i in $(seq 1 $((nsim-1)) ); do
         mod=$((restartID%crosseval_trajectory_stride))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
-            prepare_restart ${md_folder_1} ${md_folder_2} ${restartFile} ${crosseval_folder_bw} ${restartID}
+            prepare_restart ${md_folder_2} ${md_folder_1} ${restartFile} ${crosseval_folder_bw} ${restartID}
         fi
         counter=$((counter+1))
     done

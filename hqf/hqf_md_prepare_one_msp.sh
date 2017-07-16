@@ -62,20 +62,11 @@ inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" input-
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_type="$(grep -m 1 "^md_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
+opt_type="$(grep -m 1 "^opt_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Printing information
 echo -e "\n *** Preparing the md simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
-
-# Checking if nbeads and ntdsteps are compatible
-echo -e -n " * Checking if the variables <nbeads> and <ntdsteps> are compatible..."
-trap '' ERR
-mod="$(expr ${nbeads} % ${ntdsteps})" 
-trap 'error_response_std $LINENO' ERR
-if [ "${mod}" != "0" ]; then
-    echo " * The variables <nbeads> and <ntdsteps> are not compatible. nbeads % ntdsteps should be zero"
-    exit
-fi
-echo " OK"
 
 # Creating required folders
 echo -e " * Preparing the main folder"
@@ -132,7 +123,7 @@ for i in $(eval echo "{1..${nsim}}"); do
     sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/ipi/ipi.in.md.xml
     sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
     sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
-    
+
     # CP2K
     # Preparing the bead folders for the beads with at k=0.0
     if [ "1" -le "${bead_count1}" ]; then
@@ -142,16 +133,22 @@ for i in $(eval echo "{1..${nsim}}"); do
             sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            if [ "${TD_cycle_type}" == "lambda" ]; then
+                sed -i "s/k_value/${k_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            fi
         done
     fi
     # Preparing the bead folders for the beads at k=1.0
     if [ "$((${bead_count1}+1))" -le "${nbeads}"  ]; then
         for bead in $(eval echo "{$((${bead_count1}+1))..${nbeads}}"); do 
-           cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_1} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-           sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_1} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-           sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-           sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            if [ "${TD_cycle_type}" == "lambda" ]; then
+                sed -i "s/k_value/${k_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            fi
         done
     fi
 

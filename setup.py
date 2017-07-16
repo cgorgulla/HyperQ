@@ -1,7 +1,7 @@
 """
 Setup script for HyperQ
 
-You can install lomap with
+You can install HyperQ with
 
 python setup.py install
 """
