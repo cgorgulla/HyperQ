@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import division
 import sys
 import numpy as np
 import scipy
@@ -8,7 +9,7 @@ import matplotlib.pyplot as plt
 iteration = 0
 
 def bar_ip(delta_U1_filename, delta_U2_filename):
-    
+    # TODO: compute histograms, max overlap like GK, and if required abort. max overlap by min of of both historgrams, then max of the mins. use x values like in bar-ip -> joint
     # Reading in the files
     k_b = 0.0019872041
     T = 300 
@@ -27,6 +28,7 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     delta_U_mesh_plot = np.linspace(delta_U_min-mesh_size/2, delta_U_max+mesh_size/2, plotMeshCount)
     hist_U1_values = np.histogram(delta_U1_values, delta_U_mesh_edges, normed=True)[0]
     hist_U2_values = np.histogram(delta_U2_values, delta_U_mesh_edges, normed=True)[0]
+    # The problem with using automatic bin size determination is that the regions will be different for U1, U2 -> problems plotting? and we want the IP also to consider the space in between, right? Or not?
 
     # Fitting the distribution to the data
     ## Model functions
@@ -52,8 +54,9 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
         value = np.exp(model_fct_paras[0] * np.cos(x)) / (2*np.pi*scipy.special.iv(0,model_fct_paras[0]))
         print value
         return value
-    
-    # Residual function - fitting p1 directly 
+
+
+    # Residual function - fitting p1 directly
     def residual_fct_1(paras):
         residues = np.zeros(len(delta_U_mesh_centers) * 2)
         # Residuals of the first distribution
@@ -117,15 +120,16 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
         print model_fct_U2_values
         print "residues"
         print residues
+
         # Returning the residuals
         return residues
 
     # Least squares fitting
-    #paras_initial = np.array([0, 10, 0]) # normal distribution
-    paras_initial = np.array([0, 10, 0, 10, 0]) # normal distribution_2
+    paras_initial = np.array([0, 10, 0]) # normal distribution, first value is the delta_G
+    #paras_initial = np.array([0, 10, 0, 10, 0]) # normal distribution_2
     #paras_initial = np.array([0, 1]) # von mises 
-    model_fct = dist_normal_2
-    paras_final, success = leastsq(residual_fct_1, paras_initial[:], ftol=1.49012e-8, xtol=1.49012e-8)  # Switching function
+    model_fct = dist_normal
+    paras_final, success = leastsq(residual_fct_2, paras_initial[:], ftol=1.49012e-8, xtol=1.49012e-8)  # Switching function
         
     # Printing the results of the LS fit
     print "Estimated parameteres"
@@ -134,20 +138,28 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     print "Model function parameters: ", paras_final[1:]    
     
     # Plotting the resulting fit
-    model_fct_U1_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:]) # Switchting this two with the next two
-    model_fct_U2_values_fit = np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers) * model_fct_U1_values_fit
+    # residual_fct_1
+    #model_fct_U1_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:]) # Switchting this two with the next two
+    #model_fct_U2_values_fit = np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers) * model_fct_U1_values_fit
+    # residual_fct_2
+    model_fct_U2_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:])
+    model_fct_U1_values_fit = model_fct_U2_values_fit / np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers)
     
-    #model_fct_U2_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:])
-    #model_fct_U1_values_fit = model_fct_U2_values_fit / np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers)
-    
-    plt.plot(delta_U_mesh_centers,model_fct_U1_values_fit,'m-')
+    plt.plot(delta_U_mesh_centers, model_fct_U1_values_fit,'m-')
     plt.plot(delta_U_mesh_centers, hist_U1_values, 'ko')
     # plt.plot(delta_U_mesh_centers,hist_U1_values,'bo', delta_U_mesh_plot,model_fct_U1_values_fit,'b-', delta_U_mesh_centers,hist_U2_values,'ko', delta_U_mesh_plot,model_fct_U2_values_fit,'m-')
-    plt.plot(delta_U_mesh_centers,hist_U2_values,'bo')
+    plt.plot(delta_U_mesh_centers, hist_U2_values,'bo')
     plt.plot(delta_U_mesh_centers, model_fct_U2_values_fit, 'c-')
+    plt.xlabel('DeltaU')
+    plt.ylabel('p(Delta U)')
+    plt.xticks(np.arange(min(delta_U_mesh_centers), max(delta_U_mesh_centers) + 1, 1.0))
 
+    #plt.savefig("plot.unreduced.png", bbox_inches='tight')
+    #plt.savefig("plot.unreduced.pdf", bbox_inches='tight')
     plt.show()
     
+
+
 
 def help():
     print "Usage: hqf_fec_run_bar_ip.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>"

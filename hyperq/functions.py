@@ -21,7 +21,9 @@ along with this program. If not, see <http.//www.gnu.org/licenses/>.
 Classes:
 
 """
+from __future__ import division
 import numpy as np
+
 
 def fermi_function(x):
     #    print "x: ", x
