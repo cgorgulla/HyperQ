@@ -159,13 +159,17 @@ while read line; do
     paste ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2 # for our original BAR equation of Bennett (nominator) implemenation
     paste ${fec_folder}/${TD_window}/U1_U2 ${fec_folder}/${TD_window}/U1_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2 # for our original BAR equation of Bennett (nominator) implemenation
     
-    
     paste ${fec_folder}/${TD_window}/U2_U2_stride${stride_fec} ${fec_folder}/${TD_window}/U2_U1_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${stride_fec}
     paste ${fec_folder}/${TD_window}/U1_U1_stride${stride_fec} ${fec_folder}/${TD_window}/U1_U2_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}
     paste ${fec_folder}/${TD_window}/U2_U1_stride${stride_fec} ${fec_folder}/${TD_window}/U2_U2_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}
     paste ${fec_folder}/${TD_window}/U1_U2_stride${stride_fec} ${fec_folder}/${TD_window}/U1_U1_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${stride_fec}
     
     # Preparing the C-values
-    hqh_fec_prepare_cvalues.py ${c_values_min} ${c_values_max} ${c_values_count} > ${fec_folder}/${TD_window}/C-values
+    #hqh_fec_prepare_cvalues.py ${c_values_min} ${c_values_max} ${c_values_count} > ${fec_folder}/${TD_window}/C-values
+
+    # Drawing histograms
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}.plot"
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}.plot"
+    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/delta_1_U+delta_2_U_stride${stride_fec}.plot"
     
 done <${ce_folder}/TD_windows.list

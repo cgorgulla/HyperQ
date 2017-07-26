@@ -5,6 +5,8 @@ import numpy as np
 import scipy
 from scipy.optimize import leastsq
 import matplotlib.pyplot as plt
+plt.switch_backend('agg')
+
 
 iteration = 0
 
@@ -129,7 +131,7 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     #paras_initial = np.array([0, 10, 0, 10, 0]) # normal distribution_2
     #paras_initial = np.array([0, 1]) # von mises 
     model_fct = dist_normal
-    paras_final, success = leastsq(residual_fct_2, paras_initial[:], ftol=1.49012e-8, xtol=1.49012e-8)  # Switching function
+    paras_final, success = leastsq(residual_fct_1, paras_initial[:], ftol=1.49012e-8, xtol=1.49012e-8)  # Switching function
         
     # Printing the results of the LS fit
     print "Estimated parameteres"
@@ -139,11 +141,13 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     
     # Plotting the resulting fit
     # residual_fct_1
-    #model_fct_U1_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:]) # Switchting this two with the next two
-    #model_fct_U2_values_fit = np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers) * model_fct_U1_values_fit
+    model_fct_U1_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:]) # Switchting this two with the next two
+    model_fct_U2_values_fit = np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers) * model_fct_U1_values_fit
+
+
     # residual_fct_2
-    model_fct_U2_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:])
-    model_fct_U1_values_fit = model_fct_U2_values_fit / np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers)
+    #model_fct_U2_values_fit = model_fct(delta_U_mesh_centers, paras_final[1:])
+    #model_fct_U1_values_fit = model_fct_U2_values_fit / np.exp((-(k_b*T)**(-1))*paras_final[0] - delta_U_mesh_centers)
     
     plt.plot(delta_U_mesh_centers, model_fct_U1_values_fit,'m-')
     plt.plot(delta_U_mesh_centers, hist_U1_values, 'ko')
@@ -152,24 +156,27 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     plt.plot(delta_U_mesh_centers, model_fct_U2_values_fit, 'c-')
     plt.xlabel('DeltaU')
     plt.ylabel('p(Delta U)')
-    plt.xticks(np.arange(min(delta_U_mesh_centers), max(delta_U_mesh_centers) + 1, 1.0))
+    #plt.xticks(np.arange(min(delta_U_mesh_centers), max(delta_U_mesh_centers) + 1, 1.0))
 
     #plt.savefig("plot.unreduced.png", bbox_inches='tight')
     #plt.savefig("plot.unreduced.pdf", bbox_inches='tight')
-    plt.show()
+    plt.savefig("bar_ip.plot.png", bbox_inches='tight')
     
 
 
 
 def help():
     print "Usage: hqf_fec_run_bar_ip.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>"
-    print "The first potential is always the sampling potential, the second one is the evaluating potential.\n\n"
+    print "The first potential is always the sampling potential, the second one is the evaluating potential."
 
 
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
+        print
         help()
+        print
+        print
     else:
         bar_ip(sys.argv[1], sys.argv[2])

@@ -45,6 +45,10 @@ set -u
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 stride_fec="$(grep -m 1 "^stride_fec=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -67,6 +71,6 @@ for TDWindow in */; do
     cd ${TDWindow}
     rm bar.out.* >/dev/null  2>&1 || true
     #hqf_fec_run_bar.py U1_U1 U1_U2 U2_U1 U2_U2 C-values bar.out.results.all 2>&1 1> bar.out.screen.all
-    hqf_fec_run_bar.py U1_U1_stride${stride_fec} U1_U2_stride${stride_fec} U2_U1_stride${stride_fec} U2_U2_stride${stride_fec} C-values ${temperature} bar.out.stride${stride_fec} # bar.out.screen.stride${stride_fec}
+    hqf_fec_run_bar.py U1_U1_stride${stride_fec} U1_U2_stride${stride_fec} U2_U1_stride${stride_fec} U2_U2_stride${stride_fec} ${delta_F_min} ${delta_F_max} bar.out.stride${stride_fec} ${temperature} ${C_absolute_tolerance}
     cd ..
 done

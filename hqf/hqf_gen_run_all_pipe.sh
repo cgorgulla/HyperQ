@@ -6,23 +6,23 @@ usage="Usage: hq_gen_run_all_pipe.sh <subsystem> <pipeline_type> <maximum parall
 The script has to be run in the root folder.
 
 The pipeline can be composed of:
-\n  _pro_: prepare the optimization
-\n  _rop_: run the optimization
-\n  _ppo_: postprocess the optimization
-\n  _prm_: prepare md simulation
-\n  _rmd_: run md simulation
-\n  _prc_: prepare the crossevaluation
-\n  _rce_: run the crossevaluation
-\n  _prf_: prepare the free energy calculation
-\n  _rfe_: run the free energy calculation
-\n  _ppf_: postprocess the free energy calculation
-\n
-\n Combined elements:
-\n  _allopt_: equals _pro_rop_ppo_
-\n  _allmd_ : equals _prd_rmd_
-\n  _allce_ : equals _prc_rce_
-\n  _allfec_: equals _prf_rfe_ppf_
-\n  _all_   : equals _allopt_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
+  _pro_: prepare the optimization
+  _rop_: run the optimization
+  _ppo_: postprocess the optimization
+  _prm_: prepare md simulation
+  _rmd_: run md simulation
+  _prc_: prepare the crossevaluation
+  _rce_: run the crossevaluation
+  _prf_: prepare the free energy calculation
+  _rfe_: run the free energy calculation
+  _ppf_: postprocess the free energy calculation
+
+ Combined elements:
+  _allopt_: equals _pro_rop_ppo_
+  _allmd_ : equals _prd_rmd_
+  _allce_ : equals _prc_rce_
+  _allfec_: equals _prf_rfe_ppf_
+  _all_   : equals _allopt_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
 "
 
 #Checking the input arguments
