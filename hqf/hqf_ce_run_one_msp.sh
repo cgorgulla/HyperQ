@@ -39,8 +39,9 @@ trap 'error_response_std $LINENO' ERR
 
 clean_up() {
     for pid in "${pids[@]}"; do
-        kill "${pid}"  1>/dev/null 2>&1 || true
+        kill -9 "${pid}"  1>/dev/null 2>&1 || true
     done
+    #kill -9 0  1>/dev/null 2>&1  || true
 }
 trap 'clean_up' EXIT
 
@@ -57,6 +58,8 @@ echo -e "\n *** Starting the cross evalutations (hqf_ce_run_one_msp.sh) ***"
 # Variables
 ncpus_cp2k_md="${1}"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 
 # Running the md simulations
 i=0
@@ -66,16 +69,17 @@ for TDwindow_folder in $(ls -d */); do
     echo -e "\n ** Running the cross evaluations of folder ${TDwindow_folder}"
     for snapshot_folder in snapshot*; do
         while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
+            echo -e " * Waiting for a free slot to star cross evaluation of snapshot ${snapshot_folder/*-} (hqf_ce_run_one_msp.sh)"
             sleep 1.$RANDOM
             echo
-            jobs
-            echo
         done;
-        sleep 1.$RANDOM
+        sleep 0.$RANDOM
         cd ${snapshot_folder}/
         echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
         setsid hqf_ce_run_one_snapshot.sh ${ncpus_cp2k_md} &
-        pids[i]=$!
+        pid=$!
+        pids[i]=$pid
+        echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/ce
         i=$((i+1))
         cd ..
     done

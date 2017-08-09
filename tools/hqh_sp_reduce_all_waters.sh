@@ -68,7 +68,7 @@ for folder in $(ls input-files/systems); do
     else
         # Reducing the number of water molecules in all the systems (which remained)
         cd input-files/systems/${folder}/${subsystem}/
-            vmdc ${script_dir}/hq_sp_reduce_waters.vmd -args system_complete ${minimumWaterCount}
+            vmdc ${script_dir}/hqh_sp_reduce_waters.vmd -args system_complete ${minimumWaterCount}
         cd ../../../..
     fi
 done

@@ -56,6 +56,8 @@ echo -e "\n *** Starting the md simulations (hqf_md_run_one_msp.sh)"
 # Variables
 ncpus_cp2k_md=${1}
 fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 
 # Running the md simulations
 i=0
@@ -66,7 +68,9 @@ for folder in $(ls -d md*); do
     cd ${folder}/
     echo -e " * Starting the md simulation ${folder}"
     setsid hq_md_run_one_md.sh &
-    pids[i]=$!
+    pid=$!
+    pids[i]=$pid
+    echo "${pid} " >> ../../../../runtime/pids/${system_name}_${subsystem}/md
     cd ../
     i=$((i+1))
 done

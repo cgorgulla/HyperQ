@@ -64,10 +64,10 @@ system_2_basename="${msp_name/*_}"
 echo -e "\n *** Running the FEC between the systems ${system_1_basename} and ${system_2_basename} ***"
 
 # Tyding up
-rm fec.out.* >/dev/null 2>&1 || true
+rm *.out.* >/dev/null 2>&1 || true
 
 # Running the FEM on all the TD windows
-for TDWindow in */; do
+for TDWindow in m*/; do
     cd ${TDWindow}
     rm bar.out.* >/dev/null  2>&1 || true
     #hqf_fec_run_bar.py U1_U1 U1_U2 U2_U1 U2_U2 C-values bar.out.results.all 2>&1 1> bar.out.screen.all

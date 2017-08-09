@@ -103,4 +103,6 @@ if [[ "${opt_programs}" == *"namd"* ]]; then
     sed -i "s/cellBasisVector3 .*/cellBasisVector3 0 0 ${C}/g" opt/namd/namd.in.opt
 fi
 
+
+
 cd ../../../

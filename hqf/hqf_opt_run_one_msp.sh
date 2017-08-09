@@ -56,7 +56,8 @@ echo -e "\n *** Running the geometry optimizations (hq_opt_run_one_opt.sh)"
 # Variables
 fes_opt_parallel_max="$(grep -m 1 "^fes_opt_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-
+system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 
 # Running the geopts
 i=0
@@ -70,6 +71,7 @@ for folder in opt.*; do
     echo -e " * Starting the optimization ${folder}"
     setsid hqf_opt_run_one_opt.sh &
     pids[i]=$!
+    echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
     i=$((i+1))
     cd ../..
 done

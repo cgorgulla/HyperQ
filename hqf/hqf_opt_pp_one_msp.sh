@@ -39,6 +39,8 @@ trap 'error_response_std $LINENO' ERR
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -49,13 +51,13 @@ echo -e "\n *** Postprocessing the optimizations (hqf_opt_pp_one_msp.sh)"
 
 # For each folder in geopt (each k value) prepare a pdb coordinate file
 for folder in opt.*; do
-    bead_config=${folder/opt.k_}
-    bead_count1=${bead_config/_*}
-    bead_count2=${bead_config/*_}
-    nbeads=$((bead_count1 + bead_count2))
+    subconfiguration=${folder/opt.}
+    #bead_count1=${bead_configuration/_*}
+    #bead_count2=${bead_configuration/*_}
+    #nbeads=$((bead_count1 + bead_count2))
     original_pdb_filename="system.a1c1.pdb"
     original_psf_filename="system1.psf"
-    output_filename="system.k_${bead_count1}_${bead_count2}.opt.pdb"
+    output_filename="system.${subconfiguration}.opt.pdb"
     opt_programs="$(grep -m 1 "^opt_programs=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
     echo -e " * Postprocessing folder ${folder}"

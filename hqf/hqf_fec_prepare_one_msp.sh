@@ -58,6 +58,7 @@ c_values_min=$(grep -m 1 "^c_values_min=" input-files/config.txt | awk -F '=' '{
 c_values_max=$(grep -m 1 "^c_values_max=" input-files/config.txt | awk -F '=' '{print $2}')
 c_values_count=$(grep -m 1 "^c_values_count=" input-files/config.txt | awk -F '=' '{print $2}')
 stride_fec=$(grep -m 1 "^stride_fec=" input-files/config.txt | awk -F '=' '{print $2}')
+md_folder="md/${msp_name}/${subsystem}"
 
 # Printing some information
 echo -e "\n *** Preparing the FEC between the systems ${system_1_basename} and ${system_2_basename}"
@@ -74,15 +75,6 @@ if [ ! -d "${ce_folder}" ]; then
     exit 1
 fi
 
-# Checking if the ce_folder exists
-md_folder="md/${msp_name}/${subsystem}"
-
-# Creating required folders
-if [ -d ${fec_folder} ]; then         
-    rm -r ${fec_folder}
-fi
-mkdir -p ${fec_folder}
-
 # Loop for each TD Window
 while read line; do 
     md_folder_1="$(echo -n ${line} | awk '{print $1}')"
@@ -98,6 +90,12 @@ while read line; do
     stride_ce=$(grep -m 1 "^stride_ce=" input-files/config.txt | awk -F '=' '{print $2}')
     TD_window=${md_folder_1}-${md_folder_2}
 
+    # Creating required folders
+    if [ -d ${fec_folder}/${TD_window} ]; then
+        rm -r ${fec_folder}/${TD_window}
+    fi
+    mkdir -p ${fec_folder}/${TD_window}
+
     # Checking if the ipi-input-file <variables stride_ipi_properties> and <stride_ipi_trajectory> are compatible
     echo -e -n " * Checking if the ipi-input-file variables <stride_ipi_properties> and <stride_ipi_trajectory> are compatible... "
     trap '' ERR
@@ -109,8 +107,6 @@ while read line; do
         exit 1
     fi
     echo "OK"
-
-    mkdir ${fec_folder}/${TD_window} 
 
     # Loop for the each snapshot pair
     snapshotCount=$(ls ${ce_folder}/${crosseval_folder_fw} | wc -l)

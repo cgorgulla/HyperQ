@@ -125,7 +125,7 @@ if [ ${md_type^^} == "QMMM" ]; then
     # Preparing the QMMM files for CP2K
     hqh_gen_prepare_cp2k_qmmm.py "system1"
     hqh_gen_prepare_cp2k_qmmm.py "system2"
-    
+
     # Preparing the pdbx file for iqi
     echo "**************************************************"
     hqh_gen_prepare_pdbx.py system1.pdb system2.pdb system.mcs.mapping

@@ -38,7 +38,6 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
@@ -49,8 +48,8 @@ fi
 # Variables
 system_basename="${1}"
 subsystem="${2}"
-md_type="$(grep -m 1 "^md_type=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs=" input-files/config.txt | awk -F '=' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_folder="md"
 

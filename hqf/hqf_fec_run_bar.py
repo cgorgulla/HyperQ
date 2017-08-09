@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import sys
-from hyperq.bar import BAR
+from hyperq.bar import *
+import numpy as np
     
 
 def help():
@@ -17,12 +18,30 @@ if __name__ == '__main__':
     elif sys.argv[1] == "-h" and len(sys.argv) == 1:
         help()
     else:
-        bar = BAR(*sys.argv[1:])
-        bar.compute_bar()
-        bar.write_delta_F_values()
-        bar.write_results()
-        bar.plot("save")
-        #try:
-        #except TypeError as err:
-        #    sys.stderr.write('\n' + err.message + '\n\n')
-        #    exit(10)
+
+        # Preparing the input data
+        U1_U1_filename = sys.argv[1]
+        U1_U1_values = np.loadtxt(U1_U1_filename)
+        U1_U2_filename = sys.argv[2]
+        U1_U2_values = np.loadtxt(U1_U2_filename)
+        U2_U1_filename = sys.argv[3]
+        U2_U1_values = np.loadtxt(U2_U1_filename)
+        U2_U2_filename = sys.argv[4]
+        U2_U2_values = np.loadtxt(U2_U2_filename)
+
+        if len(U1_U1_values) == len(U1_U2_values):
+            U1_U2_minus_U1_U1_values = U1_U2_values - U1_U1_values
+        else:
+            errorMessage = "Error: The files " + U1_U1_filename + " and " + U1_U2_filename + " contain an unequal number of values."
+            raise TypeError(errorMessage)
+        if len(U2_U1_values) == len(U2_U2_values):
+            U2_U1_minus_U2_U2_values = U2_U1_values - U2_U2_values
+        else:
+            errorMessage = "Error: The files " + U2_U1_filename + " and " + U2_U2_filename + " contain an unequal number of values."
+            raise TypeError(errorMessage)
+
+        # Running BAR
+        bar_object = BAR_DeltaU(U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8], sys.argv[9])
+        bar_object.compute_bar()
+        bar_object.write_results()
+        bar_object.plot("save")

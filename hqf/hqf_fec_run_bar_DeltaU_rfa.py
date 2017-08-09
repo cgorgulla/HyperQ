@@ -17,10 +17,13 @@ if __name__ == '__main__':
     elif sys.argv[1] == "-h" and len(sys.argv) == 1:
         help()
     else:
-        #try:
-        bar_object = BAR_DeltaU_rfa(*sys.argv[1:])
+        # Preparing the input data
+        U1_U2_minus_U1_U1_filename = sys.argv[1]
+        U1_U2_minus_U1_U1_values = np.loadtxt(U1_U2_minus_U1_U1_filename)
+        U2_U1_minus_U2_U2_filename = sys.argv[2]
+        U2_U1_minus_U2_U2_values = np.loadtxt(U2_U1_minus_U2_U2_filename)
+
+        # Running BAR
+        bar_object = BAR_DeltaU_rfa(U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6], sys.argv[7], sys.argv[8])
         bar_object.compute_bar()
         bar_object.write_results()
-        #except TypeError as err:
-        #    sys.stderr.write('\n' + err.message + '\n\n')
-        #    exit(10)

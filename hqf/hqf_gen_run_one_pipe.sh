@@ -60,10 +60,36 @@ trap 'error_response_std $LINENO' ERR
 
 # Exit cleanup
 cleanup_exit() {
-    kill  0  1>/dev/null 2>&1 || true # Stops the proccesses of the same process group as the calling process
+
+    for pid in $(cat runtime/pids/${msp_name}_${subsystem}/* | tr "\n" " "); do
+        kill $pid 1>&2 2>/dev/null || true
+    done
+    for pid in $(cat runtime/pids/${msp_name}_${subsystem}/* | tr "\n" " "); do
+        kill -9 $pid 1>&2 2>/dev/null || true
+    done
+
+    kill 0 1>/dev/null 2>&1 || true # Stops the proccesses of the same process group as the calling process
     #kill $(pgrep -f $DAEMON | grep -v ^$$\$)
 }
 trap "cleanup_exit" EXIT
+
+# Checking the folder
+if [ ! -d input-files ]; then
+    echo
+    echo -e " * Error: This script has to be run in the root folder. Exiting..."
+    echo
+    echo
+    exit 1
+fi
+
+# Error indicator check
+check_error_indicators() {
+    sleep 5
+    if [ -f "runtime/error" ]; then
+        echo -e " * Error detected. Exiting...\n\n"
+        exit 1
+    fi
+}
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -76,73 +102,97 @@ fi
 ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt" input-files/config.txt | awk -F '=' '{print $2}')"
 ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md" input-files/config.txt | awk -F '=' '{print $2}')"
 ncpus_cp2k_ce="$(grep -m 1 "^ncpus_cp2k_ce" input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads=$(grep -m 1 "^nbeads" input-files/config.txt | awk -F '=' '{print $2}')
-ntdsteps=$(grep -m 1 "^ntdsteps" input-files/config.txt | awk -F '=' '{print $2}')
+nbeads="$(grep -m 1 "^nbeads" input-files/config.txt | awk -F '=' '{print $2}')"
+ntdsteps="$(grep -m 1 "^ntdsteps" input-files/config.txt | awk -F '=' '{print $2}')"
 stride_ce="$(grep -m 1 "^stride_ce" input-files/config.txt | awk -F '=' '{print $2}')"
-msp_name=${1}
-subsystem=${2}
-pipeline_type=${3}
-system1=${msp_name/_*}
-system2=${msp_name/*_}
+msp_name="${1}"
+subsystem="${2}"
+pipeline_type="${3}"
+system1="${msp_name/_*}"
+system2="${msp_name/*_}"
+date="$(date | tr ": " "_")"
+
+# Removing old  file
+if [ -f runtime/error ]; then
+    rm runtime/error
+fi
+if [ -d runtime/pids/${msp_name}_${subsystem}/ ]; then
+    rm -r runtime/pids/${msp_name}_${subsystem}/
+fi
+
+# Folders
+mkdir -p log-files/${date}
+mkdir -p runtime
+mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    hqf_opt_prepare_one_msp.sh  ${nbeads} ${ntdsteps} ${system1} ${system2} ${subsystem}
+    hqf_opt_prepare_one_msp.sh  ${nbeads} ${ntdsteps} ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/hqf_opt_prepare_one_msp_${nbeads}_${ntdsteps}_${system1}_${system2}_${subsystem}
+    check_error_indicators
 fi
 
 # Running the optimizations
 if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"*  ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd opt/${msp_name}/${subsystem}
-    hqf_opt_run_one_msp.sh
+    hqf_opt_run_one_msp.sh 2>&1  | tee ../../../log-files/${date}/hqf_opt_run_one_msp
     cd ../../../
+    check_error_indicators
 fi 
 
 # Postprocessing the optimizations
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd opt/${msp_name}/${subsystem}
-    hqf_opt_pp_one_msp.sh
+    hqf_opt_pp_one_msp.sh 2>&1  | tee ../../../log-files/${date}/hqf_opt_pp_one_msp
     cd ../../../
+    check_error_indicators
 fi
 
 # Preparing the md simulations
 if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps}
+    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps} 2>&1 | tee log-files/${date}/hqf_md_prepare_one_msp_${system1}_${system2}_${subsystem}_${nbeads}_${ntdsteps}
+    check_error_indicators
 fi
 
 # Running the md simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd md/${msp_name}/${subsystem}
-    hqf_md_run_one_msp.sh
+    hqf_md_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/hqf_md_run_one_msp
     cd ../../../
+    check_error_indicators
 fi
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps} ${stride_ce}
+    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps} ${stride_ce} 2>&1 | tee log-files/${date}/hqf_ce_prepare_one_msp.sh_${system1}_${system2}_${subsystem}_${nbeads}_${ntdsteps}_${stride_ce}
+    check_error_indicators
 fi
 
 # Running the crossevaluations
 if [[ ${pipeline_type} == *"_rce_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd ce/${msp_name}/${subsystem}
-    hqf_ce_run_one_msp.sh
+    hqf_ce_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/hqf_ce_run_one_msp
     cd ../../../
+    check_error_indicators
 fi
 
 # Preparing the fec
 if [[ ${pipeline_type} == *"_prf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem}
+    hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/hqf_fec_prepare_one_msp_${system1}_${system2}_${subsystem}
+    check_error_indicators
 fi
 
 # Running the fec
 if [[ ${pipeline_type} == *"_rfe_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    hqf_fec_run_one_msp.sh
+    hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/hqf_fec_run_one_msp
     cd ../../../../
+    check_error_indicators
 fi
 
 # Running the fec
 if [[ ${pipeline_type} == *"_ppf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    hqf_fec_pp_one_msp.sh
+    hqf_fec_pp_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/hqf_fec_pp_one_msp
     cd ../../../../
+    check_error_indicators
 fi

@@ -52,20 +52,28 @@ msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_1_basename="${msp_name/_*}"
 system_2_basename="${msp_name/*_}"
+date=$(date | tr -s ' :' '_')
 
 # Printing some information
 echo -e "\n *** Postprocessing the FEC between the systems ${system_1_basename} and ${system_2_basename} ***"
 
+
+# Folders
+mkdir -p previous-runs/${date}/
+
 # Extracting the final results of each TD Window
-for TDWindow in */; do
+for TDWindow in m*/; do
     TDWindow=${TDWindow%/}
     cat ${TDWindow}/bar.out.stride${stride_fec}.values | grep "Delta_F equation 2:" | awk '{print $4}' | tr -d "\n"  > fec.out.delta_F.window-${TDWindow}.stride${stride_fec}
     echo " kcal/mol" >> fec.out.delta_F.window-${TDWindow}.stride${stride_fec}
     #cat ${TDWindow}/fec.out.results.all | grep "Delta_F equation 2:"| awk '{print $4}' > fec.out.delta_F.window.${TDWindow}.all
+
+    # Copying the files and folders
+    cp -r ${TDWindow} previous-runs/${date}/${TDWindow}
+    cp fec.out.delta_F.window-${TDWindow}.stride${stride_fec} previous-runs/${date}/fec.out.delta_F.window-${TDWindow}.stride${stride_fec}
 done
 
 # Computing the total FE difference including all the TD windows
 awk '{print $1}' fec.out.delta_F.window-*.stride${stride_fec} | paste -sd+ | bc | tr -d "\n" > fec.out.delta_F.total.stride${stride_fec}
 echo " kcal/mol" >> fec.out.delta_F.total.stride${stride_fec}
-#cat fec.out.delta_F.window.*.all | tr '\n' ' ' | paste -sd+ | bc | tr -d "\n" > fec.out.delta_F.total.all
-#echo -n " kcal/mol" >> fec.out.delta_F.total.all
+cp fec.out.delta_F.total.stride${stride_fec} previous-runs/${date}/fec.out.delta_F.total.stride${stride_fec}

@@ -39,15 +39,12 @@ def main(data1_filename, data2_filename, fitting_type, outputfile_basename):
         (fit1_mu, fit1_sigma) = norm.fit(values1)
         hist_values_1 = mlab.normpdf( bins_1, fit1_mu, fit1_sigma)
         line_1, = plt.plot(bins_1, hist_values_1, 'm', linewidth=2, label="$ \Delta_1 U $: $ \mu=%.3f,\ \sigma=%.3f $" %(fit1_mu, fit1_sigma), path_effects=[pe.Stroke(linewidth=3, foreground='k'), pe.Normal()])
-        #legend_1 = plt.legend(handles=[line_1], loc=1, fontsize='small')
-        #ax_1 = plt.gca().add_artist(legend_1)
 
         # Fitting data2
         (fit2_mu, fit2_sigma) = norm.fit(values2)
         hist_values_2 = mlab.normpdf( bins_2, fit2_mu, fit2_sigma)
         line_2, = plt.plot(bins_2, hist_values_2, 'b', linewidth=2, label="$ \Delta_2 U $: $ \mu=%.3f,\ \sigma=%.3f $" %(fit2_mu, fit2_sigma), path_effects=[pe.Stroke(linewidth=3, foreground='k'), pe.Normal()])
-        #legend_2 = plt.legend(handles=[line_2], loc=1, fontsize='small')
-        #ax_2 = plt.gca().add_artist(legend_2)
+
         plt.legend(fontsize='small', loc=0, title="Fitted normal distributions")
         plt.title(r'Histograms and of $ \Delta_1 U $ and $ \Delta_2 U $')
     elif fitting_type == "none":

@@ -1,0 +1,17 @@
+set ligand_file_basename [lindex $argv 0]
+set output_file_basename [lindex $argv 1]
+set script_dir [lindex $argv 2]
+set padding_size [lindex $argv 3]
+
+package require psfgen
+resetpsf
+topology ${script_dir}/../common/charmm36/toppar_water_ions_namd.str
+topology ${ligand_file_basename}.rtf
+
+segment LIG {pdb ${ligand_file_basename}.pdb}
+
+coordpdb ${ligand_file_basename}.pdb LIG
+guesscoord
+
+writepsf ${output_file_basename}_nosolv.psf
+writepdb ${output_file_basename}_nosolv.pdb

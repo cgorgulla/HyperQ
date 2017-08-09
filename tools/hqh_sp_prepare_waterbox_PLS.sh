@@ -48,8 +48,8 @@ script_dir=$(dirname $0)
 protein_basename=$1
 ligand_basename=$2
 output_basename=$3
-padding_size="$(grep -m 1 "^waterbox_padding_size_PLS=" ../../../config.txt | awk -F '=' '{print $2}')"
+waterbox_padding_size_PLS="$(grep -m 1 "^waterbox_padding_size_PLS=" ../../../config.txt | awk -F '=' '{print $2}')"
 
 # Body
-vmdc "${script_dir}/hqh_sp_prepare_waterbox_PLS.vmd" -args $protein_basename $ligand_basename $output_basename ${script_dir} $padding_size
+vmdc "${script_dir}/hqh_sp_prepare_waterbox_PLS.vmd" -args $protein_basename $ligand_basename $output_basename ${script_dir} $waterbox_padding_size_PLS
 sed -i "s/PRT   $/PRT  H/g" system_complete.pdb

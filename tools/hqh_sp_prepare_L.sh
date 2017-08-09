@@ -93,6 +93,6 @@ echo "END" >> system_complete.prm
 
 # Waterbox generation
 echo -e "\n *** Preparing the joint ligand system (prepare_waterbox_ligand.sh) ***"
-hqh_sp_prepare_waterbox_L.sh ${ligand_basename}_unique_typed system
+hqh_sp_prepare_box_L.sh ${ligand_basename}_unique_typed system
 
 cd ../../../

@@ -85,7 +85,7 @@ fi
 # Postprocessing the optimizations
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd opt/${system}/${subsystem}
-    hqmd_opt_pp_one_ms.sh
+    hqmd_opt_pp_one_ms.sh ${subsystem}
     cd ../../../
 fi
 

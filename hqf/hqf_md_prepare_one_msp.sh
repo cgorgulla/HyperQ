@@ -60,10 +60,12 @@ inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/
 inputfile_cp2k_md_k_0="$(grep -m 1 "^inputfile_cp2k_md_k_0_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_type="$(grep -m 1 "^md_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+
 
 # Printing information
 echo -e "\n *** Preparing the md simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
@@ -84,7 +86,7 @@ for system_basename in ${system_1_basename} ${system_2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-    if [ ${md_type^^} == "QMMM" ]; then
+    if [[ "${md_type}" == *"QMMM"* ]]; then
         cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
     fi
     (( systemID += 1 ))
@@ -96,80 +98,172 @@ line=$(grep CRYST1 system1.pdb)
 IFS=' ' read -r -a lineArray <<< "$line"
 A=${lineArray[1]}
 B=${lineArray[2]}
-C=${lineArray[3]}  
+C=${lineArray[3]}
 
-# Loop for each TD window
-beadStepSize=$(expr $nbeads / $ntdsteps)
-k_current=0.000
-for i in $(eval echo "{1..${nsim}}"); do 
-    bead_count1="$(( nbeads - (i-1)*beadStepSize))"
-    bead_count2="$(( (i-1)*beadStepSize))"
-    md_folder="md.k_${bead_count1}_${bead_count2}"
-    bead_configuration="${bead_count1}_${bead_count2}"
-    k_stepsize=$(echo "1 / $ntdsteps" | bc -l)
-    echo -e " * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+if [ "${TD_cycle_type}" == "hq" ]; then
 
-    # Creating directies
-    mkdir ${md_folder}
-    mkdir ${md_folder}/cp2k
-    mkdir ${md_folder}/ipi
-    for bead in $(eval echo "{1..$nbeads}"); do
-        mkdir ${md_folder}/cp2k/bead-${bead}
+    # Bead step size
+    beadStepSize=$(expr ${ntdsteps} / ${nbeads})
+
+    # Loop for each TD window
+    lambda_current=0.000
+    for i in $(eval echo "{1..${nsim}}"); do
+        bead_count1="$(( nbeads - (i-1)*beadStepSize))"
+        bead_count2="$(( (i-1)*beadStepSize))"
+        bead_configuration="k_${bead_count1}_${bead_count2}"
+        md_folder="md.${bead_configuration}"
+        k_stepsize=$(echo "1 / $ntdsteps" | bc -l)
+        echo -e " * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+
+        # Creating directies
+        mkdir ${md_folder}
+        mkdir ${md_folder}/cp2k
+        mkdir ${md_folder}/ipi
+        for bead in $(eval echo "{1..$nbeads}"); do
+            mkdir ${md_folder}/cp2k/bead-${bead}
+        done
+
+        # Copying in the input files of the packages
+        # ipi
+        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
+
+        # CP2K
+        # Preparing the bead folders for the beads with at k=0.0
+        if [ "1" -le "${bead_count1}" ]; then
+            for bead in $(eval echo "{1..${bead_count1}}"); do
+                cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                if [ "${TD_cycle_type}" == "lambda" ]; then
+                    sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                fi
+            done
+        fi
+
+        # Preparing the bead folders for the beads at k=1.0
+        if [ "$((${bead_count1}+1))" -le "${nbeads}"  ]; then
+            for bead in $(eval echo "{$((${bead_count1}+1))..${nbeads}}"); do
+                cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_1} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                if [ "${TD_cycle_type}" == "lambda" ]; then
+                    sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                fi
+            done
+        fi
+
+        # QM/MM Case
+        if [ ${md_type^^} == "QMMM" ]; then
+
+            # iqi
+            inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+            inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+            mkdir ${md_folder}/iqi
+            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/iqi/iqi.in.xml
+            cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
+        fi
+
+        # Copying the geo-opt coordinate files
+        cp ../../../opt/${msp_name}/${subsystem}/system.${bead_configuration}.opt.pdb ./
+
+        # Adjusting lambda_current
+        lambda_current=$(echo "${lambda_current} + ${k_stepsize}" | bc -l)
+        lambda_current=${lambda_current:0:5}
+
     done
 
-    # Copying in the input files of the packages
-    # ipi
-    cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
-    sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/ipi/ipi.in.md.xml
-    sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
-    sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
+elif [ "${TD_cycle_type}" == "lambda" ]; then
 
-    # CP2K
-    # Preparing the bead folders for the beads with at k=0.0
-    if [ "1" -le "${bead_count1}" ]; then
-        for bead in $(eval echo "{1..${bead_count1}}"); do
+    # Checking if the CP2K input file contains a lambda variable
+    lambda_count="$(grep -c lambda ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} )"
+    echo -n " * Checking if the lambda variable is present in the CP2K input file... "
+    if  [ ! "${lambda_count}" -ge "1" ]; then
+        echo "Check failed"
+        echo -e "\n * Error: The CP2K input file does not contain the lambda variable. Exiting...\n\n"
+        echo "" > runtime/error
+        exit 1
+    fi
+    echo "OK"
+
+    # Checking if the two CP2K input files are the same
+    echo -n " * Checking if the two CP2K input files (k_0 und k_1) are the same, as required for in the TD_cycle_type=lambda)... "
+    echo ${inputfile_cp2k_md_k_0}
+    echo ${inputfile_cp2k_md_k_1}
+    if  [ ! "${inputfile_cp2k_md_k_0}" = "${inputfile_cp2k_md_k_1}" ]; then
+        echo "Check failed."
+        echo -e "\n * Error: The two CP2K input files do not seem to be the same. Exiting....\n\n"
+        echo "" > runtime/error
+        exit 1
+    fi
+    echo "OK"
+
+    # Lambda step size
+    lambda_stepsize=$(echo "print(1/${ntdsteps})" | python3)
+
+    # Loop for each TD window
+    lambda_current=0.000
+    for i in $(eval echo "{1..${nsim}}"); do
+        lambda_configuration=lambda_${lambda_current}
+        md_folder="md.lambda_${lambda_current}"
+        echo -e " * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+
+        # Creating directies
+        mkdir ${md_folder}
+        mkdir ${md_folder}/cp2k
+        mkdir ${md_folder}/ipi
+        for bead in $(eval echo "{1..$nbeads}"); do
+            mkdir ${md_folder}/cp2k/bead-${bead}
+        done
+
+        # Copying in the input files of the packages
+        # ipi
+        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
+        sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
+
+        # CP2K
+        for bead in $(eval echo "{1..${nbeads}}"); do
             cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+            sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            if [ "${TD_cycle_type}" == "lambda" ]; then
-                sed -i "s/k_value/${k_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            fi
         done
-    fi
-    # Preparing the bead folders for the beads at k=1.0
-    if [ "$((${bead_count1}+1))" -le "${nbeads}"  ]; then
-        for bead in $(eval echo "{$((${bead_count1}+1))..${nbeads}}"); do 
-            cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_1} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            if [ "${TD_cycle_type}" == "lambda" ]; then
-                sed -i "s/k_value/${k_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            fi
-        done
-    fi
-
-    # QM/MM Case
-    if [ ${md_type^^} == "QMMM" ]; then
 
         # iqi
-        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-        mkdir ${md_folder}/iqi
-        cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
-        sed -i "s/fes_basename/${msp_name}/g" ${md_folder}/iqi/iqi.in.xml
-        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/iqi/iqi.in.xml
-        sed -i "s/bead_configuration/${bead_configuration}/g" ${md_folder}/iqi/iqi.in.xml
-        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
-    fi
+        if [[ "${md_programs}" == *"iqi"* ]]; then
+            # Variables
+            inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+            inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
-    # Copying the geo-opt coordinate files
-    cp ../../../opt/${msp_name}/${subsystem}/system.k_${bead_count1}_${bead_count2}.opt.pdb ./
+            mkdir ${md_folder}/iqi
+            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/iqi/iqi.in.xml
+            sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/iqi/iqi.in.xml
+            cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
+        fi
 
-done
+        # Copying the geo-opt coordinate files
+        cp ../../../opt/${msp_name}/${subsystem}/system.${lambda_configuration}.opt.pdb ./
+
+        # Adjusting lambda_current
+        lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
+        lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+    done
+fi
 
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system_1_basename} ${system_2_basename} ${subsystem} ${md_type}

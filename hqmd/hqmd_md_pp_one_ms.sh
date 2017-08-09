@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-usage="Usage: hq_md_pp_one_molecule.sh
+usage="Usage: hqmd_md_pp_one_molecule.sh <subsystem>
 
 Has to be run in the specific simulation root folder."
 
@@ -12,7 +12,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "0" ]; then
+if [ "$#" -ne "1" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
@@ -47,8 +47,9 @@ fi
 echo -e "\n *** Postprocessing the md simulations (hqmd_md_pp_one_ms.sh)"
 
 # Variables
+subsystem="$1"
 folder=md
-md_programs="$(grep -m 1 "^md_programs=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_pp_stride="$(grep -m 1 "^md_pp_stride=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 if [ "${md_pp_stride}" -ne "{md_pp_stride}" ]; then

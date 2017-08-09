@@ -55,6 +55,8 @@ trap "cleanup_exit" EXIT
 # Variables
 opt_programs=$(grep -m 1 "^opt_programs=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
 opt_timeout=$(grep -m 1 "^opt_timeout=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
+system_name="$(pwd | awk -F '/' '{print     $(NF-3)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
 
 # Running the optimization
 # CP2K
@@ -65,6 +67,8 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k -e cp2k.in.opt > cp2k.out.config
+    pid=$!
+    echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}
     cp2k -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
     #cp2k -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
@@ -81,6 +85,15 @@ fi
 while true; do
     if [ -f cp2k.out.trajectory.pdb ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
+        if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
+            kill  %1 2>&1 1>/dev/null|| true
+            break
+        else
+            sleep 1
+        fi
+    fi
+    if [ -f cp2k.out.general ]; then
+        timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
             kill  %1 2>&1 1>/dev/null|| true
             break
