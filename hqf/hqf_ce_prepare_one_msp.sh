@@ -29,10 +29,29 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -77,7 +96,7 @@ prepare_restart() {
     done
 
     # Preparing the iqi files if required
-    ce_type="$(grep -m 1 "^md_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ce_type="$(grep -m 1 "^md_type_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
     if [ "${ce_type^^}" == "QMMM" ]; then 
         mkdir ${crosseval_folder}/snapshot-${restartID}/iqi
         sed -i "s|<address>.*iqi.*|<address>ipi.ce.${msp_name}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
@@ -102,6 +121,8 @@ inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/conf
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID=" input-files/config.txt | awk -F '=' '{print $2}')"
+
 
 # Printing some information
 echo -e  "\n *** Preparing the crossevalutaions of the FES ${msp_name} (hqf_ce_prepare_one_msp.sh) ***"
@@ -195,9 +216,23 @@ for i in $(seq 1 $((nsim-1)) ); do
     fi
     mkdir ${crosseval_folder_bw}
 
-    # Determining the maximum common number of restart files of the two md simulations
-    restartFileCountMD1=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ | grep "restart" | wc -l)
-    restartFileCountMD2=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ | grep "restart" | wc -l)
+    # Determining the number of restart files of the two md simulations
+    restartFileCountMD1=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
+    restartFileCountMD2=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
+
+    # Preparing the restart files
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/*restart_0* || true
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/*restart_0* || true
+    counter=1
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ | grep restart_ | grep -v restart_0) ; do
+        mv ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ipi.out.all_runs.restart_${counter} || true
+        counter=$((counter + 1))
+    done
+    counter=1
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ | grep restart_ | grep -v restart_0) ; do
+        mv ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ipi.out.all_runs.restart_${counter} || true
+        counter=$((counter + 1))
+    done
     #if [[ "${restartFileCountMD1}" -ge "${restartFileCountMD2}" ]]; then
     #    restartFileCountCommon="${restartFileCountMD2}"
     #elif [[ "${restartFileCountMD2}" -ge "${restartFileCountMD1}" ]]; then
@@ -211,30 +246,28 @@ for i in $(seq 1 $((nsim-1)) ); do
     #fi
 
     # Loop for preparing the restart files in md_folder 1 (forward evaluation)
-    for i in $(seq 1 ${restartFileCountMD1}); do
-        restartID=$((i-1))
-        restartFile=ipi.out.restart_${restartID}
+    for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD1}); do
+        #restartID=$((i-1))
+        restartFile=ipi.out.all_runs.restart_${restartID}
         # Applying the crosseval_trajectory_stride
-        mod=$((restartID%crosseval_trajectory_stride))
+        mod=$(((restartID-ce_first_restart_ID)%crosseval_trajectory_stride))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_1} ${md_folder_2} ${restartFile} ${crosseval_folder_fw} ${restartID}
         fi
-        counter=$((counter+1))
     done
 
     # Loop for preparing the restart files in md_folder_2 (backward evaluation)
-    for i in $(seq 1 ${restartFileCountMD2}); do
-        restartID=$((i-1))
-        restartFile=ipi.out.restart_${restartID}
+    for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD2}); do
+        #restartID=$((i-1))
+        restartFile=ipi.out.all_runs.restart_${restartID}
 
         # Applying the crosseval_trajectory_stride
-        mod=$((restartID%crosseval_trajectory_stride))
+        mod=$(((restartID-ce_first_restart_ID)%crosseval_trajectory_stride))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_2} ${md_folder_1} ${restartFile} ${crosseval_folder_bw} ${restartID}
         fi
-        counter=$((counter+1))
     done
 
 done

@@ -27,10 +27,29 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -57,7 +76,7 @@ fec_folder="fec/AFE/${msp_name}/${subsystem}"
 c_values_min=$(grep -m 1 "^c_values_min=" input-files/config.txt | awk -F '=' '{print $2}')
 c_values_max=$(grep -m 1 "^c_values_max=" input-files/config.txt | awk -F '=' '{print $2}')
 c_values_count=$(grep -m 1 "^c_values_count=" input-files/config.txt | awk -F '=' '{print $2}')
-stride_fec=$(grep -m 1 "^stride_fec=" input-files/config.txt | awk -F '=' '{print $2}')
+fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
 
 # Printing some information
@@ -86,8 +105,8 @@ while read line; do
     stride_ipi_properties=$(grep "potential" ${md_folder}/${md_folder_1}/ipi/ipi.in.md.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
     stride_ipi_trajectory=$(grep "<checkpoint" ${md_folder}/${md_folder_1}/ipi/ipi.in.md.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
     stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
-    stride_fec=$(grep -m 1 "^stride_fec=" input-files/config.txt | awk -F '=' '{print $2}')
-    stride_ce=$(grep -m 1 "^stride_ce=" input-files/config.txt | awk -F '=' '{print $2}')
+    fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
+    ce_stride=$(grep -m 1 "^ce_stride=" input-files/config.txt | awk -F '=' '{print $2}')
     TD_window=${md_folder_1}-${md_folder_2}
 
     # Creating required folders
@@ -108,15 +127,20 @@ while read line; do
     fi
     echo "OK"
 
+    # Uniting all the ipi property files
+    property_files=$(ls -1v ${md_folder}/${md_folder_1}/ipi/* | grep properties)
+    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties
+    property_files=$(ls -1v ${md_folder}/${md_folder_2}/ipi/* | grep properties)
+    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties
+
     # Loop for the each snapshot pair
-    snapshotCount=$(ls ${ce_folder}/${crosseval_folder_fw} | wc -l)
-    for i in $(seq 0 $((snapshotCount -1))); do
-        snapshot_ID=$((i*stride_ce))
-        snapshot_folder=snapshot-${snapshot_ID}
+    for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_fw}); do
+
+        snapshot_ID=${snapshot_folder/*\-}
 
         # Foward direction
         # Extracting the free energies of system 1 evaluated at system 1
-        energy_fw_U1_U1="$(grep -v "^#" ${md_folder}/${md_folder_1}/ipi/ipi.out.properties | awk '{print $4}' | tail -n+$((snapshot_ID +1)) | head -n 1)"
+        energy_fw_U1_U1="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
         # Extracting the free energies of system 1 evaluated at system 2
         energy_fw_U1_U2="$(grep -v "^#" ${ce_folder}/${crosseval_folder_fw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
 
@@ -125,16 +149,15 @@ while read line; do
             echo "${energy_fw_U1_U2}" >>  ${fec_folder}/${TD_window}/U1_U2
         fi
     done
-    snapshotCount=$(ls ${ce_folder}/${crosseval_folder_bw} | wc -l)
-    for i in $(seq 0 $((snapshotCount -1))); do
-        snapshot_ID=$((i*stride_ce))
-        snapshot_folder=snapshot-${snapshot_ID}
+    for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_bw}); do
+
+        snapshot_ID=${snapshot_folder/*\-}
 
         # Backward direction
         # Extracting the free energies of system 2 evaluated at system 1
         energy_bw_U2_U1="$(grep -v "^#" ${ce_folder}/${crosseval_folder_bw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
         # Extracting the free energies of system 2 evaluated at system 2
-        energy_bw_U2_U2="$(grep -v "^#" ${md_folder}/${md_folder_2}/ipi/ipi.out.properties | awk '{print $4}' | tail -n+$((snapshot_ID +1)) | head -n 1)"
+        energy_bw_U2_U2="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
 
         # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
         if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]]; then
@@ -144,10 +167,24 @@ while read line; do
     done
     
     # Applying the fec stride (additional stride)
-    sed -n "0~${stride_fec}p" ${fec_folder}/${TD_window}/U1_U1 > ${fec_folder}/${TD_window}/U1_U1_stride${stride_fec}
-    sed -n "0~${stride_fec}p" ${fec_folder}/${TD_window}/U1_U2 > ${fec_folder}/${TD_window}/U1_U2_stride${stride_fec}
-    sed -n "0~${stride_fec}p" ${fec_folder}/${TD_window}/U2_U1 > ${fec_folder}/${TD_window}/U2_U1_stride${stride_fec}
-    sed -n "0~${stride_fec}p" ${fec_folder}/${TD_window}/U2_U2 > ${fec_folder}/${TD_window}/U2_U2_stride${stride_fec}
+    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U1_U1 > ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
+    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U1_U2 > ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
+    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U2_U1 > ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
+    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U2_U2 > ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
+    if [ "${fec_stride}" -gt "1" ]; then
+        awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U1_U1 > ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
+        awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U1_U2 > ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
+        awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U2_U1 > ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
+        awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U2_U2 > ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
+    elif [ "${fec_stride}" -eq "1" ]; then
+        cp ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
+        cp ${fec_folder}/${TD_window}/U1_U2 ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
+        cp ${fec_folder}/${TD_window}/U2_U1 ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
+        cp ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
+    else
+        echo -e "\nError: The variable fec_stride is not set correctly in the configuration file. Exiting...\n\n"
+    fi
+
     
     # Computing the free energy differences delta U (mainly for Mobley pymbar code)
     paste ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1 # (U2-U1)_1 -> for out IP method implementation, and for original BAR equation of Bennett (denominator) and our implementation
@@ -155,17 +192,17 @@ while read line; do
     paste ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2 # for our original BAR equation of Bennett (nominator) implemenation
     paste ${fec_folder}/${TD_window}/U1_U2 ${fec_folder}/${TD_window}/U1_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2 # for our original BAR equation of Bennett (nominator) implemenation
     
-    paste ${fec_folder}/${TD_window}/U2_U2_stride${stride_fec} ${fec_folder}/${TD_window}/U2_U1_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${stride_fec}
-    paste ${fec_folder}/${TD_window}/U1_U1_stride${stride_fec} ${fec_folder}/${TD_window}/U1_U2_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}
-    paste ${fec_folder}/${TD_window}/U2_U1_stride${stride_fec} ${fec_folder}/${TD_window}/U2_U2_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}
-    paste ${fec_folder}/${TD_window}/U1_U2_stride${stride_fec} ${fec_folder}/${TD_window}/U1_U1_stride${stride_fec} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${stride_fec}
+    paste ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${fec_stride}
+    paste ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}
+    paste ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}
+    paste ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride} ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${fec_stride}
     
     # Preparing the C-values
     #hqh_fec_prepare_cvalues.py ${c_values_min} ${c_values_max} ${c_values_count} > ${fec_folder}/${TD_window}/C-values
 
     # Drawing histograms
-    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}.plot"
-    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}.plot"
-    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${stride_fec}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${stride_fec}" "normal" "${fec_folder}/${TD_window}/delta_1_U+delta_2_U_stride${stride_fec}.plot"
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}.plot"
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}.plot"
+    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/delta_1_U+delta_2_U_stride${fec_stride}.plot"
     
 done <${ce_folder}/TD_windows.list

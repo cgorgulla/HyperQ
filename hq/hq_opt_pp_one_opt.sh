@@ -36,10 +36,29 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -49,7 +68,8 @@ original_pdb_filename=${1}
 psf_filename=${2}  # only needed for vmd
 trajectory_filename=${3}
 output_filename=${4}
-opt_programs="$(grep -m 1 "^opt_programs=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Extracting the last snapshot
 echo -e "\n * Extracting the last snapshot from the trajectory file"

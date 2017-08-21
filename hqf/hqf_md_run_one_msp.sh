@@ -28,18 +28,39 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
-    exit 1 
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
 clean_up() {
+    # Terminating all child processes
     for pid in "${pids[@]}"; do
-        kill "${pid}" 1>/dev/null 2>&1 || true
+        kill "${pid}"  1>/dev/null 2>&1 || true
     done
+    pkill -P $$ || true                     # https://stackoverflow.com/questions/2618403/how-to-kill-all-subprocesses-of-shell
 }
 trap 'clean_up' EXIT
 
@@ -67,7 +88,7 @@ for folder in $(ls -d md*); do
     done; 
     cd ${folder}/
     echo -e " * Starting the md simulation ${folder}"
-    setsid hq_md_run_one_md.sh &
+    bash hq_md_run_one_md.sh &
     pid=$!
     pids[i]=$pid
     echo "${pid} " >> ../../../../runtime/pids/${system_name}_${subsystem}/md

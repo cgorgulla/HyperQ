@@ -29,19 +29,39 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
-    exit 1 
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
 clean_up() {
+    # Terminating all child processes
     for pid in "${pids[@]}"; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
+        kill "${pid}"  1>/dev/null 2>&1 || true
     done
-    #kill -9 0  1>/dev/null 2>&1  || true
+    pkill -P $$ || true                     # https://stackoverflow.com/questions/2618403/how-to-kill-all-subprocesses-of-shell
 }
 trap 'clean_up' EXIT
 
@@ -69,14 +89,14 @@ for TDwindow_folder in $(ls -d */); do
     echo -e "\n ** Running the cross evaluations of folder ${TDwindow_folder}"
     for snapshot_folder in snapshot*; do
         while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
-            echo -e " * Waiting for a free slot to star cross evaluation of snapshot ${snapshot_folder/*-} (hqf_ce_run_one_msp.sh)"
+            echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} (hqf_ce_run_one_msp.sh)"
             sleep 1.$RANDOM
             echo
         done;
         sleep 0.$RANDOM
         cd ${snapshot_folder}/
         echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
-        setsid hqf_ce_run_one_snapshot.sh ${ncpus_cp2k_md} &
+        bash hqf_ce_run_one_snapshot.sh ${ncpus_cp2k_md} || true &
         pid=$!
         pids[i]=$pid
         echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/ce

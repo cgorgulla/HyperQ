@@ -27,15 +27,31 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
-# Standard error response 
+# Standard error response
 error_response_std() {
+    # Printing some information
     echo
-    echo -e "Error: Wrong number of arguments. Exiting...
-"
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
     echo
-    echo -e "$usage"
     echo
-    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR

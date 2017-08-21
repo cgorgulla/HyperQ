@@ -36,11 +36,30 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
-    exit 1 
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 set -o pipefail
@@ -53,8 +72,8 @@ cleanup_exit() {
 trap "cleanup_exit" EXIT
 
 # Variables
-opt_programs=$(grep -m 1 "^opt_programs=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
-opt_timeout=$(grep -m 1 "^opt_timeout=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
+opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
+opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
 
 # Running the optimization
 # CP2K

@@ -1,0 +1,1569 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="BookmarkManager">
+    <bookmark url="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar.py" line="0" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="303a6a2e-e587-4d4a-9f9a-c498c9339554" name="Default" comment="">
+      <change type="DELETED" beforePath="$PROJECT_DIR$/hqf/hqf_md_run_one_md.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/hqf/hqf_opt_pp_one_opt.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/old/_hq_md_prepare_all_fes.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/old/_hq_md_run_all_fes.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/old/_hq_opt_prepare_all_fes.sh" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_L.sh" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/hyperq.iml" afterPath="$PROJECT_DIR$/.idea/hyperq.iml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/misc.xml" afterPath="$PROJECT_DIR$/.idea/misc.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/vcs.xml" afterPath="$PROJECT_DIR$/.idea/vcs.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_bs_prepare_all_tasks.sh" afterPath="$PROJECT_DIR$/hq/hq_bs_prepare_all_tasks.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_bs_prepare_jobfiles.sh" afterPath="$PROJECT_DIR$/hq/hq_bs_prepare_jobfiles.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_bs_prepare_one_task.sh" afterPath="$PROJECT_DIR$/hq/hq_bs_prepare_one_task.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_bs_start_jobs.sh" afterPath="$PROJECT_DIR$/hq/hq_bs_start_jobs.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_md_run_one_md.sh" afterPath="$PROJECT_DIR$/hq/hq_md_run_one_md.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hq/hq_opt_pp_one_opt.sh" afterPath="$PROJECT_DIR$/hq/hq_opt_pp_one_opt.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_ce_prepare_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_ce_prepare_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_ce_run_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_ce_run_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_ce_run_one_snapshot.sh" afterPath="$PROJECT_DIR$/hqf/hqf_ce_run_one_snapshot.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_fec_pp_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_fec_pp_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_fec_prepare_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_fec_prepare_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_fec_run_bar.py" afterPath="$PROJECT_DIR$/hqf/hqf_fec_run_bar.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip.py" afterPath="$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_fec_run_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_fec_run_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_gen_run_all_pipe.sh" afterPath="$PROJECT_DIR$/hqf/hqf_gen_run_all_pipe.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh" afterPath="$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_md_prepare_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_md_prepare_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_md_run_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_md_run_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_opt_pp_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_opt_pp_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_opt_prepare_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_opt_prepare_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_opt_run_one_msp.sh" afterPath="$PROJECT_DIR$/hqf/hqf_opt_run_one_msp.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_opt_run_one_opt.sh" afterPath="$PROJECT_DIR$/hqf/hqf_opt_run_one_opt.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqf/hqf_sp_prepare_all.sh" afterPath="$PROJECT_DIR$/hqf/hqf_sp_prepare_all.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_gen_run_all_pipe.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_gen_run_all_pipe.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_gen_run_one_pipe.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_gen_run_one_pipe.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_md_pp_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_md_pp_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_md_prepare_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_md_prepare_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_md_run_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_md_run_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_opt_pp_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_opt_pp_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_opt_prepare_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_opt_prepare_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_ms.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_ms.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_opt.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_opt.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hqmd/hqmd_sp_prepare_all.sh" afterPath="$PROJECT_DIR$/hqmd/hqmd_sp_prepare_all.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hyperq.egg-info/SOURCES.txt" afterPath="$PROJECT_DIR$/hyperq.egg-info/SOURCES.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hyperq.egg-info/top_level.txt" afterPath="$PROJECT_DIR$/hyperq.egg-info/top_level.txt" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hyperq/bar.py" afterPath="$PROJECT_DIR$/hyperq/bar.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/hyperq/functions.py" afterPath="$PROJECT_DIR$/hyperq/functions.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/setup.py" afterPath="$PROJECT_DIR$/setup.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_bs_sqs.sh" afterPath="$PROJECT_DIR$/tools/hqh_bs_sqs.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_bs_submit.sh" afterPath="$PROJECT_DIR$/tools/hqh_bs_submit.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_fes_prepare_one_fes_common.sh" afterPath="$PROJECT_DIR$/tools/hqh_fes_prepare_one_fes_common.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_gen_prepare_cp2k_qm_kind.sh" afterPath="$PROJECT_DIR$/tools/hqh_gen_prepare_cp2k_qm_kind.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_patch_pdb_psf.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_patch_pdb_psf.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_L.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_L.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_LS.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_LS.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_PLS.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_PLS.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_box_L.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_box_L.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_cp2k_kind.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_cp2k_kind.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_qatom_files.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_qatom_files.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_system_2.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_system_2.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_td_pairings.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_td_pairings.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_td_pairings_lomap.py" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_td_pairings_lomap.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_uatom_files.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_uatom_files.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_LS.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_LS.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_PLS.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_PLS.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqh_sp_reduce_all_waters.sh" afterPath="$PROJECT_DIR$/tools/hqh_sp_reduce_all_waters.sh" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tools/hqmdh_sp_prepare_system_2.sh" afterPath="$PROJECT_DIR$/tools/hqmdh_sp_prepare_system_2.sh" />
+    </list>
+    <ignored path="hyperq.iws" />
+    <ignored path=".idea/workspace.xml" />
+    <ignored path=".idea/dataSources.local.xml" />
+    <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
+    <option name="TRACKING_ENABLED" value="true" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CoverageDataManager">
+    <SUITE FILE_PATH="coverage/hyperq-3$Testing_BAR_DeltaU_rfa.coverage" NAME="Testing BAR_DeltaU_rfa Coverage Results" MODIFIED="1501023169090" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="/nmr/data/cgorgulla/hyperq/hqf-3.3/ligand-only/fatsgk/run13/fec/AFE/fatsgk2-s2_fatsgk2-s1/L/md.k_1_0-md.k_0_1" />
+    <SUITE FILE_PATH="coverage/hyperq-3$Testing_hqf_gen_run_one_pipe_sh_fec.coverage" NAME="Testing hqf_gen_run_one_pipe.sh fec Coverage Results" MODIFIED="1501023538286" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$USER_HOME$/wagner/cgorgulla/Simulations/hyperq/hqf-3.3/ligand-only/bromomethane_iodomethane/run1" />
+    <SUITE FILE_PATH="coverage/hyperq_3$Testing_BAR_DeltaU_rfa.coverage" NAME="Testing BAR_DeltaU_rfa Coverage Results" MODIFIED="1501107823488" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/../../../../HMS/nmr/data/cgorgulla/hyperq/hqf-3.3/ligand-only/fatsgk2/run12" />
+  </component>
+  <component name="CreatePatchCommitExecutor">
+    <option name="PATCH_PATH" value="" />
+  </component>
+  <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
+  <component name="FavoritesManager">
+    <favorites_list name="hyperq" />
+  </component>
+  <component name="FileEditorManager">
+    <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
+      <file leaf-file-name="hqmd_gen_run_one_pipe.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqmd/hqmd_gen_run_one_pipe.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="780">
+              <caret line="65" column="1" lean-forward="false" selection-start-line="65" selection-start-column="1" selection-end-line="65" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqf_gen_run_one_pipe.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="1008">
+              <caret line="84" column="61" lean-forward="false" selection-start-line="84" selection-start-column="61" selection-end-line="84" selection-end-column="61" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hq_md_run_one_md.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hq/hq_md_run_one_md.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="876">
+              <caret line="73" column="23" lean-forward="true" selection-start-line="73" selection-start-column="23" selection-end-line="75" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqf_ce_run_one_snapshot.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqf/hqf_ce_run_one_snapshot.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="780">
+              <caret line="65" column="23" lean-forward="false" selection-start-line="65" selection-start-column="23" selection-end-line="65" selection-end-column="23" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqf_opt_run_one_opt.sh" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/hqf/hqf_opt_run_one_opt.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="900">
+              <caret line="75" column="26" lean-forward="false" selection-start-line="75" selection-start-column="26" selection-end-line="75" selection-end-column="26" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqmd_opt_prepare_one_ms.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_prepare_one_ms.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="672">
+              <caret line="56" column="1" lean-forward="false" selection-start-line="56" selection-start-column="1" selection-end-line="56" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqmd_opt_run_one_ms.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_run_one_ms.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="636">
+              <caret line="53" column="1" lean-forward="false" selection-start-line="53" selection-start-column="1" selection-end-line="53" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqmd_opt_run_one_opt.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_run_one_opt.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="744">
+              <caret line="62" column="1" lean-forward="false" selection-start-line="62" selection-start-column="1" selection-end-line="62" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqmd_sp_prepare_all.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/hqmd/hqmd_sp_prepare_all.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="432">
+              <caret line="36" column="1" lean-forward="false" selection-start-line="36" selection-start-column="1" selection-end-line="36" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="hqh_bs_submit.sh" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/tools/hqh_bs_submit.sh">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="720">
+              <caret line="60" column="1" lean-forward="false" selection-start-line="60" selection-start-column="1" selection-end-line="60" selection-end-column="1" />
+              <folding />
+            </state>
+          </provider>
+        </entry>
+      </file>
+    </leaf>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Python Script" />
+      </list>
+    </option>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>rttot_</find>
+      <find>rttot</find>
+      <find>error_response_std()</find>
+      <find>error_response_std()</find>
+      <find>error_response_std() {</find>
+      <find>e</find>
+      <find>error_response_st</find>
+      <find>Exiting</find>
+      <find>error_response_std</find>
+      <find>error_response_std() {    echo &quot;Error was trapped&quot; 1&gt;&amp;2    echo &quot;Error in bash script $(basename ${BASH_SOURCE[0]})&quot; 1&gt;&amp;2    echo &quot;Error on line $1&quot; 1&gt;&amp;2    echo &quot;Exiting.&quot;    exit 1}</find>
+      <find>error_response_std\(\) \{\n</find>
+      <find>error_response_std(</find>
+      <find>.tmp</find>
+      <find>_${subsystem}</find>
+      <find>_${o}</find>
+      <find>_${ou}</find>
+      <find>_${out}</find>
+      <find>_${outpu}</find>
+      <find>_${output}</find>
+      <find>_${output_}</find>
+      <find>_${output_fi}</find>
+      <find>_${output_file}</find>
+      <find>_${output_filen}</find>
+      <find>_${output_filenam}</find>
+      <find>_${output_filename}</find>
+      <find>Killiing</find>
+      <find>stop</find>
+      <find>Killing</find>
+      <find>K</find>
+      <find>Kill</find>
+    </findStrings>
+    <replaceStrings>
+      <replace>hq_opt_pp_one_opt</replace>
+      <replace>grep -m 1 &quot;</replace>
+      <replace>grep -m 1 &quot;^</replace>
+      <replace>hqf</replace>
+      <replace>&quot;$usage&quot;</replace>
+      <replace>echo &quot; Error: Wrong</replace>
+      <replace>echo</replace>
+      <replace>exit</replace>
+      <replace>echo &quot;Error:</replace>
+      <replace>msp_name</replace>
+      <replace>echo -e &quot;Error: Wrong number of arguments. Exiting...\n&quot;</replace>
+      <replace>information</replace>
+      <replace>restart</replace>
+      <replace>stride${stride_fec}</replace>
+      <replace>/snapshot</replace>
+      <replace>energy_index_ipi</replace>
+      <replace>mol</replace>
+      <replace>self.C_values_accepted</replace>
+      <replace>file.write(</replace>
+      <replace>log-files/${date}/</replace>
+      <replace>lambda_stepsize</replace>
+      <replace>bash</replace>
+      <replace>fec_stride</replace>
+      <replace>ce_stride</replace>
+      <replace>^opt_programs_${subsystem}=</replace>
+      <replace>${date}/${msp_name}_${subsystem}</replace>
+      <replace>error_response_std() {    # Printing some information    echo &quot;Error was trapped&quot; 1&gt;&amp;2    echo &quot;Error in bash script $(basename ${BASH_SOURCE[0]})&quot; 1&gt;&amp;2    echo &quot;Error on line $1&quot; 1&gt;&amp;2    echo &quot;Exiting...&quot;    # Changing to the root folder    for i in {1..10}; do        if [ -d input-folder ]; then            # Setting the error flag            mkdir -p runtime            echo &quot;&quot; &gt; runtime/error            exit 1        else            cd ..        fi    done        # Printing some information    echo &quot;Error: Cannot find the input-files directory...&quot;     exit 1}</replace>
+      <replace />
+      <replace>Killing</replace>
+      <replace>Terminating</replace>
+    </replaceStrings>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="IdeDocumentHistory">
+    <option name="CHANGED_PATHS">
+      <list>
+        <option value="$PROJECT_DIR$/../../../Software/installed/pymbar/pymbar-3.0.dev3/pymbar/bar.py" />
+        <option value="$PROJECT_DIR$/hyperq/functions.py" />
+        <option value="$PROJECT_DIR$/tools/hqh_plot_hist.py" />
+        <option value="$PROJECT_DIR$/tools/hqh_fec_plot_hist.py" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_bar_DeltaU.py" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_bar.py" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_bar_DeltaU_rfa.py" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_bar_rfa.py" />
+        <option value="$PROJECT_DIR$/tools/hqh_fec_plot_two_hist.py" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip.py" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_LS.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_PLS.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_reduce_all_waters.sh" />
+        <option value="$PROJECT_DIR$/hyperq/bar.py" />
+        <option value="$PROJECT_DIR$/tools/hqh_fes_prepare_one_fes_common.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_system_2.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_L.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_waterbox_L.vmd" />
+        <option value="$PROJECT_DIR$/tools/hqh_sp_prepare_box_L.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_bs_prepare_jobfiles.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_bs_prepare_all_tasks.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_bs_prepare_one_task.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_bs_start_jobs.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_opt_pp_one_opt.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_ce_prepare_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_ce_run_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_pp_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_prepare_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_fec_run_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_gen_run_all_pipe.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_md_prepare_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_md_run_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_opt_pp_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_opt_prepare_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_opt_run_one_msp.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_sp_prepare_all.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_gen_run_all_pipe.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_gen_run_one_pipe.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_md_prepare_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_md_pp_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_md_run_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_opt_pp_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_opt_prepare_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_ms.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_opt_run_one_opt.sh" />
+        <option value="$PROJECT_DIR$/hqmd/hqmd_sp_prepare_all.sh" />
+        <option value="$PROJECT_DIR$/tools/hqh_bs_submit.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh" />
+        <option value="$PROJECT_DIR$/hq/hq_md_run_one_md.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_ce_run_one_snapshot.sh" />
+        <option value="$PROJECT_DIR$/hqf/hqf_opt_run_one_opt.sh" />
+      </list>
+    </option>
+  </component>
+  <component name="JsBuildToolGruntFileManager" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsBuildToolPackageJson" detection-done="true" sorting="DEFINITION_ORDER" />
+  <component name="JsGulpfileManager">
+    <detection-done>true</detection-done>
+    <sorting>DEFINITION_ORDER</sorting>
+  </component>
+  <component name="ProjectFrameBounds">
+    <option name="y" value="1" />
+    <option name="width" value="3440" />
+    <option name="height" value="1411" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>Python</id>
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>PyCompatibilityInspection</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
+  </component>
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
+  <component name="ProjectView">
+    <navigator currentView="ProjectPane" proportions="" version="1">
+      <flattenPackages />
+      <showMembers />
+      <showModules />
+      <showLibraryContents />
+      <hideEmptyPackages />
+      <abbreviatePackageNames />
+      <autoscrollToSource />
+      <autoscrollFromSource />
+      <sortByType />
+      <manualOrder />
+      <foldersAlwaysOnTop value="true" />
+    </navigator>
+    <panes>
+      <pane id="Scope">
+        <subPane subId="Project Files">
+          <PATH>
+            <PATH_ELEMENT USER_OBJECT="Root">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT USER_OBJECT="hyperq-3">
+              <option name="myItemId" value="" />
+              <option name="myItemType" value="" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scratches" />
+      <pane id="ProjectPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="workflow-files" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="workflow-files" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="plain" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="workflow-files" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="plain" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="type-1" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="tools" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hqmd" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hqf" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hyperq-3" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="hq" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PsiDirectoryNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+    </panes>
+  </component>
+  <component name="PropertiesComponent">
+    <property name="last_opened_file_path" value="/nmr/data/cgorgulla/hyperq/hqf-3.3/ligand-only/fatsgk/run13" />
+    <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
+    <property name="WebServerToolWindowFactoryState" value="false" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth0" value="842" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth1" value="841" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth2" value="842" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatWidth3" value="841" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_flatOrder3" value="3" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth0" value="567" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder0" value="0" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth1" value="594" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder1" value="1" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth2" value="674" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder2" value="2" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeWidth3" value="1531" />
+    <property name="FileHistory.git4idea.history.GitHistoryProvider_treeOrder3" value="3" />
+    <property name="js.eslint.eslintPackage" value="" />
+    <property name="run.code.analysis.last.selected.profile" value="pProject Default" />
+  </component>
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/hq" />
+      <recent name="$PROJECT_DIR$/hqf" />
+      <recent name="$PROJECT_DIR$/hqmd" />
+      <recent name="$PROJECT_DIR$/bin" />
+      <recent name="$PROJECT_DIR$/scripts" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/tools" />
+      <recent name="$PROJECT_DIR$/hqf" />
+      <recent name="$PROJECT_DIR$/hyperq" />
+      <recent name="$PROJECT_DIR$/hqmd" />
+      <recent name="$PROJECT_DIR$/bin" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="ruleStates">
+      <list>
+        <RuleState>
+          <option name="name" value="ConfigurationTypeDashboardGroupingRule" />
+        </RuleState>
+        <RuleState>
+          <option name="name" value="StatusDashboardGroupingRule" />
+        </RuleState>
+      </list>
+    </option>
+  </component>
+  <component name="RunManager" selected="Python.Testing BAR_DeltaU_rfa">
+    <configuration default="true" type="BashConfigurationType" factoryName="Bash">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="INTERPRETER_PATH" value="/bin/bash" />
+      <option name="WORKING_DIRECTORY" value="$USER_HOME$/wagner/cgorgulla/Simulations/hyperq/hqf-3.3/ligand-only/bromomethane_iodomethane/run1" />
+      <option name="PARENT_ENVS" value="true" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh" />
+      <option name="PARAMETERS" value="iodomethane_bromomethane L _allfec_" />
+      <module name="" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="DjangoTestsConfigurationType" factoryName="Django tests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="TARGET" value="" />
+      <option name="SETTINGS_FILE" value="" />
+      <option name="CUSTOM_SETTINGS" value="false" />
+      <option name="USE_OPTIONS" value="false" />
+      <option name="OPTIONS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerJest" factoryName="Jest">
+      <node-interpreter value="project" />
+      <working-dir value="" />
+      <envs />
+      <scope-kind value="ALL" />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavaScriptTestRunnerProtractor" factoryName="Protractor">
+      <config-file value="" />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
+    <configuration default="true" type="PyBehaveRunConfigurationType" factoryName="Behave">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PyLettuceRunConfigurationType" factoryName="Lettuce">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Python.AppEngineServer" factoryName="App Engine server">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="launchJavascriptDebuger" value="false" />
+      <option name="host" value="127.0.0.1" />
+      <option name="browserUrl" value="" />
+      <option name="additionalOptions" value="" />
+      <method />
+    </configuration>
+    <configuration default="true" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="PARAMETERS" value="" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="Tox" factoryName="Tox">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <module name="hyperq" />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.gulp" factoryName="Gulp.js">
+      <node-interpreter>project</node-interpreter>
+      <node-options />
+      <gulpfile />
+      <tasks />
+      <arguments />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="js.build_tools.npm" factoryName="npm">
+      <command value="run" />
+      <scripts />
+      <node-interpreter value="project" />
+      <envs />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Doctests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Nosetests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_regexPattern" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="Unittests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="true" type="tests" factoryName="py.test">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="_new_keywords" value="&quot;&quot;" />
+      <option name="_new_additionalArguments" value="&quot;&quot;" />
+      <option name="_new_target" value="&quot;.&quot;" />
+      <option name="_new_targetType" value="&quot;PATH&quot;" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Testing BAR_DeltaU_rfa" type="PythonConfigurationType" factoryName="Python">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/../../../../HMS/nmr/data/cgorgulla/hyperq/hqf-3.3/ligand-only/fatsgk2/run12" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip.py" />
+      <option name="PARAMETERS" value="fec/AFE/fatsgk2-s1_fatsgk2-s2/L/md.k_1_0-md.k_0_1/U1_U2-U1_U1 fec/AFE/fatsgk2-s1_fatsgk2-s2/L/md.k_1_0-md.k_0_1/U2_U1-U2_U2" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <method />
+    </configuration>
+    <list size="1">
+      <item index="0" class="java.lang.String" itemvalue="Python.Testing BAR_DeltaU_rfa" />
+    </list>
+    <configuration default="true" type="tests" factoryName="Attests">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="hyperq" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="SCRIPT_NAME" value="" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <method />
+    </configuration>
+  </component>
+  <component name="ShelveChangesManager" show_recycled="false">
+    <option name="remove_strategy" value="false" />
+  </component>
+  <component name="SvnConfiguration">
+    <configuration />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="303a6a2e-e587-4d4a-9f9a-c498c9339554" name="Default" comment="" />
+      <created>1488144998425</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1488144998425</updated>
+    </task>
+    <task id="LOCAL-00001" summary="update">
+      <created>1488151000282</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1488151000282</updated>
+    </task>
+    <task id="LOCAL-00002" summary="update">
+      <created>1488151014471</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1488151014472</updated>
+    </task>
+    <task id="LOCAL-00003" summary="update">
+      <created>1488151036953</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1488151036953</updated>
+    </task>
+    <task id="LOCAL-00004" summary="update">
+      <created>1488161005578</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1488161005578</updated>
+    </task>
+    <task id="LOCAL-00005" summary="now all files renamed">
+      <created>1488194231339</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1488194231339</updated>
+    </task>
+    <task id="LOCAL-00006" summary="update on all files renamed">
+      <created>1488195845987</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1488195845987</updated>
+    </task>
+    <task id="LOCAL-00007" summary="all executabe files into /bin">
+      <created>1488196019370</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1488196019370</updated>
+    </task>
+    <task id="LOCAL-00008" summary="works now up to prepare cross eval">
+      <created>1488276938827</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1488276938827</updated>
+    </task>
+    <task id="LOCAL-00009" summary="update - now changiing snapshotcount to snapshot ID">
+      <created>1488409891679</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1488409891679</updated>
+    </task>
+    <task id="LOCAL-00010" summary="now with prepare fec">
+      <created>1488420454438</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1488420454438</updated>
+    </task>
+    <task id="LOCAL-00011" summary="now located in Dropbox&#10;now with prepare fec">
+      <created>1488466846024</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1488466846024</updated>
+    </task>
+    <task id="LOCAL-00012" summary="now located in Dropbox&#10;now with prepare fec">
+      <created>1488545252500</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1488545252500</updated>
+    </task>
+    <task id="LOCAL-00013" summary="now with L LS PLS">
+      <created>1488739271281</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1488739271281</updated>
+    </task>
+    <task id="LOCAL-00014" summary="small updates">
+      <created>1488758475161</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1488758475161</updated>
+    </task>
+    <task id="LOCAL-00015" summary="first version of version 3, now restructured from version 2:&#10; -scripts folder, old fodler, hqmd fodler">
+      <created>1494264502426</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1494264502426</updated>
+    </task>
+    <task id="LOCAL-00016" summary="now located in Dropbox&#10;now with prepare fec">
+      <created>1494264567628</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1494264567628</updated>
+    </task>
+    <task id="LOCAL-00017" summary="update">
+      <created>1494266086293</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1494266086293</updated>
+    </task>
+    <task id="LOCAL-00018" summary="hqmd working&#10;before starting NAMD MD option">
+      <created>1494427210444</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1494427210444</updated>
+    </task>
+    <task id="LOCAL-00019" summary="now with batchsystem support">
+      <created>1494600616559</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1494600616559</updated>
+    </task>
+    <task id="LOCAL-00020" summary="update">
+      <created>1494768599186</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1494768599186</updated>
+    </task>
+    <task id="LOCAL-00021" summary="working with batchsystem">
+      <created>1494803242604</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1494803242604</updated>
+    </task>
+    <task id="LOCAL-00022" summary="before updating hqf to hqmd status">
+      <created>1497178147648</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1497178147648</updated>
+    </task>
+    <task id="LOCAL-00023" summary="TD_cycle_type&#10;- now with classical TD cycles&#10;- half completed (qs style TD cycles work)">
+      <created>1500221627861</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1500221627861</updated>
+    </task>
+    <task id="LOCAL-00024" summary="BAR: error corrected (minus sign), now two versions, the new one for delta_U values as input">
+      <created>1500759908797</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1500759908797</updated>
+    </task>
+    <task id="LOCAL-00025" summary="fec_bar: Now with Delta U and root finding algorithm options">
+      <created>1501081439470</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1501081439470</updated>
+    </task>
+    <task id="LOCAL-00026" summary="now with fec results stored in a folder named with date&#10;more program termination code, but still does not always work&#10;next: continuation mode">
+      <created>1502277330729</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1502277330729</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
+    <servers />
+  </component>
+  <component name="TodoView">
+    <todo-panel id="selected-file">
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+    <todo-panel id="all">
+      <are-packages-shown value="true" />
+      <is-autoscroll-to-source value="true" />
+    </todo-panel>
+  </component>
+  <component name="ToolWindowManager">
+    <frame x="0" y="1" width="3440" height="1411" extended-state="0" />
+    <editor active="true" />
+    <layout>
+      <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3287037" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
+      <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.6689815" sideWeight="0.50117785" order="8" side_tool="true" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3296355" sideWeight="0.5" order="11" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3294753" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3296355" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.24823321" sideWeight="0.4890511" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Database" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3271605" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25706714" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.22083333" sideWeight="0.5109489" order="2" side_tool="true" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.28395063" sideWeight="0.49882215" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Data View" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.4" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+    </layout>
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="processedProjectFiles" value="true" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="Vcs.Log.UiProperties">
+    <option name="RECENTLY_FILTERED_USER_GROUPS">
+      <collection />
+    </option>
+    <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+      <collection />
+    </option>
+  </component>
+  <component name="VcsContentAnnotationSettings">
+    <option name="myLimit" value="2678400000" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="now all files renamed" />
+    <MESSAGE value="update on all files renamed" />
+    <MESSAGE value="all executabe files into /bin" />
+    <MESSAGE value="works now up to prepare cross eval" />
+    <MESSAGE value="update - now changiing snapshotcount to snapshot ID" />
+    <MESSAGE value="now with prepare fec" />
+    <MESSAGE value="now with L LS PLS" />
+    <MESSAGE value="small updates" />
+    <MESSAGE value="first version of version 3, now restructured from version 2:&#10; -scripts folder, old fodler, hqmd fodler" />
+    <MESSAGE value="now located in Dropbox&#10;now with prepare fec" />
+    <MESSAGE value="hqmd working&#10;before starting NAMD MD option" />
+    <MESSAGE value="now with batchsystem support" />
+    <MESSAGE value="update" />
+    <MESSAGE value="working with batchsystem" />
+    <MESSAGE value="before updating hqf to hqmd status" />
+    <MESSAGE value="TD_cycle_type&#10;- now with classical TD cycles&#10;- half completed (qs style TD cycles work)" />
+    <MESSAGE value="BAR: error corrected (minus sign), now two versions, the new one for delta_U values as input" />
+    <MESSAGE value="fec_bar: Now with Delta U and root finding algorithm options" />
+    <MESSAGE value="now with fec results stored in a folder named with date&#10;more program termination code, but still does not always work&#10;next: continuation mode" />
+    <option name="LAST_COMMIT_MESSAGE" value="now with fec results stored in a folder named with date&#10;more program termination code, but still does not always work&#10;next: continuation mode" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/../../../Software/installed/pymbar/pymbar-3.0.dev3/pymbar/bar.py</url>
+          <line>49</line>
+          <option name="timeStamp" value="2" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/tools/hqh_fec_plot_two_hist.py</url>
+          <line>39</line>
+          <option name="timeStamp" value="15" />
+        </line-breakpoint>
+      </breakpoints>
+      <breakpoints-dialog>
+        <breakpoints-dialog />
+      </breakpoints-dialog>
+      <default-breakpoints>
+        <breakpoint type="python-exception">
+          <properties notifyOnTerminate="true" exception="BaseException">
+            <option name="notifyOnTerminate" value="true" />
+          </properties>
+        </breakpoint>
+      </default-breakpoints>
+      <option name="time" value="18" />
+    </breakpoint-manager>
+    <watches-manager />
+  </component>
+  <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/hyperq/bar.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1944">
+          <caret line="166" column="52" lean-forward="false" selection-start-line="166" selection-start-column="52" selection-end-line="166" selection-end-column="52" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_fec_plot_hist (revere's conflicted copy 2017-07-23).py" />
+    <entry file="file://$PROJECT_DIR$/tools/hqh_sp_prepare_qatom_files.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-155">
+          <caret line="2" column="14" lean-forward="false" selection-start-line="2" selection-start-column="14" selection-end-line="2" selection-end-column="14" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_gen_prepare_cp2k_qmmm.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="300">
+          <caret line="26" column="22" lean-forward="false" selection-start-line="26" selection-start-column="22" selection-end-line="26" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hyperq/molecular_systems.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-3746">
+          <caret line="121" column="8" lean-forward="false" selection-start-line="121" selection-start-column="8" selection-end-line="121" selection-end-column="8" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_sp_prepare_system_2.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="691">
+          <caret line="76" column="0" lean-forward="true" selection-start-line="76" selection-start-column="0" selection-end-line="76" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_fes_prepare_one_fes_common.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1560">
+          <caret line="130" column="4" lean-forward="false" selection-start-line="130" selection-start-column="4" selection-end-line="130" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hyperq/cp2k_dummies.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="516">
+          <caret line="44" column="28" lean-forward="false" selection-start-line="44" selection-start-column="28" selection-end-line="44" selection-end-column="28" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_sp_prepare_box_L.vmd">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="16" column="43" lean-forward="false" selection-start-line="16" selection-start-column="43" selection-end-line="16" selection-end-column="43" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_sp_prepare_box_L.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="600">
+          <caret line="50" column="16" lean-forward="true" selection-start-line="50" selection-start-column="16" selection-end-line="50" selection-end-column="16" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_fec_plot_hist.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="228">
+          <caret line="21" column="41" lean-forward="true" selection-start-line="21" selection-start-column="41" selection-end-line="21" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar_DeltaU.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="108">
+          <caret line="10" column="26" lean-forward="true" selection-start-line="10" selection-start-column="26" selection-end-line="10" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="228">
+          <caret line="24" column="1" lean-forward="false" selection-start-line="24" selection-start-column="0" selection-end-line="24" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar_rfa.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="480">
+          <caret line="41" column="0" lean-forward="true" selection-start-line="41" selection-start-column="0" selection-end-line="41" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar_ip_alt.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="48">
+          <caret line="4" column="34" lean-forward="false" selection-start-line="4" selection-start-column="34" selection-end-line="4" selection-end-column="34" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar_DeltaU_rfa.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="17" column="14" lean-forward="false" selection-start-line="17" selection-start-column="14" selection-end-line="17" selection-end-column="14" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_fep.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="0">
+          <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_sp_prepare_L.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="372">
+          <caret line="31" column="0" lean-forward="true" selection-start-line="31" selection-start-column="0" selection-end-line="31" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_bs_prepare_jobfiles.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="360">
+          <caret line="30" column="0" lean-forward="false" selection-start-line="30" selection-start-column="0" selection-end-line="55" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_bs_prepare_all_tasks.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="816">
+          <caret line="68" column="1" lean-forward="false" selection-start-line="68" selection-start-column="1" selection-end-line="68" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_bs_prepare_one_task.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="756">
+          <caret line="63" column="1" lean-forward="false" selection-start-line="63" selection-start-column="1" selection-end-line="63" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_bs_start_jobs.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="756">
+          <caret line="63" column="1" lean-forward="false" selection-start-line="63" selection-start-column="1" selection-end-line="63" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_opt_pp_one_opt.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="744">
+          <caret line="62" column="1" lean-forward="false" selection-start-line="62" selection-start-column="1" selection-end-line="62" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_ce_prepare_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="55" column="1" lean-forward="false" selection-start-line="55" selection-start-column="1" selection-end-line="55" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_ce_run_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="55" column="1" lean-forward="false" selection-start-line="55" selection-start-column="1" selection-end-line="55" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_pp_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_prepare_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="636">
+          <caret line="53" column="1" lean-forward="false" selection-start-line="53" selection-start-column="1" selection-end-line="53" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_bar.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="540">
+          <caret line="47" column="0" lean-forward="true" selection-start-line="47" selection-start-column="0" selection-end-line="47" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_fec_run_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="55" column="1" lean-forward="false" selection-start-line="55" selection-start-column="1" selection-end-line="55" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_gen_run_all_pipe.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="75" column="1" lean-forward="false" selection-start-line="75" selection-start-column="1" selection-end-line="75" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_md_prepare_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="708">
+          <caret line="59" column="1" lean-forward="false" selection-start-line="59" selection-start-column="1" selection-end-line="59" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_md_run_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_opt_pp_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="660">
+          <caret line="55" column="1" lean-forward="false" selection-start-line="55" selection-start-column="1" selection-end-line="55" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_opt_prepare_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="708">
+          <caret line="59" column="1" lean-forward="false" selection-start-line="59" selection-start-column="1" selection-end-line="59" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_opt_run_one_msp.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_sp_prepare_all.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="444">
+          <caret line="37" column="1" lean-forward="false" selection-start-line="37" selection-start-column="1" selection-end-line="37" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_gen_run_all_pipe.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="780">
+          <caret line="65" column="1" lean-forward="false" selection-start-line="65" selection-start-column="1" selection-end-line="65" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_md_prepare_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="672">
+          <caret line="56" column="1" lean-forward="false" selection-start-line="56" selection-start-column="1" selection-end-line="56" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_md_pp_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_md_run_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_pp_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="648">
+          <caret line="54" column="1" lean-forward="false" selection-start-line="54" selection-start-column="1" selection-end-line="54" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_prepare_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="672">
+          <caret line="56" column="1" lean-forward="false" selection-start-line="56" selection-start-column="1" selection-end-line="56" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_run_one_ms.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="636">
+          <caret line="53" column="1" lean-forward="false" selection-start-line="53" selection-start-column="1" selection-end-line="53" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_opt_run_one_opt.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="744">
+          <caret line="62" column="1" lean-forward="false" selection-start-line="62" selection-start-column="1" selection-end-line="62" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_sp_prepare_all.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="36" column="1" lean-forward="false" selection-start-line="36" selection-start-column="1" selection-end-line="36" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tools/hqh_bs_submit.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="720">
+          <caret line="60" column="1" lean-forward="false" selection-start-line="60" selection-start-column="1" selection-end-line="60" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqmd/hqmd_gen_run_one_pipe.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="780">
+          <caret line="65" column="1" lean-forward="false" selection-start-line="65" selection-start-column="1" selection-end-line="65" selection-end-column="1" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_gen_run_one_pipe.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1008">
+          <caret line="84" column="61" lean-forward="false" selection-start-line="84" selection-start-column="61" selection-end-line="84" selection-end-column="61" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hq/hq_md_run_one_md.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="876">
+          <caret line="73" column="23" lean-forward="true" selection-start-line="73" selection-start-column="23" selection-end-line="75" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_ce_run_one_snapshot.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="780">
+          <caret line="65" column="23" lean-forward="false" selection-start-line="65" selection-start-column="23" selection-end-line="65" selection-end-column="23" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/hqf/hqf_opt_run_one_opt.sh">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="900">
+          <caret line="75" column="26" lean-forward="false" selection-start-line="75" selection-start-column="26" selection-end-line="75" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+  </component>
+  <component name="masterDetails">
+    <states>
+      <state key="ScopeChooserConfigurable.UI">
+        <settings>
+          <splitter-proportions>
+            <option name="proportions">
+              <list>
+                <option value="0.2" />
+              </list>
+            </option>
+          </splitter-proportions>
+        </settings>
+      </state>
+    </states>
+  </component>
+</project>

@@ -28,11 +28,29 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
-#    trap - SIGTERM && kill -- -$$
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -40,11 +58,14 @@ trap 'error_response_std $LINENO' ERR
 # Exit cleanup
 cleanup_exit() {
     rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotCount} > /dev/null 2>&1 || true
-    if [ "${verbosity}" = "debug" ]; then
-        kill -9 0  || true # Stops the proccesses of the same process group as the calling process
-    else
-        kill -9 0 2>&1 1>/dev/null || true # Stops the proccesses of the same process group as the calling process
-    fi
+
+    # Terminating all child processes
+    for pid in "${pids[@]}"; do
+        kill "${pid}"  1>/dev/null 2>&1 || true
+    done
+    pkill -P $$ || true
+    sleep 3
+    pkill -9 -P $$ || true
 }
 trap "cleanup_exit" EXIT
 
@@ -62,10 +83,12 @@ subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
 crosseval_folder="$(pwd | awk -F '/' '{print $(NF-1)}')"
 snapshot_name="$(pwd | awk -F '/' '{print $(NF)}')"
 snapshotCount=${snapshot_name/*-}
-ce_type="$(grep -m 1 "^md_type=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-ce_timeout="$(grep -m 1 "^ce_timeout=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+ce_type="$(grep -m 1 "^md_type_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 snapshot_time_start=$(date +%s)
+pids=0
+sim_counter=0
 
 # ipi
 cd ipi
@@ -77,10 +100,12 @@ rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folde
 ipi ipi.in.ce.xml > ipi.out.screen 2> ipi.out.err &
 pid_ipi=$!
 echo "${pid_ipi} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
+pids[${sim_counter}]=${pid_ipi}
+sim_counter=$((sim_counter+1))
+
 cd ..
 
 # CP2K
-sim_counter=0
 for bead_folder in $(ls cp2k/); do 
     echo -e " * Starting cp2k (${bead_folder})"
     cd cp2k/${bead_folder}/
@@ -95,9 +120,8 @@ for bead_folder in $(ls cp2k/); do
         if [ -e "/tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${snapshotCount}" ]; then # -e for any fail, -f is only for regular files
             echo " * The socket file for snapshot ${snapshotCount} has been detected. Starting CP2K..."
             cp2k -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-            pids_cp2k[${sim_counter}]=$!
-            echo "pids_cp2k[${sim_counter}] " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
-
+            pids[${sim_counter}]=$!
+            echo "${pids[${sim_counter}]} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
             sim_counter=$((sim_counter+1))
             cd ../../
             break
@@ -120,30 +144,15 @@ if [ "${ce_type^^}" == "QMMM" ]; then
     echo -e " * Starting iqi"
     rm iqi.out.* > /dev/null 2>&1 || true 
     iqi iqi.in.xml > iqi.out.screen 2> iqi.out.err &
-    pids_iqi[${sim_counter}]=$!
-    echo "pids_iqi[${sim_counter}] " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
+    pids[${sim_counter}]=$!
+    echo "${pids[${sim_counter}]} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     sim_counter=$((sim_counter+1))
     cd ../
 fi
 
-# Checking if the simulation is completed/crashed
-#while true; do
-#    if [ -f ipi/ipi.out.screen ]; then
-#        timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.screen)))
-#        if [ "${timeDiff}" -ge "${ce_timeout}" ]; then
-#            kill  %1 2>&1 1>/dev/null || true
-#            break
-#            exit 0
-#        else
-#            sleep 1
-#        fi
-#    else
-#        sleep 1
-#    fi
-#done
 waiting_time_start=$(date +%s)
 while true; do
-    if [ -f ipi/ipi.out.screen ]; then
+    if [ -f ipi/ipi.out.properties ]; then
         propertylines_count=$(grep -E "^ *[0-9]" ipi/ipi.out.properties | wc -l)
         if [ "${propertylines_count}" -eq "1" ]; then
              snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
@@ -159,9 +168,3 @@ while true; do
         sleep 1
     fi
 done
-
-
-## We only wait for ipi
-#wait ${pid_ipi}  || true
-#
-#echo " * Snapshot completed"

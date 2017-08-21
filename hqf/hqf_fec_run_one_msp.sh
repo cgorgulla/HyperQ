@@ -29,10 +29,29 @@ fi
 
 # Standard error response 
 error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Exiting."
+    # Printing some information
+    echo
+    echo "An error was trapped" 1>&2
+    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occured on lin $1" 1>&2
+    echo "Exiting..."
+    echo
+    echo
+
+    # Changing to the root folder
+    for i in {1..10}; do
+        if [ -d input-files ]; then
+            # Setting the error flag
+            mkdir -p runtime
+            echo "" > runtime/error
+            exit 1
+        else
+            cd ..
+        fi
+    done
+
+    # Printing some information
+    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -43,7 +62,7 @@ set -u
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-stride_fec="$(grep -m 1 "^stride_fec=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -71,6 +90,6 @@ for TDWindow in m*/; do
     cd ${TDWindow}
     rm bar.out.* >/dev/null  2>&1 || true
     #hqf_fec_run_bar.py U1_U1 U1_U2 U2_U1 U2_U2 C-values bar.out.results.all 2>&1 1> bar.out.screen.all
-    hqf_fec_run_bar.py U1_U1_stride${stride_fec} U1_U2_stride${stride_fec} U2_U1_stride${stride_fec} U2_U2_stride${stride_fec} ${delta_F_min} ${delta_F_max} bar.out.stride${stride_fec} ${temperature} ${C_absolute_tolerance}
+    hqf_fec_run_bar.py U1_U1_stride${fec_stride} U1_U2_stride${fec_stride} U2_U1_stride${fec_stride} U2_U2_stride${fec_stride} ${delta_F_min} ${delta_F_max} bar.out.stride${fec_stride} ${temperature} ${C_absolute_tolerance}
     cd ..
 done
