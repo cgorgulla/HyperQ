@@ -40,7 +40,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -63,6 +63,9 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+# Bash options
+set -o pipefail
+
 # Variables
 original_pdb_filename=${1}
 psf_filename=${2}  # only needed for vmd
@@ -75,12 +78,13 @@ opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/con
 echo -e "\n * Extracting the last snapshot from the trajectory file"
 if [[ "${opt_programs}" == "cp2k" ]]; then
     # Getting the last snapshot, only the atom entries
-    tac ${trajectory_filename} | grep -m 1 REMARK -B 1000000 | tac | grep -E "^(ATOM|HETATM)" > ${output_filename}.tmp
+    tac ${trajectory_filename} | grep -m 1 REMARK -B 1000000 | tac | grep -E "^(ATOM|HETATM)" > ${output_filename}.tmp || true
 elif [[ "${opt_programs}" == "namd" ]]; then
     cc_vmd_dcd2pdb_lastframe.sh ${psf_filename} ${trajectory_filename} ${output_filename}.tmp2
     grep -E "^(ATOM|HETATM)" ${output_filename}.tmp2 > ${output_filename}.tmp
     rm ${output_filename}.tmp2
 fi
+
 # Getting the atom entries of the original file as a template
 echo -e " * Preparing the template for the optimized pdb file"
 grep -B 1000 -E -m 1 "^(ATOM|HETATM)" ${original_pdb_filename} | head -n -1 > ${output_filename}

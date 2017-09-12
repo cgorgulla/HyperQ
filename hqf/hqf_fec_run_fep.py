@@ -4,7 +4,7 @@ from hyperq.fep import FEP
     
 
 def help():
-    print "Usage: hqf_fec_run_fep.py <file with U1_U1 values> <file with U1_U2 values> <absolute temperature>\n"
+    print "\nUsage: hqf_fec_run_fep.py <file with U1_U1 values> <file with U1_U2 values> <absolute temperature>\n"
     print "The first potential is always the sampling potential, the second one is the evaluating potential.\n\n"
     
 # Checking if this file is run as the main program
@@ -12,8 +12,11 @@ if __name__ == '__main__':
     
     # Checking the number of arguments
     if  (len(sys.argv) != 4):
-        print "Wrong number of arguments. Exiting...\n"
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 3 parameters. Exiting..."
         help()
+        exit(1)
+
     elif sys.argv[1] == "-h" and len(sys.argv) == 1:
         help()
     else:

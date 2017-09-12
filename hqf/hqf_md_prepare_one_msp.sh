@@ -37,7 +37,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -60,6 +60,9 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+# Bash options
+set -o pipefail
+
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
@@ -76,8 +79,6 @@ system_2_basename="${2}"
 subsystem=${3}
 msp_name=${system_1_basename}_${system_2_basename}
 inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfile_cp2k_md_k_0="$(grep -m 1 "^inputfile_cp2k_md_k_0_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -127,6 +128,8 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
 
         # Bead step size
         beadStepSize=$(expr ${ntdsteps} / ${nbeads})
+        inputfile_cp2k_md_k_0="$(grep -m 1 "^inputfile_cp2k_md_k_0_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+        inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
         # Loop for each TD window
         lambda_current=0.000
@@ -149,6 +152,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             # Copying in the input files of the packages
             # ipi
             cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
+            sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
@@ -162,6 +166,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     if [ "${TD_cycle_type}" == "lambda" ]; then
                         sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     fi
@@ -176,6 +181,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     if [ "${TD_cycle_type}" == "lambda" ]; then
                         sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     fi
@@ -183,7 +189,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             fi
 
             # QM/MM Case
-            if [ ${md_type^^} == "QMMM" ]; then
+            if [[ "${md_programs}" == *"iqi"* ]]; then
 
                 # iqi
                 inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -207,8 +213,11 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
 
     elif [ "${TD_cycle_type}" == "lambda" ]; then
 
+        # Variables
+        inputfile_cp2k_md_lambda="$(grep -m 1 "^inputfile_cp2k_md_lambda_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
         # Checking if the CP2K input file contains a lambda variable
-        lambda_count="$(grep -c lambda ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} )"
+        lambda_count="$(grep -c lambda ../../../input-files/cp2k/${inputfile_cp2k_md_lambda} )"
         echo -n " * Checking if the lambda variable is present in the CP2K input file... "
         if  [ ! "${lambda_count}" -ge "1" ]; then
             echo "Check failed"
@@ -218,17 +227,6 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
         fi
         echo "OK"
 
-        # Checking if the two CP2K input files are the same
-        echo -n " * Checking if the two CP2K input files (k_0 und k_1) are the same, as required for in the TD_cycle_type=lambda)... "
-        echo ${inputfile_cp2k_md_k_0}
-        echo ${inputfile_cp2k_md_k_1}
-        if  [ ! "${inputfile_cp2k_md_k_0}" = "${inputfile_cp2k_md_k_1}" ]; then
-            echo "Check failed."
-            echo -e "\n * Error: The two CP2K input files do not seem to be the same. Exiting....\n\n"
-            echo "" > runtime/error
-            exit 1
-        fi
-        echo "OK"
 
         # Lambda step size
         lambda_stepsize=$(echo "print(1/${ntdsteps})" | python3)
@@ -251,18 +249,20 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             # Copying in the input files of the packages
             # ipi
             cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
+            sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
             sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
 
             # CP2K
             for bead in $(eval echo "{1..${nbeads}}"); do
-                cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                cp ../../../input-files/cp2k/${inputfile_cp2k_md_lambda} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             done
 
             # iqi

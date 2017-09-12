@@ -54,34 +54,33 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
-
-    # Changing to the root folder
-    for i in {1..10}; do
-        if [ -d input-files ]; then
-            # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
-            exit 1
-        else
-            cd ..
-        fi
-    done
-
-    # Printing some information
-    echo "Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
 # Exit cleanup
 cleanup_exit() {
+
+    echo "Cleaning up..."
+
+    # Changing to the root folder
+    for i in {1..5}; do
+        if [ -d input-files ]; then
+            # Removing possible error files
+            rm runtime/error 1>/dev/null 2>&1 || true
+            break
+        else
+            cd ..
+        fi
+    done
+
     # Get our process group id
     PGID=$(ps -o pgid= $$ | grep -o [0-9]*)
-    # Terminating it in a new new process group
+    # Terminating it in a new process group
     setsid bash -c "kill -- -$PGID; sleep 5; kill -9 -$PGID";
 }
 trap "cleanup_exit" EXIT
@@ -94,6 +93,9 @@ check_error_indicators() {
         exit 1
     fi
 }
+
+# Bash options
+set -o pipefail
 
 # Checking the folder
 if [ ! -d input-files ]; then
@@ -110,14 +112,8 @@ export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
 fi
-echo hi
-# Bash options
-set -uo pipefail
 
 # Variables
-ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt" input-files/config.txt | awk -F '=' '{print $2}')"
-ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md" input-files/config.txt | awk -F '=' '{print $2}')"
-ncpus_cp2k_ce="$(grep -m 1 "^ncpus_cp2k_ce" input-files/config.txt | awk -F '=' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads" input-files/config.txt | awk -F '=' '{print $2}')"
 ntdsteps="$(grep -m 1 "^ntdsteps" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_stride="$(grep -m 1 "^ce_stride" input-files/config.txt | awk -F '=' '{print $2}')"

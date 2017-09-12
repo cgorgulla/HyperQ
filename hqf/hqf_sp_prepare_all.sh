@@ -1,13 +1,35 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqf_sp_prepare_all.sh <subsystems>
+usage="Usage: hqf_sp_prepare_all.sh <subsystems> [lomap]
 
 The format is read from the file input-files/config.txt
 
-<subsystems> can be L, LS, PLS.
+<subsystems> can be L, LS, PLS. Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)
 
-Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)"
+The lomap flag can be specified if the atom mappings for the thermodynamic cycles should be computed (with LOMAP)."
+
+# Checking the input paras
+if [ "${1}" == "-h" ]; then
+    echo
+    echo -e "$usage"
+    echo
+    echo
+    exit 0
+fi
+if [[ "$#" -ne "1" && "$#" -ne "2" ]]; then
+    echo
+    echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
+    echo "Reason: The wrong number of arguments were provided when calling the script."
+    echo "Number of expected arguments: 1-2"
+    echo "Number of provided arguments: ${#}"
+    echo "Provided arguments: $@"
+    echo
+    echo -e "$usage"
+    echo
+    echo
+    exit 1
+fi
 
 # Standard error response 
 error_response_std() {
@@ -15,7 +37,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -38,27 +60,8 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-# Checking the input paras
-if [ "${1}" == "-h" ]; then
-    echo
-    echo -e "$usage"
-    echo
-    echo
-    exit 0
-fi
-if [ "$#" -ne "1" ]; then
-    echo
-    echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 1"
-    echo "Number of provided arguments: ${#}"
-    echo "Provided arguments: $@"
-    echo
-    echo -e "$usage"
-    echo
-    echo
-    exit 1
-fi
+# Bash options
+set -o pipefail
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -78,6 +81,13 @@ echo "************************************************************"
 input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | awk -F '=' '{print $2}')"
 lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | awk -F '=' '{print $2}')"
 subsystems=${1//,/ }
+
+# Lomap flag
+if [[ "$@" == *"lomap"* ]]; then
+    lomap="true"
+else
+    lomap="false"
+fi
 
 # Converting the input files into the required formats
 # Printing some information
@@ -321,12 +331,11 @@ for subsystem in ${subsystems}; do
         hqh_sp_prepare_system_2.sh ${ligand} ${subsystem}
     done
 done
+
+
 # Preparing the molecule pairings via MCS searches using lomap
-# Creating folders
-if [ -d input-files/mappings ]; then
-    rm -r input-files/mappings
+if [ "${lomap}" == "true" ]; then
+    hqh_sp_prepare_td_pairings.sh
 fi
-mkdir input-files/mappings
-hqh_sp_prepare_td_pairings.sh
 
 echo -e " * The structures of all the molecules has been prepared"

@@ -282,14 +282,14 @@ class FF_dihedral_paras:
 
 def prepare_cp2k_FF(molecularSystem, FFParas):
 
-    # Preparing LJ input file for CP2K
-    with open("cp2k.in.LJ." + molecularSystem.systemName, "w") as cp2k_LJ_file:
-        for dummyAtomIndex in molecularSystem.dummyAtoms.indices:
-            for atomName in molecularSystem.dummyAtoms.nonangledAtomNames[dummyAtomIndex]:
-                epsilon = math.sqrt(FFParas.LJParas.epsilon[molecularSystem.atomIndexToType[dummyAtomIndex]] * FFParas.LJParas.epsilon[molecularSystem.atomNameToType[atomName]])
-                sigma = FFParas.LJParas.sigma[molecularSystem.atomIndexToType[dummyAtomIndex]]+FFParas.LJParas.sigma[molecularSystem.atomNameToType[atomName]]
-                cp2k_LJ_file.write("""&LENNARD-JONES\n  ATOMS %s %s\n  EPSILON [kcalmol] %f\n  SIGMA %f\n  RCUT %f\n&END LENNARD-JONES\n""" 
-                                  % (molecularSystem.atomIndexToName[dummyAtomIndex], atomName, epsilon, sigma, sigma))
+#    # Preparing LJ input file for CP2K
+#    with open("cp2k.in.LJ." + molecularSystem.systemName, "w") as cp2k_LJ_file:
+#        for dummyAtomIndex in molecularSystem.dummyAtoms.indices:
+#            for atomName in molecularSystem.dummyAtoms.nonangledAtomNames[dummyAtomIndex]:
+#                epsilon = math.sqrt(FFParas.LJParas.epsilon[molecularSystem.atomIndexToType[dummyAtomIndex]] * FFParas.LJParas.epsilon[molecularSystem.atomNameToType[atomName]])
+#                sigma = FFParas.LJParas.sigma[molecularSystem.atomIndexToType[dummyAtomIndex]]+FFParas.LJParas.sigma[molecularSystem.atomNameToType[atomName]]
+#                cp2k_LJ_file.write("""&LENNARD-JONES\n  ATOMS %s %s\n  EPSILON [kcalmol] %f\n  SIGMA %f\n  RCUT %f\n&END LENNARD-JONES\n"""
+#                                  % (molecularSystem.atomIndexToName[dummyAtomIndex], atomName, epsilon, sigma, sigma))
                 
     # Preparing bonds input for CP2K
     with open("cp2k.in.bonds." + molecularSystem.systemName, "w") as cp2kBondsFile:

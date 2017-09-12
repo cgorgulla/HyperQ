@@ -1,0 +1,212 @@
+*************************************************************************************
+***                                    General                                    ***
+*************************************************************************************
+verbosity=debug
+# Possible values: normal, debug
+# This option mainly effects the screen output and the logfiles
+
+
+*************************************************************************************
+***                             Structure preparation                             ***
+*************************************************************************************
+
+************************************** General **************************************
+
+input_file_format=smi
+# Currently supported are smi, pdbqt, sdf, mol2_2d_h, pdb_3d_h
+# The format should be in lowercase letters
+# If the subsystem is PLS or PL, then the coordinates of the ligands have to be provided in the input files to suit the coordinates of the receptor.
+# Ligand names should not contain the underscore "_" letter
+
+receptor_mode=common
+# possible values: individual, common
+# if individual, then a receptor has to be in the receptor folder for each ligand with the same name as the ligand
+# only needed if the subsystem includes a receptor (e.g. PLS, PL)
+
+receptor_basename=
+# only required if there is a common receptor for all ligands
+# only needed if the subsystem includes a receptor (e.g. PLS, PL)
+
+box_edge_length_L=20
+waterbox_padding_size_LS=10
+waterbox_padding_size_PLS=10
+
+ligand_FFparameter_source=folder
+# possible choices: folder, MATCH
+# if folder, then in the folder input-files/FF there need to be the files: ligand_name.rtf, ligand_name.prm for each ligand
+
+*************************************** LOMAP ***************************************
+lomap_mol2_folder=mol2-Li
+# for lomap, relative path name wrt to input-files/ligands
+
+draw_pairwise_mcs=False
+# False or True, cases matter (at least for True, all else is considered as "False")
+
+lomap_ncpus=6
+
+mcs_time=1
+# The time which lomap can take for finding the MCS (maximal common substructure) per molecule-pair
+
+
+*************************************************************************************
+***                       Simulations Settings (OPT, MD, CE)                      ***
+*************************************************************************************
+
+************************************** General **************************************
+runtimeletter=a
+# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q
+
+opt_programs_L=cp2k
+opt_programs_LS=cp2k
+opt_programs_PLS=cp2k
+# possible: cp2k
+
+opt_type_L=MM 
+opt_type_LS=MM 
+opt_type_PLS=MM 
+# Possible values: QMMM
+
+md_programs_L=cp2k
+md_programs_LS=cp2k
+md_programs_PLS=ipi-cp2k
+# Possible values: ipi-cp2k, ipi-cp2k-iqi
+
+md_type_L=MM
+md_type_LS=MM
+md_type_PLS=MM
+# Possible values: QMMM, standard
+# standard is used for MM and QM
+# will also be used for the cross evaluation (CE) (since the type should be the same as the MD type)
+# QMMM requires that md_programs contains cp2k (and possibly ipi, iqi)
+
+TD_cycle_type=hq
+# Possible options: hq
+# lamdba is the standard type in the literature
+# if using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the k_0 and k_1 files
+
+ntdsteps=2
+# The number TD windows (minimal value is 1)
+
+nbeads=2
+# Minimum value: 1
+# for MD simulation only (doesn't make sense for opt)
+# The ipi input files will be automatically adjusted to this value (i.e. the nbeads attribute will be adjusted in the <initialize> tag)
+
+opt_timeout_L=100
+opt_timeout_LS=100
+opt_timeout_PLS=100
+# in seconds
+# this value is used to detect whether the optimization is completed by checking if the file is still changing or not (because sometimes a program (in particular CP2K is done but the program doesn't terminate, or CP2K fails and ipi doesn't quit)
+
+md_timeout_L=1000
+md_timeout_LS=10000
+md_timeout_PLS=10000
+# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
+# Timeout starts counting after CP2K (and possibly iqi) has been started
+
+ce_timeout_L=1000
+ce_timeout_LS=10000
+ce_timeout_PLS=10000
+# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
+# Timeout starts counting after CP2K (and possibly iqi) has been started
+
+md_continue=false
+# Possible values (case insensitive): true, false 
+# If true, then a previous MD run has to exist already
+
+
+**************************************** CP2K ***************************************
+# Ligand (L) input files
+inputfile_cp2k_opt_L=cp2k.in.opt.MM
+inputfile_cp2k_md_k_0_L=cp2k.in.hqf.md.MM.k_0
+inputfile_cp2k_md_k_1_L=cp2k.in.hqf.md.MM.k_1
+inputfile_cp2k_md_lambda_L=cp2k.in.hqf.md.MM.lambda
+
+# Ligand, solvent (LS) input files
+inputfile_cp2k_opt_LS=cp2k.in.opt.QMMM_5.lambda
+inputfile_cp2k_md_k_0_LS=cp2k.in.hqf.md.MM.k_0
+inputfile_cp2k_md_k_1_LS=cp2k.in.hqf.md.MM.k_1
+inputfile_cp2k_md_lambda_LS=cp2k.in.hqf.md.MM.lambda
+
+# Protein, ligand, solvent (PLS) input files
+inputfile_cp2k_opt_PLS=cp2k.in.hqf.opt.MM
+inputfile_cp2k_md_k_0_PLS=cp2k.in.hqf.md.MM.k_0
+inputfile_cp2k_md_k_1_PLS=cp2k.in.hqf.md.MM.k_1
+inputfile_cp2k_md_lambda_PLS=cp2k.in.hqf.md.MM.lambda
+
+cp2k_command=cp2k
+#cp2k_command=/home/wagner/cgorgulla/Dropbox/Software/installed/bin/cp2k.ssmp 
+#cp2k_command=/programs/x86_64-linux/cp2k/4.1/exe/Linux-x86-64-gfortran/cp2k.ssmp
+#cp2k_command=/nmr/programs/cp2k-4.1/cp2k.popt
+
+
+**************************************** i-PI ***************************************
+# Ligand (L) input files
+inputfile_ipi_md_L=ipi.in.md.MM.xml
+inputfile_ipi_ce_L=ipi.in.ce.MM.xml
+
+# Ligand, solvent (LS) input files
+inputfile_ipi_md_LS=ipi.in.md.MM.xml
+inputfile_ipi_ce_LS=ipi.in.ce.MM.xml
+
+# Protein, ligand, solvent (PLS) input files
+inputfile_ipi_md_PLS=ipi.in.md.MM.xml
+inputfile_ipi_ce_PLS=ipi.in.ce.MM.xml
+
+
+**************************************** i-QI ***************************************
+# Ligand (L) input files
+inputfile_iqi_md_L=iqi.in.L.xml
+inputfile_iqi_constraints_L=iqi.in.constraints.L.xml
+
+# Ligand, solvent (LS) input files
+inputfile_iqi_md_LS=iqi.in.LS.xml
+inputfile_iqi_constraints_LS=iqi.in.constraints.LS.xml
+
+# Protein, ligand, solvent (PLS) input files
+inputfile_iqi_md_PLS=iqi.in.PLS.xml
+inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
+
+
+************************************* Crosseval *************************************
+
+ce_first_restart_ID=10
+ce_stride=1
+# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
+
+
+**************************************** FEC ****************************************
+fec_stride=1
+# The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
+
+temperature=300
+C_absolute_tolerance=0.01
+delta_F_min=-10
+delta_F_max=10
+
+
+*********************************** Parallelization *********************************
+ncpus_cp2k_opt_L=1
+ncpus_cp2k_opt_LS=1
+ncpus_cp2k_opt_PLS=1
+ncpus_cp2k_md_L=1
+ncpus_cp2k_md_LS=2
+ncpus_cp2k_md_PLS=2
+ncpus_cp2k_ce_L=1
+ncpus_cp2k_ce_LS=1
+ncpus_cp2k_ce_PLS=1
+
+fes_opt_parallel_max_L=30
+fes_opt_parallel_max_LS=30
+fes_opt_parallel_max_PLS=30
+fes_md_parallel_max_L=30
+fes_md_parallel_max_LS=30
+fes_md_parallel_max_PLS=30
+fes_ce_parallel_max_L=3
+fes_ce_parallel_max_LS=3
+fes_ce_parallel_max_PLS=3
+
+
+************************************* Batchsystem **********************************
+batchsystem=lsf
+# supported: lsf, slurm, sge, mtp (for moab/torque/pbs)

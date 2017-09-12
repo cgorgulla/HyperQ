@@ -37,7 +37,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -59,6 +59,9 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
+
+# Bash options
+set -o pipefail
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -92,14 +95,20 @@ if [ "${TD_cycle_type}" == "hq" ]; then
     if [ "${mod}" != "0" ]; then
         echo "Check failed"
         echo " * The variables <nbeads> and <ntdsteps> are not compatible. nbeads % ntdsteps should be zero"
-        echo "" > runtime/error
-        exit 1
+        false
     fi
     echo " OK"
 fi
-echo "******************************"
-echo "PGID: $(ps -o pgid= $$)"
-echo "******************************"
+
+# Checking if the system names are proper by checking if the mapping file exists
+echo -e -n " * Checking if the mapping file exists... "
+if [ -f input-files/mappings/${system_1_basename}_${system_2_basename} ]; then
+    echo " OK"
+else
+    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings folder "
+    false
+fi
+
 # Creating required folders
 echo -e " * Preparing the main folder"
 if [ -d "opt/${msp_name}/${subsystem}" ]; then
@@ -115,6 +124,9 @@ for system_basename in ${system_1_basename} ${system_2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
+    if [[ "${opt_type}" == *"QMMM"* ]]; then
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
+    fi
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
@@ -130,22 +142,23 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
     # Loop for each intermediate state
     beadStepSize=$(expr $nbeads / $ntdsteps)
-    k_current=0.000
+    lambda_current=0.000
     for i in $(eval echo "{1..${nsim}}"); do
         bead_count1="$(( nbeads - (i-1)*beadStepSize))"
         bead_count2="$(( (i-1)*beadStepSize))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
-        k_stepsize=$(echo "1 / $ntdsteps" | bc -l)
+        lambda_stepsize=$(echo "1 / $ntdsteps" | bc -l)
         echo -e " * Preparing the files and directories for the optimization with bead-configuration ${bead_configuration}"
 
         # Preparation of the cp2k files
-        if [[ "${opt_programs}" == "cp2k" ]]; then
+        if [[ "${opt_programs}" == *"cp2k"* ]]; then
             mkdir -p opt.${bead_configuration}/cp2k
             cp ../../../input-files/cp2k/${inputfile_cp2k_opt} opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/k_value/${k_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/lambda_value/${lambda_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            k_current=$(echo "${k_current} + ${k_stepsize}" | bc -l)
+            sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            k_current=$(echo "${k_current} + ${lambda_stepsize}" | bc -l)
             k_current=${k_current:0:5}
         fi
     done
@@ -160,12 +173,13 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_stepsize}"
 
         # Preparation of the cp2k files
-        if [[ "${opt_programs}" == "cp2k" ]]; then
+        if [[ "${opt_programs}" == *"cp2k"* ]]; then
             mkdir -p opt.${lambda_configuration}/cp2k
             cp ../../../input-files/cp2k/${inputfile_cp2k_opt} opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/lambda_value/${lambda_current}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
             lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
         fi

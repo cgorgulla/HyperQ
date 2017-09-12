@@ -27,23 +27,13 @@ if [ "$#" -ne "0" ]; then
     exit 1
 fi
 
-echo "******************************"
-echo "PGID: $(ps -o pgid= $$)"
-echo "******************************"
-# Verbosity
-verbosity="$(grep -m 1 "^verbosity=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
-    set -x
-fi
-
 # Standard error response 
 error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -65,7 +55,6 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
-set -o pipefail
 
 # Exit cleanup
 cleanup_exit() {
@@ -73,11 +62,26 @@ cleanup_exit() {
     for pid in "${pids[@]}"; do
         kill "${pid}"  1>/dev/null 2>&1 || true
     done
+    sleep 1
+    for pid in "${pids[@]}"; do
+        kill -9 "${pid}" 1>/dev/null 2>&1 || true
+    done
     pkill -P $$ || true
     sleep 3
     pkill -9 -P $$ || true
 }
 trap "cleanup_exit" EXIT
+
+# Bash options
+set -o pipefail
+
+
+# Verbosity
+verbosity="$(grep -m 1 "^verbosity=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+export verbosity
+if [ "${verbosity}" = "debug" ]; then
+    set -x
+fi
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
@@ -92,14 +96,17 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     # Cleaning the folder
     rm cp2k.out* 1>/dev/null 2>&1 || true
     rm system*  1>/dev/null 2>&1 || true
-    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    cp2k -e cp2k.in.opt > cp2k.out.config
+    ${cp2k_command} -e cp2k.in.opt 1> cp2k.out.config 2> cp2k.out.err
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}
-    cp2k -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &pid=$!
-    pids[simcounter]=$pid
+    ${cp2k_command} -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+    pid=$!
+    pids[sim_counter]=$pid
     sim_counter=$((sim_counter+1))
     echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
+    echo "CP2K PID PPID: $pid $(ps -o ppid $pid | grep -o "[0-9]*")"
+    echo "Shell PID PPID: $$ $(ps -o ppid $$ | grep -o "[0-9]*")"
 
     # Checking if the file system-r-1.out does already exist.
     while [ ! -f cp2k.out.general ]; do
@@ -132,3 +139,6 @@ while true; do
         sleep 1
     fi
 done
+
+cleanup_exit
+exit 0

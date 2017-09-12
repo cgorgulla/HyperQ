@@ -4,8 +4,8 @@
 # Usage information
 usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <ntdsteps> <system 1 basename> <system 2 basename> <subsystem type> <qm_flag>
 
-Has to be run in the root folder.
-<ntdstepds>is the number TD windows (minimal value is 1).
+Has to be run in the system root folder.
+<ntdstepds> is the number TD windows (minimal value is 1).
 Possible subsystems are: L, LS, PLS.\nThe <qm_flag> can be: MM, QMMM"
 
 # Checking the input arguments
@@ -36,7 +36,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -59,6 +59,9 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+# Bash options
+set -o pipefail
+
 # Verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -72,7 +75,7 @@ system_1_basename="${3}"
 system_2_basename="${4}"
 subsystem=${5}
 msp_name=${system_1_basename}_${system_2_basename}
-md_type=${6}
+sim_type=${6}
 
 # Copying the kind files
 cp ../../../input-files/cp2k/cp2k.in.kind.* ./
@@ -96,7 +99,7 @@ echo -e " * Preparing the cp2k psf file for the dummy atoms of system 2"
 hqh_fes_prepare_cp2k_psf_dummy.py system2.psf system2.dummy.psf
 
 # Preparing the qm files
-if [ ${md_type^^} == "QMMM" ]; then
+if [ ${sim_type^^} == "QMMM" ]; then
     # System 1
     echo -e " * Preparing the cp2k qm_kind file for system 1"
     hqh_gen_prepare_cp2k_qm_kind.sh ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.all.qatoms.elements.*
@@ -106,37 +109,37 @@ if [ ${md_type^^} == "QMMM" ]; then
     # Copying and adjusting the qatoms indices
     echo -e " * Copying and adjusting the qatoms indices"
     atomCountLigand1=$(grep " LIG " system1.pdb | wc -l)
-    atomCountLigand2=$(grep " LIG " system2.pdb | wc -l) 
+    atomCountLigand2=$(grep " LIG " system2.pdb | wc -l)
     atomCountDifference1="$(( atomCountLigand2 - atomCountLigand1 ))"
-    atomCountLigandSystem=$(grep " LIG " system.a1c1.pdb | wc -l) 
-    atomCountDifference2="$(( atomCountLigandSystem - atomCountLigand1 ))" 
+    atomCountLigandSystem=$(grep " LIG " system.a1c1.pdb | wc -l)
+    atomCountDifference2="$(( atomCountLigandSystem - atomCountLigand1 ))"
     for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.elements.*; do
         element=${file/.indices}
-        element=${element/*.} 
+        element=${element/*.}
         cp $file system1.nonsolvent.qatoms.elements.${element}.indices
-        cat system1.nonsolvent.qatoms.elements.${element}.indices >> system.qatoms.indeces
-        echo -n " " >> system.qatoms.indeces
+#        cat system1.nonsolvent.qatoms.elements.${element}.indices >> system.qatoms.indeces # Removing the parts for system.qatom.indeces because we have now an alternative code in the python file molecular_systems.py which creates all the system-wide special atoms files
+#        echo -n " " >> system.qatoms.indeces
     done
     for file in ../../../input-files/systems/${system_2_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.elements.*; do
         element=${file/.indices}
-        element=${element/*.} 
+        element=${element/*.}
         cp $file system2.nonsolvent.qatoms.elements.${element}.indices
     done
-    for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.elements.*; do 
+    for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.elements.*; do
         element=${file/.indices}
-        element=${element/*.}    
+        element=${element/*.}
         cp $file system1.solvent.qatoms.elements.${element}.indices
         cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atomCountDifference1" '{print $1 + a}' | tr "\n" " " > system2.solvent.qatoms.elements.${element}.indices
     done
-    for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.elements.*; do 
+    for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.elements.*; do
         element=${file/.indices}
-        element=${element/*.}    
-        cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atomCountDifference2" '{print $1 + a}' | tr "\n" " " >> system.qatoms.indeces
-        echo -n " " >> system.qatoms.indeces
+        element=${element/*.}
+#        cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atomCountDifference2" '{print $1 + a}' | tr "\n" " " >> system.qatoms.indeces
+#        echo -n " " >> system.qatoms.indeces
     done
-    cat system.qatoms.indeces | tr -s " " > system.qatoms.indeces.tmp
-    mv system.qatoms.indeces.tmp system.qatoms.indeces
-    cat system.qatoms.indeces | tr -s " " "\n" | awk -v a="$atomCountDifference2" '{print $1 + a}' | tr "\n" " " >> system.qatoms.indeces.0
+#    cat system.qatoms.indeces | tr -s " " > system.qatoms.indeces.tmp
+#    mv system.qatoms.indeces.tmp system.qatoms.indeces
+    #cat system.qatoms.indeces | tr -s " " "\n" | awk -v a="$atomCountDifference2" '{print $1 + a}' | tr "\n" " " >> system.qatoms.indeces.0
     # Preparing the cp2k qm_kind input files
     hqh_gen_prepare_cp2k_qm_kind.sh system2.nonsolvent.qatoms.elements.* system2.solvent.qatoms.elements.*.indices
     mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system2
@@ -145,7 +148,11 @@ if [ ${md_type^^} == "QMMM" ]; then
     hqh_gen_prepare_cp2k_qmmm.py "system1"
     hqh_gen_prepare_cp2k_qmmm.py "system2"
 
-    # Preparing the pdbx file for iqi
+    # Preparing the pdbx file (not just for iqi)
     echo "**************************************************"
     hqh_gen_prepare_pdbx.py system1.pdb system2.pdb system.mcs.mapping
+
+    # Preparing the special atom types (for analysis purposes only)
+    echo "**************************************************************"
+    hqh_gen_prepare_special_atoms.sh system.a1c1.pdbx system.a1c1
 fi

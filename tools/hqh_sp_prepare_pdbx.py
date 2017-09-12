@@ -41,13 +41,17 @@ def update_status(unconstraint_ids_filename, quantum_ids_filename, pdb_filename)
                     pdbx_file.write(line)
 		    
 def help():
-    print "Usage: hqh_sp_prepare_pdbx <unconstraint_ids_filename> <qunatum_ids_filenamet> <input pdbfile>"
+    print "\nUsage: hqh_sp_prepare_pdbx <unconstraint_ids_filename> <qunatum_ids_filenamet> <input pdbfile>\n\n"
     
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
     
     # Checking the number of arguments 
     if (len(sys.argv) != 4):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 3 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         update_status(sys.argv[1], sys.argv[2], sys.argv[3])

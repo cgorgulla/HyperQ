@@ -31,7 +31,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -71,7 +71,7 @@ echo -e "\n *** Running the geometry optimizations (hqmd_opt_run_one_ms.sh)"
 
 # Running the geopts
 echo -e " * Starting the optimization"
-bash hqmd_opt_run_one_opt.sh &
+hqmd_opt_run_one_opt.sh &
 pid=$!
 
 wait

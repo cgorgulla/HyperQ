@@ -53,7 +53,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -83,6 +83,9 @@ cleanup_exit() {
 }
 trap "cleanup_exit" EXIT
 
+# Bash options
+set -o pipefail
+
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
@@ -105,5 +108,5 @@ for system in $(ls input-files/systems); do
         jobs
         sleep 1.$RANDOM
     done;
-    bash hqf_gen_run_one_pipe.sh "${system}" "${subsystem}" "${pipeline_type}" &
+    hqf_gen_run_one_pipe.sh "${system}" "${subsystem}" "${pipeline_type}" &
 done

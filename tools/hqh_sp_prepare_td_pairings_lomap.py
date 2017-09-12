@@ -66,14 +66,16 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
 
 # Checking the outpuf file
 def help():
-    print "Usage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>"
+    print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 6):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 5 parameters. Exiting."
+        print "Required are 5 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         main(sys.argv[1], outputFileBasename=sys.argv[2], ncpus=int(sys.argv[3]), time=int(sys.argv[4]), draw_pairwise_mcs=sys.argv[5])

@@ -40,13 +40,17 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
     plt.show()    
 
 def help():
-    print "Usage: hqf_fec_run_bar_ip_alt.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>"
+    print "\nUsage: hqf_fec_run_bar_ip_alt.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>\n\n"
 
 
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 2 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         bar_ip(sys.argv[1], sys.argv[2])

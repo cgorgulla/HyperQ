@@ -27,6 +27,9 @@ if [ "$#" -ne "1" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
 # Verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -38,7 +41,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo

@@ -22,15 +22,19 @@ def run_cp2k_dummies(system1_basename, system2_basename):
     prepare_cp2k_FF(system2, FFSystem2)
     
 def help():
-    print "Usage: hqh_fes_prepare_cp2k_dummies.py <system1_basename> <system2_basename>"
+    print "\nUsage: hqh_fes_prepare_cp2k_dummies.py <system1_basename> <system2_basename>"
     print "Indices used internally are the ones of the psf files. -> atom order"
     print "For each system pdb/psf/prm/.dummy.indices files are required."
-    print "The output files are required input files for CP2K."
+    print "The output files are required input files for CP2K.\n\n"
 
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 2 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         run_cp2k_dummies(sys.argv[1], sys.argv[2])

@@ -39,15 +39,19 @@ def main(data_filename, fitting_type, outputfile_basename):
 
 
 def help():
-    print "Usage: hqh_fec_plot_hist.py <data file> <fitting type> <outputfile_basename>"
+    print "\nUsage: hqh_fec_plot_hist.py <data file> <fitting type> <outputfile_basename>\n"
     print "The data file is a text file with one column of values."
-    print "Fitting types: normal, none"
+    print "Fitting types: normal, none\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
 
     # Checking the number of arguments 
     if (len(sys.argv) != 4):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 3 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         main(*sys.argv[1:])

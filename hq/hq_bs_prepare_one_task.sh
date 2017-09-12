@@ -41,7 +41,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -63,6 +63,9 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_nonstd $LINENO' ERR
+
+# Bash options
+set -o pipefail
 
 # Variables
 task_id="${1}"

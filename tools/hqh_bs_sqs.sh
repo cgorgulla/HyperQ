@@ -27,6 +27,9 @@ if [ "$#" -ne "0" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
 # Variables
 line=$(grep -m 1 "^batchsystem=" input-files/config.txt)
 batchsystem="${line/batchsystem=}"

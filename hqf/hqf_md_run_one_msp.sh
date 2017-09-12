@@ -32,7 +32,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -55,14 +55,22 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-clean_up() {
+clean_exit() {
     # Terminating all child processes
     for pid in "${pids[@]}"; do
         kill "${pid}"  1>/dev/null 2>&1 || true
     done
-    pkill -P $$ || true                     # https://stackoverflow.com/questions/2618403/how-to-kill-all-subprocesses-of-shell
+    pkill -P $$ || true
+    sleep 3
+    for pid in "${pids[@]}"; do
+        kill -9 "${pid}"  1>/dev/null 2>&1 || true
+    done
+    pkill -9 -P $$ || true
 }
-trap 'clean_up' EXIT
+trap 'clean_exit' EXIT
+
+# Bash options
+set -o pipefail
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -88,7 +96,7 @@ for folder in $(ls -d md*); do
     done; 
     cd ${folder}/
     echo -e " * Starting the md simulation ${folder}"
-    bash hq_md_run_one_md.sh &
+    hq_md_run_one_md.sh &
     pid=$!
     pids[i]=$pid
     echo "${pid} " >> ../../../../runtime/pids/${system_name}_${subsystem}/md
@@ -96,6 +104,9 @@ for folder in $(ls -d md*); do
     i=$((i+1))
 done
 
-wait
+# Waiting for each process separately to capture all the exit codes
+for pid in $pids; do
+    wait $pid
+done
 
 echo -e " * All simulations have been completed."

@@ -11,7 +11,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -33,6 +33,9 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
+
+# Bash options
+set -o pipefail
 
 # Verbosity
 if [ "${verbosity}" = "debug" ]; then
@@ -65,7 +68,7 @@ fi
 script_dir=$(dirname $0)
 ligand_basename=$1
 output_basename=$2
-padding_size="$(grep -m 1 "^box_padding_size_L="  ../../../config.txt | awk -F '=' '{print $2}')"
+padding_size="$(grep -m 1 "^box_edge_length_L="  ../../../config.txt | awk -F '=' '{print $2}')"
 
 # Preparing the box
 vmdc "${script_dir}/hqh_sp_prepare_box_L.vmd" -args $ligand_basename $output_basename ${script_dir}
@@ -74,7 +77,6 @@ vmdc "${script_dir}/hqh_sp_prepare_box_L.vmd" -args $ligand_basename $output_bas
 cp system_nosolv.pdb system_complete.pdb
 cp system_nosolv.psf system_complete.psf
 sed -i "s/PRT   $/PRT  H/g" system_complete.pdb
-#line_cryst=$(grep CRYST1 system_wb.pdb)
-line_cryst="$(printf "CRYST1 %4.3f %4.3f %4.3f  90.00  90.00  90.00 P 1           1" ${padding_size} ${padding_size} ${padding_size})"
+line_cryst="$(printf "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1           1" ${padding_size} ${padding_size} ${padding_size} 90 90 90)"
 sed -i "s/REMARK.*/${line_cryst}/" system_complete.pdb 
 sed -i "s/LIG     1/LIG L   1/g" system_complete.pdb

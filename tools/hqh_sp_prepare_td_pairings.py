@@ -26,13 +26,17 @@ def main(dotFilename):
             
             
 def help():
-    print "Usage: hqh_sp_prepare_td-pairings.py <lomap dot filename preprocessed>"
+    print "\nUsage: hqh_sp_prepare_td-pairings.py <lomap dot filename preprocessed>\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
 
     # Checking the number of arguments 
     if (len(sys.argv) != 2):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required is 1 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         main(*sys.argv[1:])

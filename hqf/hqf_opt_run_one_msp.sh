@@ -32,7 +32,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -64,9 +64,9 @@ clean_up() {
 }
 trap 'clean_up' EXIT
 
-echo "******************************"
-echo "PGID: $(ps -o pgid= $$)"
-echo "******************************"
+# Bash options
+set -o pipefail
+
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
@@ -79,7 +79,7 @@ echo -e "\n *** Running the geometry optimizations (hq_opt_run_one_opt.sh)"
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-fes_opt_parallel_max="$(grep -m 1 "^fes_opt_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fes_opt_parallel_max="$(grep -m 1 "^fes_opt_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 
@@ -93,13 +93,16 @@ for folder in opt.*; do
         cd ${folder}/cp2k
     fi
     echo -e " * Starting the optimization ${folder}"
-    bash hqf_opt_run_one_opt.sh &
+    hqf_opt_run_one_opt.sh &
     pids[i]=$!
     echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
     i=$((i+1))
     cd ../..
 done
 
-wait
+# Waiting for the processes
+for pid in $pids; do
+    wait $pid
+done
 
 echo -e " * All optimizations have been completed."

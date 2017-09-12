@@ -32,21 +32,13 @@ if [ "$#" -ne "3" ]; then
     exit 1
 fi
 
-
-# Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
-    set -x
-fi
-
 # Standard error response 
 error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -68,6 +60,16 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_nonstd $LINENO' ERR
+
+# Bash options
+set -o pipefail
+
+# Verbosity
+verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export verbosity
+if [ "${verbosity}" = "debug" ]; then
+    set -x
+fi
 
 # Variables
 first_index="${1}"

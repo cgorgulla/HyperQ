@@ -32,7 +32,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -63,6 +63,10 @@ cleanup_exit() {
     for pid in "${pids[@]}"; do
         kill "${pid}"  1>/dev/null 2>&1 || true
     done
+    sleep 3
+    for pid in "${pids[@]}"; do
+        kill -9 "${pid}"  1>/dev/null 2>&1 || true
+    done
     pkill -P $$ || true
     sleep 3
     pkill -9 -P $$ || true
@@ -77,17 +81,19 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Variables
-ncpus_cp2k_ce="$(grep ncpus_cp2k_ce ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+snapshot_name="$(pwd | awk -F '/' '{print $(NF)}')"
+crosseval_folder="$(pwd | awk -F '/' '{print $(NF-1)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
+ncpus_cp2k_ce="$(grep ncpus_cp2k_ce_${subsystem} ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-3)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
-crosseval_folder="$(pwd | awk -F '/' '{print $(NF-1)}')"
-snapshot_name="$(pwd | awk -F '/' '{print $(NF)}')"
 snapshotCount=${snapshot_name/*-}
 ce_type="$(grep -m 1 "^md_type_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 snapshot_time_start=$(date +%s)
-pids=0
 sim_counter=0
 
 # ipi
@@ -106,36 +112,38 @@ sim_counter=$((sim_counter+1))
 cd ..
 
 # CP2K
-for bead_folder in $(ls cp2k/); do 
-    echo -e " * Starting cp2k (${bead_folder})"
-    cd cp2k/${bead_folder}/
-    rm cp2k.out* > /dev/null 2>&1 || true 
-    rm system* > /dev/null 2>&1 || true
-    cp2k -e cp2k.in.md > cp2k.out.config 2>cp2k.out.config.err
-    export OMP_NUM_THREADS=${ncpus_cp2k_ce}
-    # timeout -s SIGTERM ${ce_timeout} cp2k -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-    max_it=60
-    iteration_no=0
-    while true; do
-        if [ -e "/tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${snapshotCount}" ]; then # -e for any fail, -f is only for regular files
+max_it=60
+iteration_no=0
+while true; do
+    if [ -e "/tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${snapshotCount}" ]; then # -e for any fail, -f is only for regular files
+        for bead_folder in $(ls cp2k/); do
+            echo -e " * Starting CP2K in folder (${bead_folder})"
+            cd cp2k/${bead_folder}/
+            rm cp2k.out* > /dev/null 2>&1 || true
+            rm system* > /dev/null 2>&1 || true
+            ${cp2k_command} -e cp2k.in.md > cp2k.out.config 2>cp2k.out.config.err
+            export OMP_NUM_THREADS=${ncpus_cp2k_ce}
+            # timeout -s SIGTERM ${ce_timeout} cp2k -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
             echo " * The socket file for snapshot ${snapshotCount} has been detected. Starting CP2K..."
-            cp2k -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-            pids[${sim_counter}]=$!
-            echo "${pids[${sim_counter}]} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
+            ${cp2k_command} -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+            pid=$!
+            pids[${sim_counter}]=$pid
+            echo "${pid} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
             sim_counter=$((sim_counter+1))
             cd ../../
-            break
+            sleep 1
+        done
+        break
+    else
+        if [ "$iteration_no" -lt "$max_it" ]; then
+            echo " * The socket file for snapshot ${snapshotCount} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+            sleep 1
+            iteration_no=$((iteration_no+1))
         else
-            if [ "$iteration_no" -lt "$max_it" ]; then
-                echo " * The socket file for snapshot ${snapshotCount} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
-                sleep 1
-                iteration_no=$((iteration_no+1))
-            else
-                echo " * The maxium number of iterations ($max_it) for snapshot ${snapshotCount} has been reached. Skipping this snapshot..."
-                exit 1
-            fi
+            echo " * The maxium number of iterations ($max_it) for snapshot ${snapshotCount} has been reached. Skipping this snapshot..."
+            exit 1
         fi
-    done
+    fi
 done
 
 # i-QI

@@ -12,14 +12,17 @@ def partition(x_min, x_max, n):
 
 
 def help():
-    print "Usage: hqh_fec_prepare_cvalues.py <lower_bound> <upper_bound> <number_of_intervals>\n"
+    print "\nUsage: hqh_fec_prepare_cvalues.py <lower_bound> <upper_bound> <number_of_intervals>\n\n"
     
     
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 4):
-        print "Wrong number of arguments. Exiting.\n"
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 3 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         partition(float(sys.argv[1]), float(sys.argv[2]), int(sys.argv[3]))

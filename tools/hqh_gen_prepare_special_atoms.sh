@@ -1,9 +1,11 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqh_sp_prepare_waterbox_LS.sh <ligand file basename> <output file basename>
+usage="Usage: hqh_gen_prepare_special_atoms.sh <pdbx file> <outputfile basename>
 
-Required ligand files: pdb and rtf file."
+The indeces in the output files are their position in the pdbx file starting at 1. This corresponds to the the serial in VMD".
+
+
 
 # Standard error response 
 error_response_std() {
@@ -34,9 +36,6 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-# Bash options
-set -o pipefail
-
 # Verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
@@ -64,14 +63,39 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
 # Variables
-script_dir=$(dirname $0)
-ligand_basename=$1
-output_basename=$2
-waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS="  ../../../config.txt | awk -F '=' '{print $2}')"
+pdbx_file="$1"
+outputfile_basename="$2"
 
 # Body
-vmdc "${script_dir}/hqh_sp_prepare_waterbox_LS.vmd" -args $ligand_basename $output_basename ${script_dir} ${waterbox_padding_size_LS}
-sed -i "s/PRT   $/PRT  H/g" system_wb.pdb
-mv system_wb.pdb system_complete.pdb
-mv system_wb.psf system_complete.psf
+index=1  # is the serial in VMD (index+1)
+while IFS= read -r line; do
+    if ! [ "${line:0:5}" == "ATOM " ]; then
+        continue
+    else
+        qm_type=${line:80:1}
+        if [ "${qm_type}" == "M" ]; then
+            echo -n "${index} " >> ${outputfile_basename}.m_atoms
+        elif [ "${qm_type}" == "Q" ]; then
+            echo -n "${index} ">> ${outputfile_basename}.q_atoms
+        else
+            echo -e "\nError in the pdbx file ${pdbx_file}, wrong MQ atom type."
+            false
+        fi
+
+        constraint_type=${line:81:1}
+        if [ "${constraint_type}" == "U" ]; then
+            echo -n "${index} " >> ${outputfile_basename}.u_atoms
+        elif [ "${constraint_type}" == "C" ]; then
+            echo -n "${index} " >> ${outputfile_basename}.c_atoms
+        else
+            echo -e "\nError in the pdbx file ${pdbx_file}, wrong constraint (UC) atom type."
+            false
+        fi
+
+        index=$((index+1))
+    fi
+done < "${pdbx_file}"

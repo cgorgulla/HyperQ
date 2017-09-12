@@ -33,7 +33,7 @@ def main(psfFilenameIn, psfFilenameOut):
 
 
 def help():
-    print "Usage: hqh_fes_prepare_cp2k_psf_dummy.py <psf filename in> <psf filename out>"
+    print "\nUsage: hqh_fes_prepare_cp2k_psf_dummy.py <psf filename in> <psf filename out>\n\n"
     
 
 # Checking if this file is run as the main program 
@@ -41,6 +41,10 @@ if __name__ == '__main__':
 
     # Checking the number of arguments 
     if (len(sys.argv) != 3):
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 2 parameters. Exiting..."
         help()
+        exit(1)
+
     else:
         main(*sys.argv[1:])

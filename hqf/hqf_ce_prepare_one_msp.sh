@@ -33,7 +33,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -55,13 +55,6 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
-
-# Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
-    set -x
-fi
 
 prepare_restart() {
     
@@ -86,6 +79,7 @@ prepare_restart() {
     cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
     sed -i "s|<address>.*cp2k.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
     sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
+    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
 
     # Preparing the CP2K files
     for bead in $(eval echo "{1..${nbeads}}"); do
@@ -96,15 +90,20 @@ prepare_restart() {
     done
 
     # Preparing the iqi files if required
-    ce_type="$(grep -m 1 "^md_type_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    if [ "${ce_type^^}" == "QMMM" ]; then 
+    if [[ "${md_programs}" == *"iqi"* ]]; then
         mkdir ${crosseval_folder}/snapshot-${restartID}/iqi
-        sed -i "s|<address>.*iqi.*|<address>ipi.ce.${msp_name}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
         cp ../../../md/${msp_name}/${subsystem}/${md_folder_potential_source}/iqi/iqi.in.* ${crosseval_folder}/snapshot-${restartID}/iqi
         sed -i "s|>.*\.\.\/\.\./|>\.\./\.\./\.\./|" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi* ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.xml
         sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
     fi
 }
+
+# Verbosity
+verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export verbosity
+if [ "${verbosity}" = "debug" ]; then
+    set -x
+fi
 
 # Variables
 system1_basename="${1}"
@@ -118,7 +117,7 @@ msp_name=${system1_basename}_${system2_basename}
 crosseval_trajectory_stride=${6}
 # "$(grep crosseval_trajectory_stride ${config_folder}/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -216,23 +215,34 @@ for i in $(seq 1 $((nsim-1)) ); do
     fi
     mkdir ${crosseval_folder_bw}
 
+    # Removing old prepared restart files
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/*restart_0* || true
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/*restart_0* || true
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/*all_runs* || true
+    rm ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/*all_runs* || true
+
     # Determining the number of restart files of the two md simulations
     restartFileCountMD1=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
     restartFileCountMD2=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
 
     # Preparing the restart files
-    rm ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/*restart_0* || true
-    rm ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/*restart_0* || true
     counter=1
     for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ | grep restart_ | grep -v restart_0) ; do
-        mv ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ipi.out.all_runs.restart_${counter} || true
+        cp ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ipi.out.all_runs.restart_${counter} || true
         counter=$((counter + 1))
     done
     counter=1
     for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ | grep restart_ | grep -v restart_0) ; do
-        mv ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ipi.out.all_runs.restart_${counter} || true
+        cp ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/$file ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ipi.out.all_runs.restart_${counter} || true
         counter=$((counter + 1))
     done
+
+    # Uniting all the ipi property files
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/* | grep properties)"
+    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_1}/ipi/ipi.out.all_runs.properties
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/* | grep properties)"
+    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_2}/ipi/ipi.out.all_runs.properties
+
     #if [[ "${restartFileCountMD1}" -ge "${restartFileCountMD2}" ]]; then
     #    restartFileCountCommon="${restartFileCountMD2}"
     #elif [[ "${restartFileCountMD2}" -ge "${restartFileCountMD1}" ]]; then
@@ -250,7 +260,7 @@ for i in $(seq 1 $((nsim-1)) ); do
         #restartID=$((i-1))
         restartFile=ipi.out.all_runs.restart_${restartID}
         # Applying the crosseval_trajectory_stride
-        mod=$(((restartID-ce_first_restart_ID)%crosseval_trajectory_stride))
+        mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_1} ${md_folder_2} ${restartFile} ${crosseval_folder_fw} ${restartID}
@@ -263,7 +273,7 @@ for i in $(seq 1 $((nsim-1)) ); do
         restartFile=ipi.out.all_runs.restart_${restartID}
 
         # Applying the crosseval_trajectory_stride
-        mod=$(((restartID-ce_first_restart_ID)%crosseval_trajectory_stride))
+        mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride))
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_2} ${md_folder_1} ${restartFile} ${crosseval_folder_bw} ${restartID}

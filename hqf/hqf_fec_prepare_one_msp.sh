@@ -31,7 +31,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -62,8 +62,7 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Bash options
-set -u
-#set -xeuo pipefail
+#set -o pipefail
 
 # Variables
 system_1_basename="${1}"
@@ -73,9 +72,9 @@ msp_name="${system_1_basename}_${system_2_basename}"
 md_folder="md/${msp_name}/${subsystem}"
 ce_folder="ce/${msp_name}/${subsystem}"
 fec_folder="fec/AFE/${msp_name}/${subsystem}"
-c_values_min=$(grep -m 1 "^c_values_min=" input-files/config.txt | awk -F '=' '{print $2}')
-c_values_max=$(grep -m 1 "^c_values_max=" input-files/config.txt | awk -F '=' '{print $2}')
-c_values_count=$(grep -m 1 "^c_values_count=" input-files/config.txt | awk -F '=' '{print $2}')
+#c_values_min=$(grep -m 1 "^c_values_min=" input-files/config.txt | awk -F '=' '{print $2}')
+#c_values_max=$(grep -m 1 "^c_values_max=" input-files/config.txt | awk -F '=' '{print $2}')
+#c_values_count=$(grep -m 1 "^c_values_count=" input-files/config.txt | awk -F '=' '{print $2}')
 fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
 
@@ -127,11 +126,13 @@ while read line; do
     fi
     echo "OK"
 
-    # Uniting all the ipi property files
-    property_files=$(ls -1v ${md_folder}/${md_folder_1}/ipi/* | grep properties)
-    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties
-    property_files=$(ls -1v ${md_folder}/${md_folder_2}/ipi/* | grep properties)
-    cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties
+   # # Uniting all the ipi property files
+   # rm ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties 2>&1 1>/dev/null || true
+   # rm ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties 2>&1 1>/dev/null || true
+   # property_files=$(ls -1v ${md_folder}/${md_folder_1}/ipi/* | grep properties)
+   # cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties
+   # property_files=$(ls -1v ${md_folder}/${md_folder_2}/ipi/* | grep properties)
+   # cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties
 
     # Loop for the each snapshot pair
     for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_fw}); do
@@ -203,6 +204,6 @@ while read line; do
     # Drawing histograms
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}.plot"
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}.plot"
-    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/delta_1_U+delta_2_U_stride${fec_stride}.plot"
+    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/delta_1_U,delta_2_U_stride${fec_stride}.plot"
     
 done <${ce_folder}/TD_windows.list

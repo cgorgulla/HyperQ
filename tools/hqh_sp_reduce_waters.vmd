@@ -4,13 +4,13 @@ set waterCountTarget [lindex $argv 1]
 mol new ${systemBasename}.psf
 mol addfile ${systemBasename}.pdb
 
-set OH2old [atomselect top "water and element O"]
+set OH2old [atomselect top "(not chain L P) and element O"]
 set OH2IndecesOld [$OH2old list]
 set waterCountTarget [expr ${waterCountTarget} - 1]
 set OH2IndecesNew [lrange $OH2IndecesOld 0 ${waterCountTarget} ]
 set water [atomselect top "same residue as index ${OH2IndecesNew}"]
 set waterIndeces [$water list]
-set notWater [atomselect top "not water"]
+set notWater [atomselect top "chain L P"]
 set notWaterIndeces [${notWater} list]
 set system2 [atomselect top "index ${notWaterIndeces} or index ${waterIndeces}"]
 

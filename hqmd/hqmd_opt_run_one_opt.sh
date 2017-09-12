@@ -40,7 +40,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -72,6 +72,7 @@ cleanup_exit() {
 trap "cleanup_exit" EXIT
 
 # Variables
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
 opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
 
@@ -82,7 +83,7 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     # Cleaning the folder
     rm cp2k.out* 1>/dev/null 2>&1 || true
     rm system*  1>/dev/null 2>&1 || true
-    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k -e cp2k.in.opt > cp2k.out.config
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}

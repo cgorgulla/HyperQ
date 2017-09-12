@@ -138,17 +138,18 @@ def bar_ip(delta_U1_filename, delta_U2_filename):
 
 
 def help():
-    print "Usage: hqf_fec_run_bar_ip.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>"
-    print "The first potential is always the sampling potential, the second one is the evaluating potential."
+    print "\nUsage: hqf_fec_run_bar_ip.py <file with U1_U2-U1_U1 values> <file with U2_U2-U2_U1 values>"
+    print "The first potential is always the sampling potential, the second one is the evaluating potential.\n\n"
 
 
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
-        print
+        print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
+        print "Required are 2 parameters. Exiting..."
         help()
-        print
-        print
+        exit(1)
+
     else:
         bar_ip(sys.argv[1], sys.argv[2])

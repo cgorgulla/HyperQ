@@ -43,7 +43,7 @@ error_response_std() {
     echo
     echo "An error was trapped" 1>&2
     echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on lin $1" 1>&2
+    echo "The error occured on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -95,5 +95,5 @@ for system in $(ls input-files/systems); do
         jobs
         sleep 1.$RANDOM
     done;
-    bash hqmd_gen_run_one_pipe.sh "${system}" "${subsystem}" "${pipeline_type}" &
+    hqmd_gen_run_one_pipe.sh "${system}" "${subsystem}" "${pipeline_type}" &
 done
