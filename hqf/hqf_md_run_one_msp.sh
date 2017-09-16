@@ -51,7 +51,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -83,7 +82,7 @@ fi
 echo -e "\n *** Starting the md simulations (hqf_md_run_one_msp.sh)"
 
 # Variables
-ncpus_cp2k_md=${1}
+ncpus_cp2k_md="${1}"
 fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
@@ -91,7 +90,7 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 # Running the md simulations
 i=0
 for folder in $(ls -d md*); do
-    while [ "$(jobs | wc -l)" -ge "${fes_md_parallel_max}" ]; do
+    while [ "$(jobs | grep -v Done | wc -l)" -ge "${fes_md_parallel_max}" ]; do
         sleep 0.$RANDOM
     done; 
     cd ${folder}/

@@ -31,7 +31,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -70,11 +69,14 @@ script_dir=$(dirname ${0})
 subsystem=${1}
 
 # Finding the minimum water number
+set +o pipefail # not used because if no water the pipe would file
 i=0
 for folder in input-files/systems/*; do
     waterCount[i]=$(grep "^ATOM" ${folder}/${subsystem}/system_complete.pdb | grep " OH2 " | wc -l)
     i=$((i+=1))
 done
+set -o pipefail # not used because if no water the pipe would file
+
 minimumWaterCount=${waterCount[0]}
 for i in ${waterCount[@]}; do
     if [[ ${i} -lt ${minimumWaterCount} ]]; then

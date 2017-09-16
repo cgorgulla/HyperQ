@@ -29,7 +29,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -66,7 +65,7 @@ fi
 # Printing some information
 echo
 echo
-echo "   Preparing the entire system for ligand ${2} (hqh_sp_prepare_L.sh)   "
+echo "   Preparing the entire system for ligand ${1} (hqh_sp_prepare_L.sh)   "
 echo "************************************************************************************"
 set -x
 # Variables

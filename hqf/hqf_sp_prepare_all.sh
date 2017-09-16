@@ -56,7 +56,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -323,7 +322,9 @@ for folder in $(ls input-files/systems/) ; do
 done
 
 # Reducing the number of water molecules so that all systems have the same number
-hqh_sp_reduce_all_waters.sh ${subsystem}
+for subsystem in ${subsystems}; do
+    hqh_sp_reduce_all_waters.sh ${subsystem}
+done
 
 # Preparing the remaining files for each system
 for subsystem in ${subsystems}; do

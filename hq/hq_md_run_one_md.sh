@@ -59,7 +59,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -89,6 +88,7 @@ subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 md_name="$(pwd | awk -F '/' '{print $(NF)}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
@@ -96,11 +96,16 @@ sim_counter=0
 # Running ipi
 if [[ "${md_programs}" == *"ipi"* ]]; then
     cd ipi
-    echo " * Starting ipi"
+    echo " * Cleaning up the ipi folder"
+    if [ ${md_continue^^} == "FALSE" ]; then
+        rm ipi.out* > /dev/null 2>&1 || true
+    fi
     rm ipi.out.run${run}* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
     rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.}  > /dev/null 2>&1 || true
-    stdbuf -oL ipi ipi.in.md.xml > ipi.out.screen 2>> ipi.out.err &
+
+    echo " * Starting ipi"
+    stdbuf -oL ipi ipi.in.md.xml > ipi.out.run${run}.screen 2>> ipi.out.run${run}.err &
     pid=$!
     pids[${sim_counter}]=$pid
     echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
@@ -115,12 +120,16 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     for bead_folder in $(ls cp2k/); do
-        echo " * Starting cp2k (${bead_folder})"
         cd cp2k/${bead_folder}
-        rm cp2k.out* > /dev/null 2>&1 || true
+        echo " * Cleaning up the cp2k folder"
+        if [ ${md_continue^^} == "FALSE" ]; then
+            rm cp2k.out* > /dev/null 2>&1 || true
+        fi
+        rm cp2k.out.run${run}* > /dev/null 2>&1 || true
         rm system* > /dev/null 2>&1 || true
-        ${cp2k_command} -e cp2k.in.md > cp2k.out.config 2>cp2k.out.err
-        OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+        echo " * Starting cp2k (${bead_folder})"
+        ${cp2k_command} -e cp2k.in.md > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
+        OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.md -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
         pid=$!
         pids[${sim_counter}]=$pid
         echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
@@ -134,9 +143,13 @@ fi
 # Running i-QI
 if [[ "${md_programs}" == *"iqi"* ]]; then
     cd iqi
+    echo " * Cleaning up the iqi folder"
+    if [ ${md_continue^^} == "FALSE" ]; then
+        rm iqi.out.* > /dev/null 2>&1 || true
+    fi
+    rm iqi.out.run${run}* > /dev/null 2>&1 || true
     echo " * Starting iqi"
-    rm iqi.out.* > /dev/null 2>&1 || true
-    stdbuf -oL iqi iqi.in.xml > iqi.out.screen 2> iqi.out.err &
+    stdbuf -oL iqi iqi.in.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
     pid=$!
     pid_ipi=${pid}
     pids[${sim_counter}]=$pid
@@ -150,7 +163,7 @@ if [[ "${md_programs}" == "namd" ]]; then
     cd namd
     # ncpus_namd_md="$(grep -m 1 "^ncpus_namd_md=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     namd_command="$(grep -m 1 "^namd_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    ${namd_command} namd.in.md > namd.out.screen 2>namd.out.err & # removed +idlepoll +p${ncpus_namd_md}
+    ${namd_command} namd.in.md > namd.out.run${run}.screen 2>namd.out.run${run}.err & # removed +idlepoll +p${ncpus_namd_md}
     pid=$!
     pids[${sim_counter}]=$pid
     echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
@@ -161,28 +174,26 @@ fi
 # Checking if the simulation is completed/crashed
 stop_flag="false"
 while true; do
-    if [ -f ipi/ipi.out.screen ]; then
-        timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.screen)))
+    if [ -f ipi/ipi.out.run${run}.screen ]; then
+        timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
         if [ "${timeDiff}" -ge "${md_timeout}" ]; then
             stop_flag="true"
         else
             sleep 1 || true
         fi
     fi
-    if [ -f ipi/ipi.out.err ]; then
+    if [ -f ipi/ipi.out.run${run}.err ]; then
         error_count="$( ( grep -i error ipi/ipi.out.err || true ) | wc -l)"
         if [ ${error_count} -ge "1" ]; then
-            echo -e "Error detected in the file ipi.out.err"
-            cat ipi/ipi.out.err
+            echo -e "Error detected in the file ipi.out.run${run}.err"
             false
         fi
     fi
     for bead_folder in $(ls cp2k/); do
-        if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
-            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.err || true ) | wc -l)"
+        if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
+            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true ) | wc -l)"
             if [ ${error_count} -ge "1" ]; then
-                echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.err"
-                cat cp2k/${bead_folder}/cp2k.out.err
+                echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err"
                 false
             fi
         fi

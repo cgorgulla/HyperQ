@@ -26,38 +26,53 @@ set qatoms_nonsolvent [atomselect top "${atomselection_q_nonsolvent}"]
 set qatoms_solvent [atomselect top "${atomselection_q_solvent}"]
 set qcatoms_all [atomselect top "${atomselection_q_all} and ${atomselection_c_all}"]
 
+
 # Writing out files
 # qatoms all
-set data [$qatoms_all list]
-set filename "${system_basename}.all.qatoms.indices.0"
+set data [$qatoms_all get {serial}]
+set filename "${system_basename}.all.qatoms.indices"
 set file [open $filename "w"]
 puts $file $data
 close $file
 
 # qatoms+elements
-set data [$qatoms_all get {element index}]
-set filename "${system_basename}.all.qatoms.indices+elements.0"
+set data [$qatoms_all get {element serial}]
+set filename "${system_basename}.all.qatoms.indices+elements"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qatoms_nonsolvent
+set data [$qatoms_nonsolvent get {serial}]
+set filename "${system_basename}.nonsolvent.qatoms.indices"
 set file [open $filename "w"]
 puts $file $data
 close $file
 
 # qatoms_nonsolvent + elements
-set data [$qatoms_nonsolvent get {element index}]
-set filename "${system_basename}.nonsolvent.qatoms.indices+elements.0"
+set data [$qatoms_nonsolvent get {element serial}]
+set filename "${system_basename}.nonsolvent.qatoms.indices+elements"
+set file [open $filename "w"]
+puts $file $data
+close $file
+
+# qatoms_solvent
+set data [$qatoms_solvent get {serial}]
+set filename "${system_basename}.solvent.qatoms.indices"
 set file [open $filename "w"]
 puts $file $data
 close $file
 
 # qatoms_solvent + elements
-set data [$qatoms_solvent get {element index}]
-set filename "${system_basename}.solvent.qatoms.indices+elements.0"
+set data [$qatoms_solvent get {element serial}]
+set filename "${system_basename}.solvent.qatoms.indices+elements"
 set file [open $filename "w"]
 puts $file $data
 close $file
 
 # qcatoms all
-set data [$qcatoms_all list]
-set filename "${system_basename}.all.qcatoms.indices.0"
+set data [$qcatoms_all get {index}]
+set filename "${system_basename}.all.qcatoms.indices"
 set file [open $filename "w"]
 puts $file $data
 close $file

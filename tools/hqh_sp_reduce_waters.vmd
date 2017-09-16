@@ -5,14 +5,14 @@ mol new ${systemBasename}.psf
 mol addfile ${systemBasename}.pdb
 
 set OH2old [atomselect top "(not chain L P) and element O"]
-set OH2IndecesOld [$OH2old list]
+set OH2indicesOld [$OH2old list]
 set waterCountTarget [expr ${waterCountTarget} - 1]
-set OH2IndecesNew [lrange $OH2IndecesOld 0 ${waterCountTarget} ]
-set water [atomselect top "same residue as index ${OH2IndecesNew}"]
-set waterIndeces [$water list]
+set OH2indicesNew [lrange $OH2indicesOld 0 ${waterCountTarget} ]
+set water [atomselect top "same residue as index ${OH2indicesNew}"]
+set waterindices [$water list]
 set notWater [atomselect top "chain L P"]
-set notWaterIndeces [${notWater} list]
-set system2 [atomselect top "index ${notWaterIndeces} or index ${waterIndeces}"]
+set notWaterindices [${notWater} list]
+set system2 [atomselect top "index ${notWaterindices} or index ${waterindices}"]
 
 ${system2} writepdb "${systemBasename}.reduced.pdb"
 ${system2} writepsf "${systemBasename}.reduced.psf"

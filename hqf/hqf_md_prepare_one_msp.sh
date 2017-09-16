@@ -56,7 +56,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -74,10 +73,10 @@ fi
 nbeads="${4}"
 ntdsteps="${5}"
 nsim="$((ntdsteps + 1))"
-system_1_basename="${1}"
-system_2_basename="${2}"
+system1_basename="${1}"
+system2_basename="${2}"
 subsystem=${3}
-msp_name=${system_1_basename}_${system_2_basename}
+msp_name=${system1_basename}_${system2_basename}
 inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -101,21 +100,21 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
     fi
     mkdir -p md/${msp_name}/${subsystem}
     cd md/${msp_name}/${subsystem}
-    rm /tmp/ipi_ipi.${runtimeletter}.${msp_name}* 2>/dev/null || true
 
-    # Copying the system files
+    # Copying the shared simulation files
     echo -e " * Copying general simulation files"
     systemID=1
-    for system_basename in ${system_1_basename} ${system_2_basename}; do
+    for system_basename in ${system1_basename} ${system2_basename}; do
         cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
         cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
         cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-        if [[ "${md_type}" == *"QMMM"* ]]; then
-            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
-        fi
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
         (( systemID += 1 ))
     done
-    cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
+    cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
+
+    # Preparing the shared CP2K input files
+    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system1.pdb)
@@ -132,7 +131,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
         inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
         # Loop for each TD window
-        lambda_current=0.000
+#        lambda_current=0.000
         for i in $(eval echo "{1..${nsim}}"); do
             bead_count1="$(( nbeads - (i-1)*beadStepSize))"
             bead_count2="$(( (i-1)*beadStepSize))"
@@ -167,9 +166,8 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    if [ "${TD_cycle_type}" == "lambda" ]; then
-                        sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    fi
+                    sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 done
             fi
 
@@ -182,9 +180,8 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    if [ "${TD_cycle_type}" == "lambda" ]; then
-                        sed -i "s/lambda/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    fi
+                    sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 done
             fi
 
@@ -205,9 +202,9 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             # Copying the geo-opt coordinate files
             cp ../../../opt/${msp_name}/${subsystem}/system.${bead_configuration}.opt.pdb ./
 
-            # Adjusting lambda_current
-            lambda_current=$(echo "${lambda_current} + ${k_stepsize}" | bc -l)
-            lambda_current=${lambda_current:0:5}
+#            # Adjusting lambda_current
+#            lambda_current=$(echo "${lambda_current} + ${k_stepsize}" | bc -l)
+#            lambda_current=${lambda_current:0:5}
 
         done
 
@@ -236,7 +233,7 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
         for i in $(eval echo "{1..${nsim}}"); do
             lambda_configuration=lambda_${lambda_current}
             md_folder="md.lambda_${lambda_current}"
-            echo -e " * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+            echo -e " * Preparing the files and directories for the fes with lambda-configuration ${lambda_configuration}"
 
             # Creating directies
             mkdir ${md_folder}
@@ -263,6 +260,8 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                 sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             done
 
             # iqi
@@ -287,9 +286,6 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
         done
     fi
-
-    # Preparing the shared CP2K input files
-    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system_1_basename} ${system_2_basename} ${subsystem} ${md_type}
 
     cd ../../../
 

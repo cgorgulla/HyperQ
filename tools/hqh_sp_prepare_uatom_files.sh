@@ -28,7 +28,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -67,11 +66,8 @@ system_basename=${1}
 
 # Preparing the uatoms
 # Checking if number of indices > 0
-if [ -z "$(cat ${system_basename}.all.uatoms.indices.0 2>/dev/null  | tr -d "[:space:]")" ]; then
-    echo -e " * Info: No QM atoms (uatoms) in system ${system_basename}." 
-    touch ${system_basename}.all.uatoms.indices 
-    exit 0
-else
-    cat ${system_basename}.all.uatoms.indices.0 | tr " " "\n" | awk '{print ($1 + 1)}' | tr "\n" " " > ${system_basename}.all.uatoms.indices
+#if [ -z "$(cat ${system_basename}.all.uatoms.indices 2>/dev/null  | tr -d "[:space:]")" ]; then
+if [ ! -f "${system_basename}.all.uatoms.indices" ]; then
+    echo -e " * Info: No QM atoms (uatoms) in system ${system_basename}."
+    touch "${system_basename}.all.uatoms.indices"
 fi
-

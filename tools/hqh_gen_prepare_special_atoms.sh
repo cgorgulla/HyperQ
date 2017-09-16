@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hqh_gen_prepare_special_atoms.sh <pdbx file> <outputfile basename>
 
-The indeces in the output files are their position in the pdbx file starting at 1. This corresponds to the the serial in VMD".
+The indices in the output files are their position in the pdbx file starting at 1. This corresponds to the the serial in VMD".
 
 
 
@@ -32,7 +32,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 

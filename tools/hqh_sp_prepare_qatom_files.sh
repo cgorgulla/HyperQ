@@ -27,7 +27,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -65,29 +64,22 @@ fi
 system_basename=${1}
 
 # Preparing the qatom indices
-# Checking if number of indices > 0
-if [ -z "$(cat ${system_basename}.all.qatoms.indices.0 | tr -d "[:space:]" )" ]; then
-    echo -e " * Info: No QM atoms (qatoms) in system ${system_basename}." 
-    touch ${system_basename}.all.qatoms.indices
-    touch ${system_basename}.solvent.qatoms.indices
-    touch ${system_basename}.nonsolvent.qatoms.indices    
-    touch ${system_basename}.all.qcatoms.indices
-    touch ${system_basename}.all.qatoms.elements
-else
-    # qatoms
-    cat ${system_basename}.all.qatoms.indices.0 | tr " " "\n" | awk '{print ($1 + 1)}' | tr "\n" " " > ${system_basename}.all.qatoms.indices
-    # for each component: nonsolvent, solvent
-    for component in all nonsolvent solvent; do
-        cat ${system_basename}.${component}.qatoms.indices+elements.0 | sed "s/} {/\n/g" | tr -d "}{" | awk '{print $1, ($2 + 1)}' > ${system_basename}.${component}.qatoms.indices+elements.columns
+for component in all nonsolvent solvent; do
+    # Checking if number of indices > 0
+    if [ -z "$(cat ${system_basename}.${component}.qatoms.indices | tr -d "[:space:]" )" ]; then
+        echo -e " * Info: No QM atoms (among ${component} atoms) in system ${system_basename}."
+        touch ${system_basename}.${component}.qatoms.indices
+        touch ${system_basename}.${component}.qcatoms.indices
+        touch ${system_basename}.${component}.qatoms.elements
+    else
+        # for each component: nonsolvent, solvent
+        cat ${system_basename}.${component}.qatoms.indices+elements | sed "s/} {/\n/g" | tr -d "}{" > ${system_basename}.${component}.qatoms.indices+elements.columns
         cat ${system_basename}.${component}.qatoms.indices+elements.columns | awk '{print $1}' | tr 'g' " "  |  sort | uniq > ${system_basename}.${component}.qatoms.elements
-        for elem in $(cat ${system_basename}.${component}.qatoms.elements); do 
+        for elem in $(cat ${system_basename}.${component}.qatoms.elements); do
             cat /dev/null >| ${system_basename}.${component}.qatoms.elements.${elem}.indices
         done
         for elem in $(cat ${system_basename}.${component}.qatoms.elements); do
             grep "$elem " ${system_basename}.${component}.qatoms.indices+elements.columns | awk '{printf "%s ", $2}' >> ${system_basename}.${component}.qatoms.elements.${elem}.indices
         done
-    done
-    
-    # qcatoms
-    cat ${system_basename}.all.qcatoms.indices.0 | tr " " "\n" | awk '{print ($1 + 1)}' | tr "\n" " " > ${system_basename}.all.qcatoms.indices
-fi
+    fi
+done

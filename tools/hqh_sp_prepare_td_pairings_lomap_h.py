@@ -74,7 +74,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
             MC_h[atomIndex1, atomIndex2] = lomap.MCS.getMapping(db_mol[0].getMolecule(), db_mol[1].getMolecule(), hydrogens=False, fname='mcs_noh' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
         with open("mcs_mapping_" + str(i) + "_" + str(j), "w") as mappingFile:  # cg
             for item in MC_h[atomIndex1,atomIndex2]._MCS__map_moli_molj:  # cg
-                mappingFile.write(str(item[0] + 1) + " " + str(item[1] + 1) + "\n")  # Lomaps indeces start at 0, we need a start at 1 (used by prepare_cp2k_mapping) # cg
+                mappingFile.write(str(item[0] + 1) + " " + str(item[1] + 1) + "\n")  # Lomaps indices start at 0, we need a start at 1 (used by prepare_cp2k_mapping) # cg
 
 
 # Checking the outpuf file

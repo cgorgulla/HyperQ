@@ -53,7 +53,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -86,9 +85,9 @@ echo -e " * Copying general simulation files"
 cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.psf ./system1.psf
 cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.pdb ./system1.pdb
 cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system1.prm
-if [ ${md_type^^} == "QMMM" ]; then
+#if [ ${md_type^^} == "QMMM" ]; then
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.pdbx ./system1.pdbx
-fi
+#fi
 
 # Getting the cell size in the cp2k input files
 line=$(grep CRYST1 system1.pdb)
@@ -128,15 +127,13 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     cp ../../../input-files/cp2k/cp2k.in.kind.* ./
 
     # Preparing the QM/MM files
-    if [ ${md_type^^} == "QMMM" ]; then
-        # QM/MM qm_kind files
-        echo -e " * Preparing the cp2k QM/MM qm_kind file for system 1"
-        hqh_gen_prepare_cp2k_qm_kind.sh ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.all.qatoms.elements.*
-        mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1
+    # QM/MM qm_kind files
+    echo -e " * Preparing the cp2k QM/MM qm_kind file for system 1"
+    hqh_gen_prepare_cp2k_qm_kind.sh ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.all.qatoms.elements.*
+    mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1
 
-        # Preparing the remaining QMMM files for CP2K
-        hqh_gen_prepare_cp2k_qmmm.py "system1"
-    fi
+    # Preparing the remaining QMMM files for CP2K
+    hqh_gen_prepare_cp2k_qmmm.py "system1"
 fi
 
 # Preparation of the ipi files

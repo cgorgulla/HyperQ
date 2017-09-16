@@ -16,8 +16,8 @@ mol addfile ${system_basename}.psf
 set uatoms [atomselect top ${uatom_selection}]
 
 # Writing out files
-set data [${uatoms} list]
-set filename "${system_basename}.all.uatoms.indices.0"
+set data [${uatoms} get {serial}]
+set filename "${system_basename}.all.uatoms.indices"
 set file [open $filename "w"]
 puts $file $data
 close $file

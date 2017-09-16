@@ -52,7 +52,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -123,8 +122,6 @@ while true; do
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
             kill  %1 2>&1 1>/dev/null|| true
             break
-        else
-            sleep 1
         fi
     fi
     if [ -f cp2k.out.general ]; then
@@ -132,12 +129,24 @@ while true; do
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
             kill  %1 2>&1 1>/dev/null|| true
             break
-        else
-            sleep 1
         fi
-    else 
-        sleep 1
     fi
+    # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
+    if [ -f cp2k.out.err ]; then
+        memory_error_count="$( ( grep "invalid memory reference" cp2k.out.err || true ) | wc -l)"
+        if [ "${memory_error_count}" -ge "1" ]; then
+            kill  %1 2>&1 1>/dev/null|| true
+            break
+        fi
+    fi
+    if [ -f cp2k.out.err ]; then
+        error_count="$( ( grep -i error cp2k.out.err || true ) | wc -l)"
+        if [ ${error_count} -ge "1" ]; then
+            echo -e "Error detected in the file cp2k.out.err"
+            false
+        fi
+    fi
+    sleep 1
 done
 
 cleanup_exit

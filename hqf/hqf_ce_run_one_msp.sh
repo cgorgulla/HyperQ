@@ -52,21 +52,22 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
 clean_up() {
+
+    echo "Terminating remaining processes..."
     # Terminating all child processes
-    for pid in "${pids[@]}"; do
-        kill "${pid}"  1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in "${pids[@]}"; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-    done
+#    for pid in "${pids[@]}"; do
+#        kill "${pid}"  1>/dev/null 2>&1 || true
+#    done
+#    sleep 3
+#    for pid in "${pids[@]}"; do
+#        kill -9 "${pid}"  1>/dev/null 2>&1 || true
+#    done
     pkill -P $$ || true
-    sleep 3
+    sleep 5
     pkill -9 -P $$ || true
 }
 trap 'clean_up' EXIT
@@ -84,15 +85,27 @@ echo -e "\n *** Starting the cross evalutations (hqf_ce_run_one_msp.sh) ***"
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
-fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Running the md simulations
 i=0
-for TDwindow_folder in $(ls -d */); do
-    TDwindow_folder=${TDwindow_folder/\/}
-    cd ${TDwindow_folder}
-    echo -e "\n ** Running the cross evaluations of folder ${TDwindow_folder}"
+for energyeval_folder in $(ls -d */); do
+    energyeval_folder=${energyeval_folder/\/}
+    cd ${energyeval_folder}
+    echo -e "\n ** Running the cross evaluations of folder ${energyeval_folder}"
     for snapshot_folder in snapshot*; do
+
+        # Checking if the snapshot was computed already
+        if [ "${ce_continue^^}" == "TRUE" ]; then
+            if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
+                propertylines_count=$(grep -E "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -l)
+                if [ "${propertylines_count}" -eq "1" ]; then
+                     echo " * The snapshot ${snapshot_folder/*-} has been computed already, skipping."
+                     continue
+                fi
+            fi
+        fi
         while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
             jobs
             echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} (hqf_ce_run_one_msp.sh)"

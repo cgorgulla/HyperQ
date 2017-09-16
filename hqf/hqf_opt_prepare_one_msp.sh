@@ -56,7 +56,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -124,9 +123,9 @@ for system_basename in ${system_1_basename} ${system_2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-    if [[ "${opt_type}" == *"QMMM"* ]]; then
+#    if [[ "${opt_type}" == *"QMMM"* ]] || [[ "${opt_programs}" == *"iqi"* ]]; then
         cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
-    fi
+#    fi
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
@@ -158,8 +157,10 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            k_current=$(echo "${k_current} + ${lambda_stepsize}" | bc -l)
-            k_current=${k_current:0:5}
+            sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
+            lambda_current=${lambda_current:0:5}
         fi
     done
 elif [ "${TD_cycle_type}" == "lambda" ]; then
@@ -180,6 +181,8 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
             lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
         fi
@@ -187,6 +190,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
 fi
 
 # Preparing the shared input files
-hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system_1_basename} ${system_2_basename} ${subsystem} ${opt_type}
+hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system_1_basename} ${system_2_basename} ${subsystem} ${opt_type} ${opt_programs}
 
 cd ../../../

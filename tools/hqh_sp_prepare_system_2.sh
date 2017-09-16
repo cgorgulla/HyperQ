@@ -29,7 +29,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -84,23 +83,21 @@ echo -e "\n *** Patching the pdb and psf files (hqh_sp_patch_pdb_psf.sh) ***"
 hqh_sp_patch_pdb_psf.sh system_complete.reduced
 
 # Preparing the special atoms
-if [[ "${md_programs}" == *"iqi"* || "${opt_programs}" == *"iqi*"* ]]; then
-    echo -e "\n *** Determining the uatom indices (prepare_uatom_files.vmd) ***"
-    vmdc ${dirname}/hqh_sp_prepare_uatom_files.vmd -args system_complete.reduced ${subsystem}
-    echo -e "\n *** Preparing the uatom indices (hqh_sp_prepare_uatom_files.sh) ***"
-    hqh_sp_prepare_uatom_files.sh system_complete.reduced
-fi
-if [[ "${opt_type}" == *"QMMM"* || "${md_type}" == *"QMMM"* ]]; then
-    echo -e "\n *** Determining the qatom indices (hqh_sp_prepare_qatom_files.vmd) ***"
-    vmdc ${dirname}/hqh_sp_prepare_qatom_files.vmd -args system_complete.reduced ${subsystem}
-    echo -e "\n *** Preparing the qatom indices (hqh_sp_prepare_qatom_files.sh) ***"
-    hqh_sp_prepare_qatom_files.sh system_complete.reduced
-fi
+# uatoms
+echo -e "\n *** Determining the uatom indices (prepare_uatom_files.vmd) ***"
+vmdc ${dirname}/hqh_sp_prepare_uatom_files.vmd -args system_complete.reduced ${subsystem}
+echo -e "\n *** Preparing the uatom indices (hqh_sp_prepare_uatom_files.sh) ***"
+hqh_sp_prepare_uatom_files.sh system_complete.reduced
+
+# qatoms
+echo -e "\n *** Determining the qatom indices (hqh_sp_prepare_qatom_files.vmd) ***"
+vmdc ${dirname}/hqh_sp_prepare_qatom_files.vmd -args system_complete.reduced ${subsystem}
+echo -e "\n *** Preparing the qatom indices (hqh_sp_prepare_qatom_files.sh) ***"
+hqh_sp_prepare_qatom_files.sh system_complete.reduced
 
 # Preparing the pdbx file
-if [[ "${md_programs}" == *"iqi"* || "${opt_programs}" == *"iqi*"* ]]; then
-    echo -e "\n *** Preparing the pdbx files for i-Qi (hqh_sp_prepare_pdbx.py) ***"
-    hqh_sp_prepare_pdbx.py system_complete.reduced.all.uatoms.indices system_complete.reduced.all.qatoms.indices system_complete.reduced.pdb
-fi
+echo -e "\n *** Preparing the pdbx files for i-Qi (hqh_sp_prepare_pdbx.py) ***"
+hqh_sp_prepare_pdbx.py system_complete.reduced.all.uatoms.indices system_complete.reduced.all.qatoms.indices system_complete.reduced.pdb
+
 cd ../../../../
 

@@ -1,4 +1,4 @@
-*************************************************************************************
+************************************************************************************
 ***                                    General                                    ***
 *************************************************************************************
 verbosity=debug
@@ -27,11 +27,11 @@ receptor_basename=
 # only required if there is a common receptor for all ligands
 # only needed if the subsystem includes a receptor (e.g. PLS, PL)
 
-box_edge_length_L=20
+box_edge_length_L=10
 waterbox_padding_size_LS=10
 waterbox_padding_size_PLS=10
 
-ligand_FFparameter_source=folder
+ligand_FFparameter_source=MATCH
 # possible choices: folder, MATCH
 # if folder, then in the folder input-files/FF there need to be the files: ligand_name.rtf, ligand_name.prm for each ligand
 
@@ -53,7 +53,7 @@ mcs_time=1
 *************************************************************************************
 
 ************************************** General **************************************
-runtimeletter=a
+runtimeletter=b
 # Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q
 
 opt_programs_L=cp2k
@@ -61,36 +61,41 @@ opt_programs_LS=cp2k
 opt_programs_PLS=cp2k
 # possible: cp2k
 
-opt_type_L=MM 
-opt_type_LS=MM 
+opt_type_L=MM
+opt_type_LS=QMMM 
 opt_type_PLS=MM 
-# Possible values: QMMM
+# Possible values: MM, QM, QMMM
 
-md_programs_L=cp2k
-md_programs_LS=cp2k
-md_programs_PLS=ipi-cp2k
+md_programs_L=ipi-cp2k
+md_programs_LS=ipi-cp2k-iqi
+md_programs_PLS=ipi-cp2k-iqi
 # Possible values: ipi-cp2k, ipi-cp2k-iqi
+# Will also be used for the CE (due to the restart files)
 
-md_type_L=MM
-md_type_LS=MM
-md_type_PLS=MM
-# Possible values: QMMM, standard
-# standard is used for MM and QM
-# will also be used for the cross evaluation (CE) (since the type should be the same as the MD type)
+md_type_L=QM
+md_type_LS=QMMM
+md_type_PLS=QMMM
+# Possible values: QMMM, MM, QM
 # QMMM requires that md_programs contains cp2k (and possibly ipi, iqi)
 
-TD_cycle_type=hq
-# Possible options: hq
+ce_type_L=QM
+ce_type_LS=QMMM
+ce_type_PLS=QMMM
+# If umbrella_sampling=false, then this setting should be the same as md_type (since the md files are copied)
+# Possible values: QMMM, MM, QM
+
+TD_cycle_type=lambda
+# Possible options: hq, lambda
 # lamdba is the standard type in the literature
 # if using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the k_0 and k_1 files
 
-ntdsteps=2
-# The number TD windows (minimal value is 1)
+ntdsteps=1
+# The number TD windows
+# Minimal value: 1
 
-nbeads=2
+nbeads=1
 # Minimum value: 1
 # for MD simulation only (doesn't make sense for opt)
-# The ipi input files will be automatically adjusted to this value (i.e. the nbeads attribute will be adjusted in the <initialize> tag)
 
 opt_timeout_L=100
 opt_timeout_LS=100
@@ -98,43 +103,64 @@ opt_timeout_PLS=100
 # in seconds
 # this value is used to detect whether the optimization is completed by checking if the file is still changing or not (because sometimes a program (in particular CP2K is done but the program doesn't terminate, or CP2K fails and ipi doesn't quit)
 
-md_timeout_L=1000
-md_timeout_LS=10000
-md_timeout_PLS=10000
+md_timeout_L=100
+md_timeout_LS=500
+md_timeout_PLS=1000
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
-ce_timeout_L=1000
-ce_timeout_LS=10000
-ce_timeout_PLS=10000
+ce_timeout_L=100
+ce_timeout_LS=100
+ce_timeout_PLS=100
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
 md_continue=false
 # Possible values (case insensitive): true, false 
-# If true, then a previous MD run has to exist already
+# If true, then a previous MD run has to exist already, and _prm_ has to be run before running _rmd_ in order to adjust the input files
+# This setting has no effect on _rmd_, only on _prm_
+
+ce_continue=false
+# Possible values (case insensitive): true, false 
+# If true, then snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
+# If false, every snapshot will be computed regardless of whether they have been computed before or not
+# This setting does not affect the preparation step _prc_
+
+umbrella_sampling=false
+# Possible values: true, false
+# Will be used during cross_evaluation and the free energy computations
+# Requires the following settings: 
 
 
 **************************************** CP2K ***************************************
 # Ligand (L) input files
 inputfile_cp2k_opt_L=cp2k.in.opt.MM
-inputfile_cp2k_md_k_0_L=cp2k.in.hqf.md.MM.k_0
-inputfile_cp2k_md_k_1_L=cp2k.in.hqf.md.MM.k_1
-inputfile_cp2k_md_lambda_L=cp2k.in.hqf.md.MM.lambda
+inputfile_cp2k_md_k_0_L=cp2k.in.hqf.md.QM.L.k_0
+inputfile_cp2k_md_k_1_L=cp2k.in.hqf.md.QM.L.k_1
+inputfile_cp2k_md_lambda_L=cp2k.in.hqf.md.QM_DFTB3_BOMD.L.lambda
+inputfile_cp2k_ce_k_0_L=cp2k.in.hqf.md.QM.L.k_0
+inputfile_cp2k_ce_k_1_L=cp2k.in.hqf.md.QM.L.k_1
+inputfile_cp2k_ce_lambda_L=cp2k.in.hqf.md.QM_DFTB3_BOMD.L.lambda
 
 # Ligand, solvent (LS) input files
-inputfile_cp2k_opt_LS=cp2k.in.opt.QMMM_5.lambda
-inputfile_cp2k_md_k_0_LS=cp2k.in.hqf.md.MM.k_0
-inputfile_cp2k_md_k_1_LS=cp2k.in.hqf.md.MM.k_1
-inputfile_cp2k_md_lambda_LS=cp2k.in.hqf.md.MM.lambda
+inputfile_cp2k_opt_LS=cp2k.in.opt.QMMM_DFTB3_BOMD.lambda
+inputfile_cp2k_md_k_0_LS=cp2k.in.hqf.md.QMMM.k_0
+inputfile_cp2k_md_k_1_LS=cp2k.in.hqf.md.QMMM.k_1
+inputfile_cp2k_md_lambda_LS=cp2k.in.hqf.md.QMMM_DFTB3_BOMD.lambda
+inputfile_cp2k_ce_k_0_LS=cp2k.in.hqf.md.QMMM.k_0
+inputfile_cp2k_ce_k_1_LS=cp2k.in.hqf.md.QMMM.k_1
+inputfile_cp2k_ce_lambda_LS=cp2k.in.hqf.md.QMMM_DFTB3_BOMD.lambda
 
 # Protein, ligand, solvent (PLS) input files
 inputfile_cp2k_opt_PLS=cp2k.in.hqf.opt.MM
 inputfile_cp2k_md_k_0_PLS=cp2k.in.hqf.md.MM.k_0
 inputfile_cp2k_md_k_1_PLS=cp2k.in.hqf.md.MM.k_1
 inputfile_cp2k_md_lambda_PLS=cp2k.in.hqf.md.MM.lambda
+inputfile_cp2k_ce_k_0_PLS=cp2k.in.hqf.md.MM.k_0
+inputfile_cp2k_ce_k_1_PLS=cp2k.in.hqf.md.MM.k_1
+inputfile_cp2k_ce_lambda_PLS=cp2k.in.hqf.md.MM.lambda
 
-cp2k_command=cp2k
+cp2k_command=cp2k.ssmp
 #cp2k_command=/home/wagner/cgorgulla/Dropbox/Software/installed/bin/cp2k.ssmp 
 #cp2k_command=/programs/x86_64-linux/cp2k/4.1/exe/Linux-x86-64-gfortran/cp2k.ssmp
 #cp2k_command=/nmr/programs/cp2k-4.1/cp2k.popt
@@ -142,16 +168,16 @@ cp2k_command=cp2k
 
 **************************************** i-PI ***************************************
 # Ligand (L) input files
-inputfile_ipi_md_L=ipi.in.md.MM.xml
-inputfile_ipi_ce_L=ipi.in.ce.MM.xml
+inputfile_ipi_md_L=ipi.in.md.QMMM.xml
+inputfile_ipi_ce_L=ipi.in.ce.QMMM.xml
 
 # Ligand, solvent (LS) input files
-inputfile_ipi_md_LS=ipi.in.md.MM.xml
-inputfile_ipi_ce_LS=ipi.in.ce.MM.xml
+inputfile_ipi_md_LS=ipi.in.md.QMMM.xml
+inputfile_ipi_ce_LS=ipi.in.ce.QMMM.xml
 
 # Protein, ligand, solvent (PLS) input files
-inputfile_ipi_md_PLS=ipi.in.md.MM.xml
-inputfile_ipi_ce_PLS=ipi.in.ce.MM.xml
+inputfile_ipi_md_PLS=ipi.in.md.QMMM.xml
+inputfile_ipi_ce_PLS=ipi.in.ce.QMMM.xml
 
 
 **************************************** i-QI ***************************************
@@ -169,7 +195,6 @@ inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
 
 
 ************************************* Crosseval *************************************
-
 ce_first_restart_ID=10
 ce_stride=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
@@ -199,11 +224,11 @@ ncpus_cp2k_ce_PLS=1
 fes_opt_parallel_max_L=30
 fes_opt_parallel_max_LS=30
 fes_opt_parallel_max_PLS=30
-fes_md_parallel_max_L=30
-fes_md_parallel_max_LS=30
-fes_md_parallel_max_PLS=30
-fes_ce_parallel_max_L=3
-fes_ce_parallel_max_LS=3
+fes_md_parallel_max_L=3
+fes_md_parallel_max_LS=3
+fes_md_parallel_max_PLS=3
+fes_ce_parallel_max_L=1
+fes_ce_parallel_max_LS=1
 fes_ce_parallel_max_PLS=3
 
 

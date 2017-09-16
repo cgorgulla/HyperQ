@@ -51,7 +51,6 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -93,8 +92,20 @@ ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/c
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 snapshot_time_start=$(date +%s)
 sim_counter=0
+
+# Checking if the snapshot was computed already
+if [ "${ce_continue^^}" == "TRUE" ]; then
+    if [ -f ipi/ipi.out.properties ]; then
+        propertylines_count=$(grep -E "^ *[0-9]" ipi/ipi.out.properties | wc -l)
+        if [ "${propertylines_count}" -eq "1" ]; then
+             echo " * The snapshot ${snapshotCount} has been computed already, skipping."
+             exit 0
+        fi
+    fi
+fi
 
 # ipi
 cd ipi
@@ -121,11 +132,11 @@ while true; do
             cd cp2k/${bead_folder}/
             rm cp2k.out* > /dev/null 2>&1 || true
             rm system* > /dev/null 2>&1 || true
-            ${cp2k_command} -e cp2k.in.md > cp2k.out.config 2>cp2k.out.config.err
+            ${cp2k_command} -e cp2k.in.ce > cp2k.out.config 2>cp2k.out.config.err
             export OMP_NUM_THREADS=${ncpus_cp2k_ce}
             # timeout -s SIGTERM ${ce_timeout} cp2k -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
             echo " * The socket file for snapshot ${snapshotCount} has been detected. Starting CP2K..."
-            ${cp2k_command} -i cp2k.in.md -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+            ${cp2k_command} -i cp2k.in.ce -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
             pid=$!
             pids[${sim_counter}]=$pid
             echo "${pid} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
@@ -147,12 +158,13 @@ while true; do
 done
 
 # i-QI
-if [ "${ce_type^^}" == "QMMM" ]; then    
+if [[ "${md_programs^^}" == *"IQI"* ]]; then
     cd iqi
     echo -e " * Starting iqi"
     rm iqi.out.* > /dev/null 2>&1 || true 
     iqi iqi.in.xml > iqi.out.screen 2> iqi.out.err &
-    pids[${sim_counter}]=$!
+    pid=$!
+    pids[${sim_counter}]=$pid
     echo "${pids[${sim_counter}]} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     sim_counter=$((sim_counter+1))
     cd ../
