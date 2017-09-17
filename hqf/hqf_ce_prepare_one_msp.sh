@@ -52,6 +52,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -123,8 +124,9 @@ prepare_restart() {
         sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
         sed -i "s/runtimeletter/${runtimeletter}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
         sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+        sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+        sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+        sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
         sed -i "s|subsystem_folder/|../../../../|" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|HOST.*|HOST ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${restartID}|g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
     done
@@ -197,9 +199,7 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-#    if [[ "${ce_type}" == *"QMMM"* ]] || [[ "${md_programs}" == *"iqi"* ]]; then
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
-#    fi
+    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
@@ -215,12 +215,26 @@ cp ../../../md/${msp_name}/${subsystem}/system.*.opt.pdb ./
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
 
 
-# Getting the cell size in the cp2k input files
+# Getting the cell size for the cp2k input files
 line=$(grep CRYST1 system1.pdb)
 IFS=' ' read -r -a lineArray <<< "$line"
 A=${lineArray[1]}
 B=${lineArray[2]}
 C=${lineArray[3]}
+
+# Computing the GMAX values for CP2K
+GMAX_A=${A/.*}
+GMAX_B=${B/.*}
+GMAX_C=${C/.*}
+GMAX_A_half=$((GMAX_A/2))
+GMAX_B_half=$((GMAX_B/2))
+GMAX_C_half=$((GMAX_C/2))
+for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
+    mod=$((${value}%2))
+    if [ "${mod}" == "0" ]; then
+        eval ${value}_odd=$((${value}+1))
+    fi
+done
 
 if [ "${TD_cycle_type}" = "hq" ]; then
 

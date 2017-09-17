@@ -124,7 +124,7 @@ ce_continue=false
 # Possible values (case insensitive): true, false 
 # If true, then snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
 # If false, every snapshot will be computed regardless of whether they have been computed before or not
-# This setting does not affect the preparation step _prc_
+# This setting does not affect _prc_
 
 umbrella_sampling=false
 # Possible values: true, false
@@ -134,22 +134,22 @@ umbrella_sampling=false
 
 **************************************** CP2K ***************************************
 # Ligand (L) input files
-inputfile_cp2k_opt_L=cp2k.in.opt.MM
+inputfile_cp2k_opt_L=cp2k.in.opt.QM_PM6.lambda
 inputfile_cp2k_md_k_0_L=cp2k.in.hqf.md.QM.L.k_0
 inputfile_cp2k_md_k_1_L=cp2k.in.hqf.md.QM.L.k_1
-inputfile_cp2k_md_lambda_L=cp2k.in.hqf.md.QM_DFTB3_BOMD.L.lambda
+inputfile_cp2k_md_lambda_L=cp2k.in.hqf.md.QM_PM6_BOMD.L.lambda
 inputfile_cp2k_ce_k_0_L=cp2k.in.hqf.md.QM.L.k_0
 inputfile_cp2k_ce_k_1_L=cp2k.in.hqf.md.QM.L.k_1
-inputfile_cp2k_ce_lambda_L=cp2k.in.hqf.md.QM_DFTB3_BOMD.L.lambda
+inputfile_cp2k_ce_lambda_L=cp2k.in.hqf.md.QM_PM6_BOMD.L.lambda
 
 # Ligand, solvent (LS) input files
-inputfile_cp2k_opt_LS=cp2k.in.opt.QMMM_DFTB3_BOMD.lambda
+inputfile_cp2k_opt_LS=cp2k.in.opt.QMMM_PM6.lambda
 inputfile_cp2k_md_k_0_LS=cp2k.in.hqf.md.QMMM.k_0
 inputfile_cp2k_md_k_1_LS=cp2k.in.hqf.md.QMMM.k_1
-inputfile_cp2k_md_lambda_LS=cp2k.in.hqf.md.QMMM_DFTB3_BOMD.lambda
+inputfile_cp2k_md_lambda_LS=cp2k.in.hqf.md.QMMM_PM6_BOMD.lambda
 inputfile_cp2k_ce_k_0_LS=cp2k.in.hqf.md.QMMM.k_0
 inputfile_cp2k_ce_k_1_LS=cp2k.in.hqf.md.QMMM.k_1
-inputfile_cp2k_ce_lambda_LS=cp2k.in.hqf.md.QMMM_DFTB3_BOMD.lambda
+inputfile_cp2k_ce_lambda_LS=cp2k.in.hqf.md.QMMM_PM6_BOMD.lambda
 
 # Protein, ligand, solvent (PLS) input files
 inputfile_cp2k_opt_PLS=cp2k.in.hqf.opt.MM
@@ -168,16 +168,16 @@ cp2k_command=cp2k.ssmp
 
 **************************************** i-PI ***************************************
 # Ligand (L) input files
-inputfile_ipi_md_L=ipi.in.md.QMMM.xml
-inputfile_ipi_ce_L=ipi.in.ce.QMMM.xml
+inputfile_ipi_md_L=ipi.in.md.QM.xml
+inputfile_ipi_ce_L=ipi.in.ce.QM.xml
 
 # Ligand, solvent (LS) input files
-inputfile_ipi_md_LS=ipi.in.md.QMMM.xml
-inputfile_ipi_ce_LS=ipi.in.ce.QMMM.xml
+inputfile_ipi_md_LS=ipi.in.md.QMMM_iqi.xml
+inputfile_ipi_ce_LS=ipi.in.ce.QMMM_iqi.xml
 
 # Protein, ligand, solvent (PLS) input files
-inputfile_ipi_md_PLS=ipi.in.md.QMMM.xml
-inputfile_ipi_ce_PLS=ipi.in.ce.QMMM.xml
+inputfile_ipi_md_PLS=ipi.in.md.QMMM_iqi.xml
+inputfile_ipi_ce_PLS=ipi.in.ce.QMMM_iqi.xml
 
 
 **************************************** i-QI ***************************************
@@ -205,9 +205,9 @@ fec_stride=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
 
 temperature=300
-C_absolute_tolerance=0.01
-delta_F_min=-10
-delta_F_max=10
+C_absolute_tolerance=1
+delta_F_min=-10000
+delta_F_max=10000
 
 
 *********************************** Parallelization *********************************

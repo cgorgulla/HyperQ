@@ -56,6 +56,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -123,9 +124,7 @@ for system_basename in ${system_1_basename} ${system_2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.psf
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-#    if [[ "${opt_type}" == *"QMMM"* ]] || [[ "${opt_programs}" == *"iqi"* ]]; then
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
-#    fi
+    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
@@ -136,6 +135,20 @@ IFS=' ' read -r -a lineArray <<< "$line"
 A=${lineArray[1]}
 B=${lineArray[2]}
 C=${lineArray[3]}
+
+# Computing the GMAX values for CP2K
+GMAX_A=${A/.*}
+GMAX_B=${B/.*}
+GMAX_C=${C/.*}
+GMAX_A_half=$((GMAX_A/2))
+GMAX_B_half=$((GMAX_B/2))
+GMAX_C_half=$((GMAX_C/2))
+for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
+    mod=$((${value}%2))
+    if [ "${mod}" == "0" ]; then
+        eval ${value}_odd=$((${value}+1))
+    fi
+done
 
 if [ "${TD_cycle_type}" == "hq" ]; then
 
@@ -156,8 +169,9 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s/lambda_value/${lambda_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.opt
             lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
             lambda_current=${lambda_current:0:5}
@@ -180,8 +194,9 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             sed -i "s/lambda_value/${lambda_current}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+            sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
             lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"

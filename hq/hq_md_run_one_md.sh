@@ -27,13 +27,6 @@ if [ "$#" -ne "0" ]; then
     exit 1
 fi
 
-# Verbosity
-verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
-    set -x
-fi
-
 # Standard error response
 error_response_std() {
     # Printing some information
@@ -59,6 +52,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -78,6 +72,13 @@ cleanup_exit() {
     pkill -9 -P $$ || true
 }
 trap "cleanup_exit" EXIT
+
+# Verbosity
+verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+export verbosity
+if [ "${verbosity}" = "debug" ]; then
+    set -x
+fi
 
 # Bash options
 set -o pipefail

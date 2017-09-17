@@ -52,6 +52,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -112,7 +113,7 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
         echo " * The file system.out.general does not exist yet. Waiting..."
         sleep 1
     done
-    echo " * The file system.out.general detected. Continuing..."
+    echo " * The file system.out.general has been detected. Continuing..."
 fi
 
 # Checking if the simulation is completed
@@ -120,30 +121,40 @@ while true; do
     if [ -f cp2k.out.trajectory.pdb ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            kill  %1 2>&1 1>/dev/null|| true
+            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            kill  %1 2>&1 1>/dev/null|| true
+            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
     # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
     if [ -f cp2k.out.err ]; then
-        memory_error_count="$( ( grep "invalid memory reference" cp2k.out.err || true ) | wc -l)"
-        if [ "${memory_error_count}" -ge "1" ]; then
-            kill  %1 2>&1 1>/dev/null|| true
+        #pseudo_error_count="$( ( grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true ) | wc -l)"
+        pseudo_error_count="$( ( grep -E "invalid memory reference" cp2k.out.err || true ) | wc -l)"
+        if [ "${pseudo_error_count}" -ge "1" ]; then
+            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
+
     if [ -f cp2k.out.err ]; then
         error_count="$( ( grep -i error cp2k.out.err || true ) | wc -l)"
         if [ ${error_count} -ge "1" ]; then
-            echo -e "Error detected in the file cp2k.out.err"
-            false
+            set +o pipefail
+            backtrace_length="$(grep -A 100 Backtrace cp2k.out.err | grep -v Backtrace | wc -l)"
+            set -o pipefail
+            if [ "${backtrace_length}" -ge "1" ]; then
+                echo -e "Error detected in the file cp2k.out.err"
+                cat cp2k.out.err
+                false
+            else
+                break
+            fi
         fi
     fi
     sleep 1

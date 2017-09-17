@@ -56,6 +56,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -123,6 +124,20 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
     B=${lineArray[2]}
     C=${lineArray[3]}
 
+    # Computing the GMAX values for CP2K
+    GMAX_A=${A/.*}
+    GMAX_B=${B/.*}
+    GMAX_C=${C/.*}
+    GMAX_A_half=$((GMAX_A/2))
+    GMAX_B_half=$((GMAX_B/2))
+    GMAX_C_half=$((GMAX_C/2))
+    for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
+        mod=$((${value}%2))
+        if [ "${mod}" == "0" ]; then
+            eval ${value}_odd=$((${value}+1))
+        fi
+    done
+
     if [ "${TD_cycle_type}" == "hq" ]; then
 
         # Bead step size
@@ -165,8 +180,8 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 done
             fi
@@ -179,8 +194,9 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                     sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                    sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                    sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                     sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 done
             fi
@@ -259,8 +275,9 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
                 sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *value/GMAX ${A/.*} ${B/.*} ${C/.*}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *half_value/GMAX $((${A/.*}/2)) $((${B/.*}/2)) $((${C/.*}/2))/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+                sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
                 sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
             done
 
@@ -302,7 +319,7 @@ elif [ ${md_continue^^} == "TRUE" ]; then
         sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.md.xml
         if [ "${run_old}" == "1" ]; then
             sed -i "s|^.*opt.pdb.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
-            sed  -i "/momenta/d" ipi/ipi.in.md.xml
+            sed -i "/momenta/d" ipi/ipi.in.md.xml
         else
             sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
         fi

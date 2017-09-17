@@ -30,6 +30,7 @@ error_response_std() {
 
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
+    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -38,6 +39,7 @@ set -o pipefail
 
 # Verbosity
 if [ "${verbosity}" = "debug" ]; then
+    set -x
 fi
 
 # Checking the input paramters
