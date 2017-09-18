@@ -68,14 +68,36 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-clean_up() {
-    # Terminating all child processes
+clean_exit() {
+
+    echo
+    echo " * Cleaning up..."
+
+    # Terminating all processes
+    echo " * Terminating remaining processes..."
+    # Terminating the child processes of the main processes
     for pid in "${pids[@]}"; do
-        kill "${pid}"  1>/dev/null 2>&1 || true
+        pkill -P "${pid}" 1>/dev/null 2>&1 || true
     done
-    pkill -P $$ || true                     # https://stackoverflow.com/questions/2618403/how-to-kill-all-subprocesses-of-shell
+    sleep 3
+    for pid in "${pids[@]}"; do
+        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
+    done
+    # Terminating the main processes
+    for pid in "${pids[@]}"; do
+        kill "${pid}" 1>/dev/null 2>&1 || true
+    done
+    sleep 3
+    for pid in "${pids[@]}"; do
+        kill -9 "${pid}"  1>/dev/null 2>&1 || true
+    done
+    sleep 1
+    # Terminating everything elese which is still running and which was started by this script
+    pkill -P $$ || true
+    sleep 3
+    pkill -9 -P $$ || true
 }
-trap 'clean_up' EXIT
+trap 'clean_exit' EXIT
 
 # Bash options
 set -o pipefail

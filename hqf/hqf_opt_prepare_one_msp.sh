@@ -173,8 +173,12 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-            lambda_current=${lambda_current:0:5}
+            if [ "${i}" -lt "$((nsim-1))" ]; then
+                lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
+                lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+            else
+                lambda_current="1.000"
+            fi
         fi
     done
 elif [ "${TD_cycle_type}" == "lambda" ]; then
@@ -198,8 +202,12 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-            lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+            if [ "${i}" -lt "$((nsim-1))" ]; then
+                lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
+                lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+            else
+                lambda_current="1.000"
+            fi
         fi
     done
 fi

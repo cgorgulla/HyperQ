@@ -58,15 +58,13 @@ trap 'error_response_std $LINENO' ERR
 
 clean_up() {
 
-    echo "Terminating remaining processes..."
-    # Terminating all child processes
-#    for pid in "${pids[@]}"; do
-#        kill "${pid}"  1>/dev/null 2>&1 || true
-#    done
-#    sleep 3
-#    for pid in "${pids[@]}"; do
-#        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-#    done
+    echo
+    echo " * Cleaning up..."
+
+    # Terminating processes.
+    echo " * Terminating remaining processes..."..
+    # Terminating everything which is still running and which was started by this script
+    # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
     pkill -P $$ || true
     sleep 5
     pkill -9 -P $$ || true
@@ -100,8 +98,8 @@ for energyeval_folder in $(ls -d */); do
         # Checking if the snapshot was computed already
         if [ "${ce_continue^^}" == "TRUE" ]; then
             if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
-                propertylines_count=$(grep -E "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -l)
-                if [ "${propertylines_count}" -eq "1" ]; then
+                propertylines_word_count=$(grep "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -w)
+                if [ "${propertylines_word_count}" -ge "3" ]; then
                      echo " * The snapshot ${snapshot_folder/*-} has been computed already, skipping."
                      continue
                 fi

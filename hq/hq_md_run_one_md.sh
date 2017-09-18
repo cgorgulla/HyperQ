@@ -58,17 +58,34 @@ trap 'error_response_std $LINENO' ERR
 
 # Exit cleanup
 cleanup_exit() {
+
+    echo
+    echo " * Cleaning up..."
+    echo " * Removing socket files if still existent..."
     rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.}  > /dev/null 2>&1 || true
 
-    # Terminating all child processes
+    # Terminating all processes
+    echo " * Terminating remaining processes..."
+    # Terminating the child processes of the main processes
     for pid in "${pids[@]}"; do
-        kill "${pid}"  1>/dev/null 2>&1 || true
+        pkill -P "${pid}" 1>/dev/null 2>&1 || true
     done
-    pkill -P $$ || true
-    sleep 5
+    sleep 3
+    for pid in "${pids[@]}"; do
+        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
+    done
+    # Terminating the main processes
+    for pid in "${pids[@]}"; do
+        kill "${pid}" 1>/dev/null 2>&1 || true
+    done
+    sleep 3
     for pid in "${pids[@]}"; do
         kill -9 "${pid}"  1>/dev/null 2>&1 || true
     done
+    sleep 1
+    # Terminating everything elese which is still running and which was started by this script
+    pkill -P $$ || true
+    sleep 3
     pkill -9 -P $$ || true
 }
 trap "cleanup_exit" EXIT
@@ -120,24 +137,42 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     # Variables
     ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    for bead_folder in $(ls cp2k/); do
-        cd cp2k/${bead_folder}
-        echo " * Cleaning up the cp2k folder"
-        if [ ${md_continue^^} == "FALSE" ]; then
-            rm cp2k.out* > /dev/null 2>&1 || true
+    max_it=60
+    iteration_no=0
+    while true; do
+        if [ -e /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.cp2k.${md_name/md.} ]; then
+            for bead_folder in $(ls cp2k/); do
+                cd cp2k/${bead_folder}
+                echo " * Cleaning up the cp2k folder"
+                if [ ${md_continue^^} == "FALSE" ]; then
+                    rm cp2k.out* > /dev/null 2>&1 || true
+                fi
+                rm cp2k.out.run${run}* > /dev/null 2>&1 || true
+                rm system* > /dev/null 2>&1 || true
+                echo " * Starting cp2k (${bead_folder})"
+                ${cp2k_command} -e cp2k.in.md > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
+                OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.md -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
+                pid=$!
+                pids[${sim_counter}]=$pid
+                echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
+                sim_counter=$((sim_counter+1))
+                cd ../../
+                i=$((i+1))
+                sleep 1
+            done
+            break
+        else
+            if [ "$iteration_no" -lt "$max_it" ]; then
+                echo " * The socket file for MD simulation ${system_name} ${system_name} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+                sleep 1
+                iteration_no=$((iteration_no+1))
+            else
+                echo " * The socket file for MD simulation ${system_name} ${system_name} does not yet exist."
+                echo " * The maxium number of iterations ($max_it) MD simulation ${system_name} ${system_name} has been reached."
+                echo " * Exiting..."
+                exit 1
+            fi
         fi
-        rm cp2k.out.run${run}* > /dev/null 2>&1 || true
-        rm system* > /dev/null 2>&1 || true
-        echo " * Starting cp2k (${bead_folder})"
-        ${cp2k_command} -e cp2k.in.md > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
-        OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.md -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
-        pid=$!
-        pids[${sim_counter}]=$pid
-        echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
-        sim_counter=$((sim_counter+1))
-        cd ../../
-        i=$((i+1))
-        sleep 1
     done
 fi
 

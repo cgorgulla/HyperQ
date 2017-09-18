@@ -218,10 +218,6 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             # Copying the geo-opt coordinate files
             cp ../../../opt/${msp_name}/${subsystem}/system.${bead_configuration}.opt.pdb ./
 
-#            # Adjusting lambda_current
-#            lambda_current=$(echo "${lambda_current} + ${k_stepsize}" | bc -l)
-#            lambda_current=${lambda_current:0:5}
-
         done
 
     elif [ "${TD_cycle_type}" == "lambda" ]; then
@@ -299,8 +295,12 @@ if [[ "${md_continue^^}" == "FALSE" ]]; then
             cp ../../../opt/${msp_name}/${subsystem}/system.${lambda_configuration}.opt.pdb ./
 
             # Adjusting lambda_current
-            lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-            lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+            if [ "${i}" -lt $((nsim-1)) ]; then
+                lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
+                lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
+            else
+                lambda_current="1.000"
+            fi
         done
     fi
 

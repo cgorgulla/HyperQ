@@ -58,14 +58,29 @@ trap 'error_response_std $LINENO' ERR
 
 # Exit cleanup
 cleanup_exit() {
-    # Terminating all child processes
+
+    echo
+    echo " * Cleaning up..."
+    # Terminating all processes
+    echo " * Terminating remaining processes..."
+    # Terminating the child processes of the main processes
     for pid in "${pids[@]}"; do
-        kill "${pid}"  1>/dev/null 2>&1 || true
+        pkill -P "${pid}" 1>/dev/null 2>&1 || true
+    done
+    sleep 3
+    for pid in "${pids[@]}"; do
+        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
+    done
+    # Terminating the main processes
+    for pid in "${pids[@]}"; do
+        kill "${pid}" 1>/dev/null 2>&1 || true
+    done
+    sleep 3
+    for pid in "${pids[@]}"; do
+        kill -9 "${pid}"  1>/dev/null 2>&1 || true
     done
     sleep 1
-    for pid in "${pids[@]}"; do
-        kill -9 "${pid}" 1>/dev/null 2>&1 || true
-    done
+    # Terminating everything elese which is still running and which was started by this script
     pkill -P $$ || true
     sleep 3
     pkill -9 -P $$ || true
