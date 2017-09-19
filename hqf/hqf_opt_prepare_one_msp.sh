@@ -109,6 +109,17 @@ else
     false
 fi
 
+# Checking if the CP2K input file contains a lambda variable
+lambdavalue_count="$(grep -c lambda_value input-files/cp2k/${inputfile_cp2k_opt} )"
+echo -n " * Checking if the lambda_value variable is present in the CP2K input file... "
+if  [ ! "${lambdavalue_count}" -ge "1" ]; then
+    echo "Check failed"
+    echo -e "\n * Error: The CP2K optimization input file does not contain the lambda_value variable. Exiting...\n\n"
+    echo "" > runtime/error
+    exit 1
+fi
+echo "OK"
+
 # Creating required folders
 echo -e " * Preparing the main folder"
 if [ -d "opt/${msp_name}/${subsystem}" ]; then
@@ -147,6 +158,8 @@ for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
     mod=$((${value}%2))
     if [ "${mod}" == "0" ]; then
         eval ${value}_odd=$((${value}+1))
+    else
+        eval ${value}_odd=$((${value}))
     fi
 done
 

@@ -165,9 +165,9 @@
     &END SCF
     &POISSON
       &EWALD
-        EWALD_TYPE spme
+        EWALD_TYPE ewald
         ALPHA  0.5
-        GMAX value
+        GMAX odd_value
         &MULTIPOLES
            MAX_MULTIPOLE_EXPANSION QUADRUPOLE
         &END
@@ -383,9 +383,9 @@
     &END SCF
     &POISSON
       &EWALD
-        EWALD_TYPE spme
+        EWALD_TYPE ewald
         ALPHA  0.5
-        GMAX value
+        GMAX odd_value
         &MULTIPOLES
            MAX_MULTIPOLE_EXPANSION QUADRUPOLE
         &END

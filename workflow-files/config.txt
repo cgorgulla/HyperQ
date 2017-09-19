@@ -106,7 +106,7 @@ opt_timeout_PLS=100
 md_timeout_L=100
 md_timeout_LS=500
 md_timeout_PLS=1000
-# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
+# Here should be taken into account that between the start of i-pi and CP2K there is a time delay of at least ten seconds (usually exactly 10 secoonds, but possibly longer due to various reaons, e.g if the system or the network is overloaded)
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
 ce_timeout_L=100

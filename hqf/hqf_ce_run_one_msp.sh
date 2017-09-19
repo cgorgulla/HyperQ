@@ -93,36 +93,42 @@ for energyeval_folder in $(ls -d */); do
     energyeval_folder=${energyeval_folder/\/}
     cd ${energyeval_folder}
     echo -e "\n ** Running the cross evaluations of folder ${energyeval_folder}"
-    for snapshot_folder in snapshot*; do
 
-        # Checking if the snapshot was computed already
-        if [ "${ce_continue^^}" == "TRUE" ]; then
-            if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
-                propertylines_word_count=$(grep "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -w)
-                if [ "${propertylines_word_count}" -ge "3" ]; then
-                     echo " * The snapshot ${snapshot_folder/*-} has been computed already, skipping."
-                     continue
+    # Testing whether at least one snapshot exists at all
+    if stat -t snapshot* >/dev/null 2>&1; then
+        for snapshot_folder in snapshot*; do
+            # Checking if the snapshot was computed already
+            if [ "${ce_continue^^}" == "TRUE" ]; then
+                if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
+                    propertylines_word_count=$(grep "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -w)
+                    if [ "${propertylines_word_count}" -ge "3" ]; then
+                         echo " * The snapshot ${snapshot_folder/*-} has been computed already, skipping."
+                         continue
+                    fi
                 fi
             fi
-        fi
-        while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
-            jobs
-            echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} (hqf_ce_run_one_msp.sh)"
-            sleep 1.$RANDOM
-            echo
-        done;
-        sleep 0.$RANDOM
-        cd ${snapshot_folder}/
-        echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
-        trap '' ERR
-        hqf_ce_run_one_snapshot.sh &
-        pid=$!
-        pids[i]=$pid
-        trap 'error_response_std $LINENO' ERR
-        echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/ce
-        i=$((i+1))
-        cd ..
-    done
+            while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
+                jobs
+                echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} of folder ${energyeval_folder} (hqf_ce_run_one_msp.sh)"
+                sleep 1.$RANDOM
+                echo
+            done;
+            sleep 0.$RANDOM
+            cd ${snapshot_folder}/
+            echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
+            trap '' ERR
+            hqf_ce_run_one_snapshot.sh &
+            pid=$!
+            pids[i]=$pid
+            trap 'error_response_std $LINENO' ERR
+            echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/ce
+            i=$((i+1))
+            cd ..
+        done
+    else
+        echo -e " * Warning: No snapshots found in folder ${energyeval_folder}, skipping."
+    fi
+
     cd ../
 done
 

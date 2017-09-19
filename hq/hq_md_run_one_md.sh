@@ -213,11 +213,10 @@ while true; do
     if [ -f ipi/ipi.out.run${run}.screen ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
         if [ "${timeDiff}" -ge "${md_timeout}" ]; then
-            stop_flag="true"
-        else
-            sleep 1 || true
+            break
         fi
     fi
+
     if [ -f ipi/ipi.out.run${run}.err ]; then
         error_count="$( ( grep -i error ipi/ipi.out.err || true ) | wc -l)"
         if [ ${error_count} -ge "1" ]; then
@@ -225,22 +224,32 @@ while true; do
             false
         fi
     fi
+
     for bead_folder in $(ls cp2k/); do
+        # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
+        if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
+            pseudo_error_count="$( ( grep -E "invalid memory reference" cp2k/${bead_folder}/cp2k.out.run${run}.err || true ) | wc -l)"
+            if [ "${pseudo_error_count}" -ge "1" ]; then
+                break
+            fi
+        fi
+
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
             error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true ) | wc -l)"
             if [ ${error_count} -ge "1" ]; then
-                echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err"
-                false
+                set +o pipefail
+                backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.run${run}.err | grep -v Backtrace | wc -l)"
+                set -o pipefail
+                if [ "${backtrace_length}" -ge "1" ]; then
+                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err"
+                    false
+                else
+                    break
+                fi
             fi
         fi
     done
 
-    sleep 1 || true
-    if [ "${stop_flag}" == "true" ]; then
-        kill  %1 2>&1 1>/dev/null || true
-        exit 0
-    fi
+    # Sleeping before next round
+    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
 done
-
-# We only wait for ipi
-wait ${pid_ipi}  #|| true

@@ -199,14 +199,31 @@ while true; do
         if [ "${propertylines_word_count}" -ge "3" ]; then
              snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
              echo " * Snapshot ${snapshotID} completed after ${snapshot_time_total} seconds."
-             exit 0
+             break
         fi
     fi
     waiting_time_diff=$(($(date +%s) - ${waiting_time_start}))
     if [ "${waiting_time_diff}" -ge "${ce_timeout}" ]; then
         echo " * CE-Timeout for snapshot ${snapshotID} reached. Skipping this snapshot..."
-        exit 1
-    else
-        sleep 1
+        false
     fi
+    # Checking for cp2k errors
+    for bead_folder in $(ls cp2k/); do
+        # We are not interpreting pseudoerrors as successful runs, we rely only on the property file of ipi
+        if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
+            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.err || true ) | wc -l)"
+            if [ ${error_count} -ge "1" ]; then
+                set +o pipefail
+                backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.err | grep -v Backtrace | wc -l)"
+                set -o pipefail
+                if [ "${backtrace_length}" -ge "1" ]; then
+                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.err"
+                    false
+                fi
+            fi
+        fi
+    done
+
+    # Sleeping shortly before next round
+    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
 done

@@ -94,8 +94,8 @@ prepare_restart() {
 
     # Creating up the folders
     mkdir -p ${crosseval_folder}/snapshot-${restartID}
-    mkdir ${crosseval_folder}/snapshot-${restartID}/ipi
-    mkdir ${crosseval_folder}/snapshot-${restartID}/cp2k
+    mkdir -p ${crosseval_folder}/snapshot-${restartID}/ipi
+    mkdir -p ${crosseval_folder}/snapshot-${restartID}/cp2k
 
     # Preparing the ipi files
     cp ../../../md/${msp_name}/${subsystem}/${md_folder_coordinate_source}/ipi/${restartFile} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.restart
@@ -107,7 +107,7 @@ prepare_restart() {
 
     # Preparing the CP2K files
     for bead in $(eval echo "{1..${nbeads}}"); do
-        mkdir ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/
+        mkdir -p ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/
         if [ "${TD_cycle_type}" == "lambda" ]; then
             cp ../../../input-files/cp2k/${inputfile_cp2k_ce_lambda} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
             sed -i "s/subconfiguration/${lambda_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
@@ -133,7 +133,7 @@ prepare_restart() {
 
     # Preparing the iqi files if required
     if [[ "${md_programs}" == *"iqi"* ]]; then
-        mkdir ${crosseval_folder}/snapshot-${restartID}/iqi
+        mkdir -p ${crosseval_folder}/snapshot-${restartID}/iqi
         cp ../../../md/${msp_name}/${subsystem}/${md_folder_potential_source}/iqi/iqi.in.* ${crosseval_folder}/snapshot-${restartID}/iqi
         sed -i "s|>.*\.\.\/\.\./|>\.\./\.\./\.\./|" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi* ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.xml
         sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
@@ -168,6 +168,7 @@ TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '='
 ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID=" input-files/config.txt | awk -F '=' '{print $2}')"
 umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_type="$(grep -m 1 "^ce_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Printing some information
 echo -e  "\n *** Preparing the crossevalutaions of the FES ${msp_name} (hqf_ce_prepare_one_msp.sh) ***"
@@ -184,10 +185,13 @@ if [ ! -d "md/${msp_name}/${subsystem}" ]; then
     false
 fi
 
-# Preparing the folders
-echo -e " * Preparing the main folder"
-if [ -d "ce/${msp_name}/${subsystem}" ]; then
-    rm -r ce/${msp_name}/${subsystem}
+# Preparing the main folder
+if [ "${ce_continue^^}" == "FALSE" ]; then
+    # Preparing the folders
+    echo -e " * Preparing the main folder"
+    if [ -d "ce/${msp_name}/${subsystem}" ]; then
+        rm -r ce/${msp_name}/${subsystem}
+    fi
 fi
 mkdir -p ce/${msp_name}/${subsystem}
 cd ce/${msp_name}/${subsystem}
@@ -233,6 +237,8 @@ for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
     mod=$((${value}%2))
     if [ "${mod}" == "0" ]; then
         eval ${value}_odd=$((${value}+1))
+    else
+        eval ${value}_odd=$((${value}))
     fi
 done
 
@@ -304,14 +310,8 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     echo -e " * Preparing TD window ${window_no}"
     
     # Creating required folders
-    if [ -d "${crosseval_folder_fw}" ]; then         
-        rm -r ${crosseval_folder_fw}
-    fi
-    mkdir ${crosseval_folder_fw}
-    if [ -d "${crosseval_folder_bw}" ]; then         
-        rm -r ${crosseval_folder_bw}
-    fi
-    mkdir ${crosseval_folder_bw}
+    mkdir -p ${crosseval_folder_fw}
+    mkdir -p ${crosseval_folder_bw}
 
     # Removing old prepared restart files
     rm ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/*restart_0* || true
@@ -322,6 +322,15 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     # Determining the number of restart files of the two md simulations
     restartFileCountMD1=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
     restartFileCountMD2=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
+
+    # Checking if there are enough restart files
+    if [[ "${ce_first_restart_ID}" -gt "${restartFileCountMD1}" ]]; then
+        echo " * Warning: For thermodynamic window ${window_no} there are less snapshots (${restartFileCountMD1}) for the initial state (${md_folder_initialstate}) required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
+        continue
+    elif [[ "${ce_first_restart_ID}" -gt "${restartFileCountMD2}" ]]; then
+        echo " * Warning: For thermodynamic window ${window_no} there are less snapshots (${restartFileCountMD2}) for the end state (${md_folder_endstate}) than required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
+        continue
+    fi
 
     # Preparing the restart files
     counter=1
@@ -342,10 +351,23 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ipi.out.all_runs.properties
 
     # Loop for preparing the restart files in md_folder 1 (forward evaluation)
+    echo -e "\n * Preparing the snapshots for the fortward cross-evaluation."
     for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD1}); do
+        # Checking if this snapshot should be skipped
+        if [ "${ce_continue^^}" == "TRUE" ]; then
+            if [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
+                continue
+            fi
+        fi
+        # Removing the snapshot folder if it exists already
+        if [ -d ${crosseval_folder_fw}/snapshot-${restartID}/ ]; then
+            rm -r ${crosseval_folder_fw}/snapshot-${restartID}/
+        fi
+        # Variables
         restartFile=ipi.out.all_runs.restart_${restartID}
-        # Applying the crosseval_trajectory_stride
         mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
+        # Preparing the snapshot folder while applying the crosseval_trajectory_stride
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_initialstate} ${md_folder_endstate} ${restartFile} ${crosseval_folder_fw} ${restartID} "endstate"
@@ -353,11 +375,23 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     done
 
     # Loop for preparing the restart files in md_folder_endstate (backward evaluation)
+    echo -e "\n * Preparing the snapshots for the backward cross-evaluation."
     for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD2}); do
+        # Checking if this snapshot should be skipped
+        if [ "${ce_continue^^}" == "TRUE" ]; then
+            if [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
+                continue
+            fi
+        fi
+        # Removing the snapshot folder if it exists already
+        if [ -d ${crosseval_folder_bw}/snapshot-${restartID}/ ]; then
+            rm -r ${crosseval_folder_bw}/snapshot-${restartID}/
+        fi
+        # Variables
         restartFile=ipi.out.all_runs.restart_${restartID}
-
-        # Applying the crosseval_trajectory_stride
         mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride))
+        # Preparing the snapshot folder while applying the crosseval_trajectory_stride
         if [ "${mod}" -eq "0" ]; then
             restartID=${restartFile/*_}
             prepare_restart ${md_folder_endstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_bw} ${restartID} "initialstate"
@@ -365,17 +399,30 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     done
 
     if [ "${umbrella_sampling}" == "true" ]; then
-
         # Variables
         crosseval_folder_sn1="${md_folder_initialstate}-${md_folder_initialstate}"    # Stationary
         crosseval_folder_sn2="${md_folder_endstate}-${md_folder_endstate}"
+
         # Only if first TD window
         if [[ "${window_no}" == "1" ]]; then
-            # Loop for preparing the restart files in md_folder 1
+            # Loop for preparing the restart files in md_folder_initialstate
+            echo -e "\n * Preparing the snapshots for the re-evaluation of the initial state (${md_folder_initialstate})."
             for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD1}); do
+                # Checking if this snapshot should be skipped
+                if [ "${ce_continue^^}" == "TRUE" ]; then
+                    if [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                        echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
+                        continue
+                    fi
+                fi
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_sn1}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_sn1}/snapshot-${restartID}/
+                fi
+                # Variables
                 restartFile=ipi.out.all_runs.restart_${restartID}
-                # Applying the crosseval_trajectory_stride
                 mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
+                # Preparing the snapshot folder while applying the crosseval_trajectory_stride
                 if [ "${mod}" -eq "0" ]; then
                     restartID=${restartFile/*_}
                     prepare_restart ${md_folder_initialstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_sn1} ${restartID} "initialstate"
@@ -383,11 +430,24 @@ for window_no in $(seq 1 $((nsim-1)) ); do
             done
         fi
         
-        # Loop for preparing the restart files in md_folder 2
+        # Loop for preparing the restart files in md_folder_endstate
+        echo -e "\n * Preparing the snapshots for the re-evaluation of the the end state (${md_folder_endstate})."
         for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD2}); do
+            # Checking if this snapshot should be skipped
+            if [ "${ce_continue^^}" == "TRUE" ]; then
+                if [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                    echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
+                    continue
+                fi
+            fi
+            # Removing the snapshot folder if it exists already
+            if [ -d ${crosseval_folder_sn2}/snapshot-${restartID}/ ]; then
+                rm -r ${crosseval_folder_sn2}/snapshot-${restartID}/
+            fi
+            # Variables
             restartFile=ipi.out.all_runs.restart_${restartID}
-            # Applying the crosseval_trajectory_stride
             mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
+            # Preparing the snapshot folder while applying the crosseval_trajectory_stride
             if [ "${mod}" -eq "0" ]; then
                 restartID=${restartFile/*_}
                 prepare_restart ${md_folder_endstate} ${md_folder_endstate} ${restartFile} ${crosseval_folder_sn2} ${restartID} "endstate"

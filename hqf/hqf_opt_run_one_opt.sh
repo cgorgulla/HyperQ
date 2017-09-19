@@ -136,23 +136,21 @@ while true; do
     if [ -f cp2k.out.trajectory.pdb ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
+
     # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
     if [ -f cp2k.out.err ]; then
         #pseudo_error_count="$( ( grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true ) | wc -l)"
         pseudo_error_count="$( ( grep -E "invalid memory reference" cp2k.out.err || true ) | wc -l)"
         if [ "${pseudo_error_count}" -ge "1" ]; then
-            kill  %1 2>&1 1>/dev/null || true
             break
         fi
     fi
@@ -172,8 +170,7 @@ while true; do
             fi
         fi
     fi
-    sleep 1
-done
 
-cleanup_exit
-exit 0
+    # Sleeping shortly before next round
+    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
+done
