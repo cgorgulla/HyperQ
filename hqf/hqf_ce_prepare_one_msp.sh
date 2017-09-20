@@ -207,7 +207,9 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
-
+if [ -f "TD_windows.list" ]; then
+    rm TD_windows.list
+fi
 
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${ce_type} ${md_programs}
@@ -217,7 +219,6 @@ cp ../../../md/${msp_name}/${subsystem}/system.*.opt.pdb ./
 
 # Creating the list of intermediate states
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
-
 
 # Getting the cell size for the cp2k input files
 line=$(grep CRYST1 system1.pdb)
@@ -264,10 +265,6 @@ if [ "${TD_cycle_type}" = "hq" ]; then
 
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
-    # Lambda step size
-    lambda_stepsize=$(echo "print(1/${ntdsteps})" | python3)
-    lambda_initialstate=0.000
-
     # CP2K input file
     inputfile_cp2k_ce_lambda="$(grep -m 1 "^inputfile_cp2k_ce_lambda_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 fi
@@ -290,10 +287,12 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     elif [ "${TD_cycle_type}" = "lambda" ]; then
 
         # Adjusting lambda_initialstate and lambda_endstate
-        lambda_initialstate=$(echo "$((window_no-1))*${lambda_stepsize}" | bc -l)
-        lambda_initialstate="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_initialstate})"
-        lambda_endstate="$(echo "print(${lambda_initialstate}+${lambda_stepsize})" | python3)"
-        lambda_endstate="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_endstate})"
+        #lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        #lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
+        lambda_initialstate=${lambda_initialstate:0:5}
+        lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
+        lambda_endstate=${lambda_endstate:0:5}
         lambda_configuration_initialstate=lambda_${lambda_initialstate}
         lambda_configuration_endstate=lambda_${lambda_endstate}
         md_folder_initialstate="md.lambda_${lambda_initialstate}"

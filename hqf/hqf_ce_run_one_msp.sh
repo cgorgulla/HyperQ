@@ -86,17 +86,26 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
+# Getting the energy eval folders
+if [ "${TD_cycle_type}" == "hq" ]; then
+    energyeval_folder="$(ls -vrd */)"
+elif [ "${TD_cycle_type}" == "lambda" ]; then
+    energyeval_folder="$(ls -vd */)"
+fi
+energyeval_folder=${energyeval_folder//\/}
 
 # Running the md simulations
 i=0
-for energyeval_folder in $(ls -d */); do
-    energyeval_folder=${energyeval_folder/\/}
+for energyeval_folder in ${energyeval_folder}; do
+
     cd ${energyeval_folder}
     echo -e "\n ** Running the cross evaluations of folder ${energyeval_folder}"
 
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
-        for snapshot_folder in snapshot*; do
+        for snapshot_folder in $(ls -v); do
             # Checking if the snapshot was computed already
             if [ "${ce_continue^^}" == "TRUE" ]; then
                 if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then

@@ -271,8 +271,9 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     lambda_stepsize=$(echo "print(1/${ntdsteps})" | python3)
 
     # Loop for each TD window
-    lambda_current=0.000
     for i in $(eval echo "{1..${nsim}}"); do
+
+        lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
         md_folder="md.lambda_${lambda_current}"
         echo -e "\n * Preparing the files and directories for the fes with lambda-configuration ${lambda_configuration}"
@@ -282,10 +283,10 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             if [ -d "${md_folder}" ]; then
                 echo " * The folder ${md_folder} already exists. Checking its contents..."
                 cd ${md_folder}
-                restart_file_no=$(ls -1v ipi/ | grep restart | wc -l)
-                restart_file=$(ls -1v ipi/ | grep restart | tail -n 1)
+                restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
                 if [[ -f ipi/ipi.in.md.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
                     echo " * The folder ${md_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+                    restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
                     run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run." | grep -o "[0-9]*")
                     run_new=$((run_old + 1))
                     sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.md.xml
@@ -295,15 +296,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
                     else
                         sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
                     fi
-
-                    # Adjusting lambda_current
-                    if [ "${i}" -lt $((nsim-1)) ]; then
-                        lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-                        lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
-                    else
-                        lambda_current="1.000"
-                    fi
-
                     cd ..
                     continue
                 else
@@ -346,10 +338,12 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
 
         # iqi
         if [[ "${md_programs}" == *"iqi"* ]]; then
+
             # Variables
             inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
             inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
+            # Preparing the files and folders
             mkdir ${md_folder}/iqi
             cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
             sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/iqi/iqi.in.xml
@@ -361,13 +355,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         # Copying the geo-opt coordinate files
         cp ../../../opt/${msp_name}/${subsystem}/system.${lambda_configuration}.opt.pdb ./
 
-        # Adjusting lambda_current
-        if [ "${i}" -lt $((nsim-1)) ]; then
-            lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-            lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
-        else
-            lambda_current="1.000"
-        fi
     done
 fi
 

@@ -141,7 +141,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     iteration_no=0
     while true; do
         if [ -e /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.cp2k.${md_name/md.} ]; then
-            for bead_folder in $(ls cp2k/); do
+            for bead_folder in $(ls -v cp2k/); do
                 cd cp2k/${bead_folder}
                 echo " * Cleaning up the cp2k folder"
                 if [ ${md_continue^^} == "FALSE" ]; then
@@ -218,24 +218,24 @@ while true; do
     fi
 
     if [ -f ipi/ipi.out.run${run}.err ]; then
-        error_count="$( ( grep -i error ipi/ipi.out.err || true ) | wc -l)"
+        error_count="$( { grep -i error ipi/ipi.out.err || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
             echo -e "Error detected in the file ipi.out.run${run}.err"
             false
         fi
     fi
 
-    for bead_folder in $(ls cp2k/); do
+    for bead_folder in $(ls -v cp2k/); do
         # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
-            pseudo_error_count="$( ( grep -E "invalid memory reference" cp2k/${bead_folder}/cp2k.out.run${run}.err || true ) | wc -l)"
+            pseudo_error_count="$( { grep -E "invalid memory reference" cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
             if [ "${pseudo_error_count}" -ge "1" ]; then
                 break
             fi
         fi
 
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
-            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true ) | wc -l)"
+            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
             if [ ${error_count} -ge "1" ]; then
                 set +o pipefail
                 backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.run${run}.err | grep -v Backtrace | wc -l)"

@@ -114,7 +114,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     # Variables
     ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    for bead_folder in $(ls cp2k/); do
+    for bead_folder in $(ls -v cp2k/); do
         echo " * Starting cp2k (${bead_folder})"
         cd cp2k/${bead_folder}
         rm cp2k.out* > /dev/null 2>&1 || true
@@ -170,16 +170,16 @@ while true; do
         fi
     fi
     if [ -f ipi/ipi.out.err ]; then
-        error_count="$( ( grep -i error ipi/ipi.out.err || true ) | wc -l)"
+        error_count="$( { grep -i error ipi/ipi.out.err || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
             echo -e "Error detected in the file ipi.out.err"
             cat ipi/ipi.out.err
             false
         fi
     fi
-    for bead_folder in $(ls cp2k/); do
+    for bead_folder in $(ls -v cp2k/); do
         if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
-            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.err || true ) | wc -l)"
+            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.err || true; } | wc -l)"
             if [ ${error_count} -ge "1" ]; then
                 echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.err"
                 cat cp2k/${bead_folder}/cp2k.out.err

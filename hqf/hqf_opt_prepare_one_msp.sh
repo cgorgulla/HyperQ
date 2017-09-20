@@ -167,12 +167,14 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
     # Loop for each intermediate state
     beadStepSize=$(expr $nbeads / $ntdsteps)
-    lambda_current=0.000
     for i in $(eval echo "{1..${nsim}}"); do
+
+        # Variables
         bead_count1="$(( nbeads - (i-1)*beadStepSize))"
         bead_count2="$(( (i-1)*beadStepSize))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
-        lambda_stepsize=$(echo "1 / $ntdsteps" | bc -l)
+        lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+
         echo -e " * Preparing the files and directories for the optimization with bead-configuration ${bead_configuration}"
 
         # Preparation of the cp2k files
@@ -186,22 +188,17 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            if [ "${i}" -lt "$((nsim-1))" ]; then
-                lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-                lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
-            else
-                lambda_current="1.000"
-            fi
         fi
     done
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
     # Loop for each intermediate state
-    lambda_current="0.000"
-    lambda_stepsize=$(echo "1 / $ntdsteps" | bc -l)
     for i in $(eval echo "{1..${nsim}}"); do
 
+        # Variables
+        lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
+
         echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_stepsize}"
 
         # Preparation of the cp2k files
@@ -215,12 +212,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
             sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            if [ "${i}" -lt "$((nsim-1))" ]; then
-                lambda_current=$(echo "${lambda_current} + ${lambda_stepsize}" | bc -l)
-                lambda_current="$(LC_ALL=C /usr/bin/printf "%.*f\n" 3 ${lambda_current})"
-            else
-                lambda_current="1.000"
-            fi
         fi
     done
 fi

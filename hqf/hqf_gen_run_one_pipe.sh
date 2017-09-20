@@ -79,9 +79,12 @@ cleanup_exit() {
     done
 
     # Get our process group id
-    PGID=$(ps -o pgid= $$ | grep -o [0-9]*)
+    pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
     # Terminating it in a new process group
-    setsid bash -c "kill -- -$PGID; sleep 5; kill -9 -$PGID";
+    echo -e '\n * Terminating all remaining processes...\n\n'
+    sleep 1
+
+    setsid bash -c "kill -- -$pgid 2>&1 1> /dev/null; sleep 5; kill -9 -$pgid 2>&1 1>/dev/null || true"  2>&1 > /dev/null ;
 }
 trap "cleanup_exit" EXIT
 

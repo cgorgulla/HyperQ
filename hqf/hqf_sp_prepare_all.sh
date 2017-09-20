@@ -117,7 +117,7 @@ if [ "${input_file_format}" = "pdbqt" ]; then
 
     # Preparing the raw ligands
     echo -e "\n * Preparing the ligands (pdbqt) with obabel"
-    for file in $(ls input-files/ligands/pdbqt); do
+    for file in $(ls -v input-files/ligands/pdbqt); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel -l 1 -p 7.4 -ipdbqt input-files/ligands/pdbqt/${file} -opdb -O sp/ligands/pdb/${ligand_basename}.pdb
@@ -146,7 +146,7 @@ elif [ "${input_file_format}" = "sdf" ]; then
 
     # Preparing the raw ligands
     echo -e "\n * Preparing the ligands (sdf) with obabel"
-    for file in $(ls input-files/ligands/sdf); do
+    for file in $(ls -v input-files/ligands/sdf); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel -l 1 -p 7.4 -isdf input-files/ligands/sdf/${file} -opdb -O input-files/ligands/pdb/${ligand_basename}.pdb
@@ -175,7 +175,7 @@ elif [ "${input_file_format}" = "mol2_2d_h" ]; then
 
     # Preparing the raw ligands
     echo -e "\n * Preparing the ligands (mol2_2d_h) with obabel"
-    for file in $(ls input-files/ligands/mol2); do
+    for file in $(ls -v input-files/ligands/mol2); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel --gen3d -imol2 input-files/ligands/mol2/${file} -opdb -O input-files/ligands/pdb/${ligand_basename}.pdb
@@ -200,7 +200,7 @@ elif [ "${input_file_format}" = "pdb_3d_h" ]; then
 
     # Preparing the raw ligands
     echo -e "\n * Preparing the ligands (pdb_3d_h) with obabel"
-    for file in $(ls input-files/ligands/pdb); do
+    for file in $(ls -v input-files/ligands/pdb); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel -ipdb input-files/ligands/pdb/${file} -omol2 -O input-files/ligands/mol2-Li/${ligand_basename}.mol2
@@ -229,13 +229,13 @@ elif [ "${input_file_format}" = "smi" ]; then
 
     # Preparing the raw ligands
     echo -e "\n * Preparing the ligands (smi to pdb) with obabel"
-    for file in $(ls input-files/ligands/smi); do
+    for file in $(ls -v input-files/ligands/smi); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel --gen3d -p 7 -ismi input-files/ligands/smi/${file} -opdb -O input-files/ligands/pdb/${ligand_basename}.pdb
     done
     echo -e "\n * Preparing the ligands (pdb_3d_h to mol2_Li) with obabel"
-    for file in $(ls input-files/ligands/pdb); do
+    for file in $(ls -v input-files/ligands/pdb); do
         ligand_basename="${file/.*}"
         echo " * Converting the ligand $ligand_basename"
         obabel -ipdb input-files/ligands/pdb/${file} -omol2 -O input-files/ligands/mol2-Li/${ligand_basename}.mol2
@@ -246,7 +246,7 @@ fi
 # Preparing the complete systems
 for subsystem in ${subsystems}; do 
     if [[ "${subsystem}" == "L" ]]; then        
-        for file in $(ls input-files/ligands/pdb); do
+        for file in $(ls -v input-files/ligands/pdb); do
             echo $file
             ligand_basename="${file/.*}"
             echo $ligand_basename
@@ -259,7 +259,7 @@ for subsystem in ${subsystems}; do
         done
     elif [[ "${subsystem}" == "LS" ]]; then
         waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS=" input-files/config.txt | awk -F '=' '{print $2}')"
-        for file in $(ls input-files/ligands/pdb); do
+        for file in $(ls -v input-files/ligands/pdb); do
             ligand_basename="${file/.*}"
             # Creating folders
             if [ -d input-files/systems/${ligand_basename}/${subsystem} ]; then
@@ -274,7 +274,7 @@ for subsystem in ${subsystems}; do
         if [[ -z "${receptor_mode}" ]]; then
             receptor_mode="common"
         fi
-        for file in $(ls input-files/ligands/pdb); do
+        for file in $(ls -v input-files/ligands/pdb); do
             ligand_basename="${file/.pdb}"
             if [[ ${receptor_mode} == "common" ]]; then
                 receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -310,7 +310,7 @@ if [ -d input-files/systems.omit/ ]; then
 fi
 mkdir input-files/ligands/${lomap_mol2_folder}.omit
 mkdir input-files/systems.omit
-for folder in $(ls input-files/systems/) ; do
+for folder in $(ls -v input-files/systems/) ; do
     for subsystem in ${subsystems}; do 
         if [ ! -f input-files/systems/${folder}/${subsystem}/system_complete.psf ]; then
             echo -e "\n * Removing ligand ${folder} due to failure in the preparation."
@@ -329,7 +329,7 @@ done
 
 # Preparing the remaining files for each system
 for subsystem in ${subsystems}; do
-    for ligand in $(ls input-files/systems/); do
+    for ligand in $(ls -v input-files/systems/); do
         hqh_sp_prepare_system_2.sh ${ligand} ${subsystem}
     done
 done

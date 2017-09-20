@@ -115,16 +115,19 @@ ce_timeout_PLS=100
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
-md_continue=false
+md_continue=true
 # Possible values (case insensitive): true, false 
-# If true, then a previous MD run has to exist already, and _prm_ has to be run before running _rmd_ in order to adjust the input files
+# If true, then during _prm_ non-existent md-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
+# If false, then the md/msp_name/subsystem will be wiped and newly prepared (and the md/msp_name/subsystem fodler will be wiped if already existent)
 # This setting has no effect on _rmd_, only on _prm_
 
-ce_continue=false
+ce_continue=true
 # Possible values (case insensitive): true, false 
-# If true, then snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
-# If false, every snapshot will be computed regardless of whether they have been computed before or not
-# This setting does not affect _prc_
+# If true, then * during _rce_ snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
+#               * during _prc_ only snapshots will be prepared which are not already prepared (e.g. no finished snapshots will be overwritten)
+# If false, then * during _rce_ every snapshot will be computed regardless of whether they have been computed before or not
+#                * during _prc_ all snapshots will be newly prepared (and the ce/msp_name/subsystem folder will be wiped if already existent)
+
 
 umbrella_sampling=false
 # Possible values: true, false

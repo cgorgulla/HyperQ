@@ -147,7 +147,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
     iteration_no=0
     while true; do
         if [ -e "/tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${snapshotID}" ]; then # -e for any fail, -f is only for regular files
-            for bead_folder in $(ls cp2k/); do
+            for bead_folder in $(ls -v cp2k/); do
                 echo -e " * Starting CP2K in folder (${bead_folder})"
                 cd cp2k/${bead_folder}/
                 rm cp2k.out* > /dev/null 2>&1 || true
@@ -208,10 +208,10 @@ while true; do
         false
     fi
     # Checking for cp2k errors
-    for bead_folder in $(ls cp2k/); do
+    for bead_folder in $(ls -v cp2k/); do
         # We are not interpreting pseudoerrors as successful runs, we rely only on the property file of ipi
         if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
-            error_count="$( ( grep -i error cp2k/${bead_folder}/cp2k.out.err || true ) | wc -l)"
+            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.err || true; } | wc -l)"
             if [ ${error_count} -ge "1" ]; then
                 set +o pipefail
                 backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.err | grep -v Backtrace | wc -l)"

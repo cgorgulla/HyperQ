@@ -148,15 +148,15 @@ while true; do
 
     # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
     if [ -f cp2k.out.err ]; then
-        #pseudo_error_count="$( ( grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true ) | wc -l)"
-        pseudo_error_count="$( ( grep -E "invalid memory reference" cp2k.out.err || true ) | wc -l)"
+        #pseudo_error_count="$( { grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true; } | wc -l)"
+        pseudo_error_count="$( { grep -E "invalid memory reference" cp2k.out.err || true; } | wc -l)"
         if [ "${pseudo_error_count}" -ge "1" ]; then
             break
         fi
     fi
 
     if [ -f cp2k.out.err ]; then
-        error_count="$( ( grep -i error cp2k.out.err || true ) | wc -l)"
+        error_count="$( { grep -i error cp2k.out.err || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
             set +o pipefail
             backtrace_length="$(grep -A 100 Backtrace cp2k.out.err | grep -v Backtrace | wc -l)"

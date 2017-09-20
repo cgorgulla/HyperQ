@@ -85,7 +85,7 @@ for i in ${waterCount[@]}; do
     fi
 done
 
-for folder in $(ls input-files/systems); do
+for folder in $(ls -v input-files/systems); do
     if [ "${minimumWaterCount}" -eq "0" ]; then
         echo -e " * Minimum water count is 0. No water to reduce...\n"
         cp input-files/systems/${folder}/${subsystem}/system_complete.pdb input-files/systems/${folder}/${subsystem}/system_complete.reduced.pdb

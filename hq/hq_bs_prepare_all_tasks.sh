@@ -81,7 +81,7 @@ echo -e "\n *** Preparing the tasks for all systems in input-files/systems\n"
 
 # Loop for each system
 counter="${first_index}"
-for system in $(ls input-files/systems); do
+for system in $(ls -v input-files/systems); do
     echo -e " * Preparing the task for system ${system}"
     hq_bs_prepare_one_task.sh "${counter}" "${command/ system / ${system} }" "${output_filename}"
     counter=$((counter+1))

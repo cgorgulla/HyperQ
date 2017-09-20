@@ -89,7 +89,7 @@ maximum_parallel_pipes=${3}
 echo -e "\n ***** Running one pipeline (${pipeline_type}) for each in input-folder/systems where the subsystem is ${subsystem} *****"
 
 # Loop for each system
-for system in $(ls input-files/systems); do
+for system in $(ls -v input-files/systems); do
 
     while [ "$(jobs | wc -l)" -ge "${maximum_parallel_pipes}" ]; do
         jobs

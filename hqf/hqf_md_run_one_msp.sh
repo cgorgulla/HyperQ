@@ -113,13 +113,21 @@ echo -e "\n *** Starting the md simulations (hqf_md_run_one_msp.sh)"
 
 # Variables
 ncpus_cp2k_md="${1}"
-fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
+fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
+# Getting the MD folders
+if [ "${TD_cycle_type}" == "hq" ]; then
+    md_folders="$(ls -vrd md*)"
+elif [ "${TD_cycle_type}" == "lambda" ]; then
+    md_folders="$(ls -vd md*)"
+fi
 
 # Running the MDs
 i=0
-for folder in $(ls -d md*); do
+for folder in ${md_folders}; do
     while [ "$(jobs | grep -v Done | wc -l)" -ge "${fes_md_parallel_max}" ]; do
         sleep 0.$RANDOM
     done;
