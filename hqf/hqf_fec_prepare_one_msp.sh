@@ -92,19 +92,23 @@ if [ ! -d "${ce_folder}" ]; then
 fi
 
 # Loop for each TD Window
-while read line; do 
+while read line; do
+    
+    # Variables
     md_folder_1="$(echo -n ${line} | awk '{print $1}')"
-    md_folder_2="$(echo -n ${line} | awk '{print $2}')"    
+    md_folder_2="$(echo -n ${line} | awk '{print $2}')"
     crosseval_folder_fw="${md_folder_1}-${md_folder_2}"     # md folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${md_folder_2}-${md_folder_1}"     # Opposite of fw
-    
-    # Variables 
     stride_ipi_properties=$(grep "potential" ${md_folder}/${md_folder_1}/ipi/ipi.in.md.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
     stride_ipi_trajectory=$(grep "<checkpoint" ${md_folder}/${md_folder_1}/ipi/ipi.in.md.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
-    stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
-    fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
-    ce_stride=$(grep -m 1 "^ce_stride=" input-files/config.txt | awk -F '=' '{print $2}')
-    TD_window=${md_folder_1}-${md_folder_2}
+    #stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
+    TD_window="${md_folder_1}-${md_folder_2}"
+
+    # Checking if the checkpoint and potential in the ipi input file are equal
+    if [ "${stride_ipi_properties}" -ne "${stride_ipi_trajectory}" ]; then
+        echo -n "Error: the checkpoint and potential need to have the same stride in the ipi input file\.n\n"
+        exit 1
+    fi
 
     # Creating required folders
     if [ -d ${fec_folder}/${TD_window} ]; then
@@ -143,6 +147,7 @@ while read line; do
         # Checking if this snapshout should be skipped
         if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
             echo " * Skipping snapshot ${snapshot_ID} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
+            snapshot_counter=$((snapshot_counter+1))
             continue
         fi
 
@@ -170,6 +175,7 @@ while read line; do
         # Checking if this snapshout should be skipped
         if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
             echo " * Skipping snapshot ${snapshot_ID} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
+            snapshot_counter=$((snapshot_counter+1))
             continue
         fi
 
@@ -204,6 +210,7 @@ while read line; do
         cp ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
     else
         echo -e "\nError: The variable fec_stride is not set correctly in the configuration file. Exiting...\n\n"
+        exit 1
     fi
 
     

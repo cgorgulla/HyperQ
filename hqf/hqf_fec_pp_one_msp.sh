@@ -55,27 +55,26 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+# Bash options
+set -o pipefail
+
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-fec_stride="$(grep -m 1 "^fec_stride=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
 fi
-
-# Bash options
-set -o pipefail
 
 # Variables
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_1_basename="${msp_name/_*}"
 system_2_basename="${msp_name/*_}"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 
 # Printing some information
 echo -e "\n *** Postprocessing the FEC between the systems ${system_1_basename} and ${system_2_basename} ***"
-
 
 # Folders
 mkdir -p previous-runs/${date}/

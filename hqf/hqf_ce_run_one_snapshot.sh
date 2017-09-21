@@ -130,7 +130,7 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
     msp_name="$(pwd | awk -F '/' '{print $(NF-4)}')"
     rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotID} > /dev/null 2>&1 || true
-    ipi ipi.in.ce.xml > ipi.out.screen 2> ipi.out.err &
+    stdbuf -oL ipi ipi.in.ce.xml > ipi.out.screen 2> ipi.out.err &
     pid_ipi=$!
     #ps -o pid,pgid,ppid $pid_ipi
     echo "${pid_ipi} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce

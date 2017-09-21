@@ -60,8 +60,9 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-fec_stride="$(grep -m 1 "^fec_stride=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"

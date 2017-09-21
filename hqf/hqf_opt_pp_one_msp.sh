@@ -59,19 +59,19 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Printing information
+echo -e "\n *** Postprocessing the optimizations (hqf_opt_pp_one_msp.sh)"
+
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-
-
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
 fi
 
-# Printing information
-echo -e "\n *** Postprocessing the optimizations (hqf_opt_pp_one_msp.sh)"
+# Variables
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 
 # For each folder in geopt (each k value) prepare a pdb coordinate file
 for folder in opt.*; do

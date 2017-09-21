@@ -84,10 +84,18 @@ md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | awk -F '=' '{p
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
 ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
 nsim="$((ntdsteps + 1))"
-
+stride_ipi_properties="$(grep "potential" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
+stride_ipi_trajectory="$(grep "<checkpoint" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
 
 # Printing information
 echo -e "\n *** Preparing the md simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
+
+
+# Checking if the checkpoint and potential in the ipi input file are equal
+if [ "${stride_ipi_properties}" -ne "${stride_ipi_trajectory}" ]; then
+    echo -n "Error: the checkpoint and potential need to have the same stride in the ipi input file\.n\n"
+    exit 1
+fi
 
 # Folder preparation
 echo -e " * Preparing the main folder"
