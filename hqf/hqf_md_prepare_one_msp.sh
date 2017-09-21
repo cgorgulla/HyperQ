@@ -1,11 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage infomation
-usage="Usage: hqf_md_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem type> <nbeads> <ntdsteps>
+usage="Usage: hqf_md_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem type>
 
 Has to be run in the root folder.
-
-<ntdstepds>is the number TD windows (minimal value is 1).
 
 Possible subsystems are: L, LS, PLS."
 
@@ -17,7 +15,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "5" ]; then
+if [ "$#" -ne "3" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
@@ -71,9 +69,6 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Variables
-nbeads="${4}"
-ntdsteps="${5}"
-nsim="$((ntdsteps + 1))"
 system1_basename="${1}"
 system2_basename="${2}"
 subsystem=${3}
@@ -86,6 +81,9 @@ runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '='
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
+ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
+nsim="$((ntdsteps + 1))"
 
 
 # Printing information

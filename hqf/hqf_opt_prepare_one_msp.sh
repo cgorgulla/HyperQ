@@ -1,11 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage infomation
-usage="Usage: hqf_opt_prepare_one_msp.py <nbeads> <ntdsteps> <system 1 basename> <system 2 basename> <subsystem type>
+usage="Usage: hqf_opt_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem>
 
 Has to be run in the root folder.
-
-<ntdstepds> is the number of TD windows (minimal value is 1).
 
 Possible subsystems are: L, LS, PLS."
 
@@ -17,7 +15,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "5" ]; then
+if [ "$#" -ne "3" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
@@ -71,17 +69,17 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Variables
-nbeads="${1}"
-ntdsteps="${2}"
-nsim="$((ntdsteps + 1))"
-system_1_basename="${3}"
-system_2_basename="${4}"
-subsystem=${5}
+system_1_basename="${1}"
+system_2_basename="${2}"
+subsystem=${3}
 msp_name=${system_1_basename}_${system_2_basename}
 inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
+ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
+nsim="$((ntdsteps + 1))"
 
 # Printing information
 echo -e "\n *** Preparing the optimization folder for fes ${msp_name} (hq_opt_prepare_one_fes) *** "

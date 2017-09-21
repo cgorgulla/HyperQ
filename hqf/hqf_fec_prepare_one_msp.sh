@@ -72,8 +72,8 @@ msp_name="${system_1_basename}_${system_2_basename}"
 md_folder="md/${msp_name}/${subsystem}"
 ce_folder="ce/${msp_name}/${subsystem}"
 fec_folder="fec/AFE/${msp_name}/${subsystem}"
-fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
-fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index=" input-files/config.txt | awk -F '=' '{print $2}')
+fec_stride=$(grep -m 1 "^fec_stride_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
+fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
 
 # Printing some information

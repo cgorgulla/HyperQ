@@ -117,9 +117,6 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Variables
-nbeads="$(grep -m 1 "^nbeads" input-files/config.txt | awk -F '=' '{print $2}')"
-ntdsteps="$(grep -m 1 "^ntdsteps" input-files/config.txt | awk -F '=' '{print $2}')"
-ce_stride="$(grep -m 1 "^ce_stride" input-files/config.txt | awk -F '=' '{print $2}')"
 msp_name="${1}"
 subsystem="${2}"
 pipeline_type="${3}"
@@ -139,7 +136,7 @@ mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    hqf_opt_prepare_one_msp.sh  ${nbeads} ${ntdsteps} ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp_${nbeads}_${ntdsteps}_${system1}_${system2}_${subsystem}
+    hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp_${system1}_${system2}_${subsystem}
     check_error_indicators
 fi
 
@@ -169,7 +166,7 @@ if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]
     if [ -d runtime/pids/${msp_name}_${subsystem}/md ]; then
         rm -r runtime/pids/${msp_name}_${subsystem}/md
     fi
-    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp_${system1}_${system2}_${subsystem}_${nbeads}_${ntdsteps}
+    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp_${system1}_${system2}_${subsystem}
     check_error_indicators
 fi
 
@@ -183,7 +180,7 @@ fi
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${nbeads} ${ntdsteps} ${ce_stride} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh_${system1}_${system2}_${subsystem}_${nbeads}_${ntdsteps}_${ce_stride}
+    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh_${system1}_${system2}_${subsystem}
     check_error_indicators
 fi
 

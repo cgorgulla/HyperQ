@@ -198,15 +198,23 @@ inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
 
 
 ************************************* Crosseval *************************************
-ce_first_restart_ID=10
-ce_stride=1
+ce_first_restart_ID_L=1
+ce_first_restart_ID_LS=1
+ce_first_restart_ID_PLS=1
+ce_stride_L=1
+ce_stride_LS=1
+ce_stride_PLS=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
 
 **************************************** FEC ****************************************
-fec_first_snapshot_index=1
-fec_first_fec_stride=1
+fec_first_snapshot_index_L=1
+fec_first_snapshot_index_LS=1
+fec_first_snapshot_index_PLS=1
+fec_stride_L=1
+fec_stride_LS=1
+fec_stride_PLS=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
 # The snaphot folder in the cross evaluation folders are indexed starting by 1
 
