@@ -94,4 +94,4 @@ paste -d "" <(while read line; do printf "%-85s\n" "$line" | grep "^ATOM"; done 
 echo "END" >> ${output_filename}
 rm ${output_filename}.tmp
 
-echo -e " * The final pdb file of the optimization has be prepared"
+echo -e " * The final pdb file of the optimization has been prepared"

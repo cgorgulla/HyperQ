@@ -72,10 +72,8 @@ msp_name="${system_1_basename}_${system_2_basename}"
 md_folder="md/${msp_name}/${subsystem}"
 ce_folder="ce/${msp_name}/${subsystem}"
 fec_folder="fec/AFE/${msp_name}/${subsystem}"
-#c_values_min=$(grep -m 1 "^c_values_min=" input-files/config.txt | awk -F '=' '{print $2}')
-#c_values_max=$(grep -m 1 "^c_values_max=" input-files/config.txt | awk -F '=' '{print $2}')
-#c_values_count=$(grep -m 1 "^c_values_count=" input-files/config.txt | awk -F '=' '{print $2}')
 fec_stride=$(grep -m 1 "^fec_stride=" input-files/config.txt | awk -F '=' '{print $2}')
+fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
 
 # Printing some information
@@ -134,10 +132,19 @@ while read line; do
    # property_files=$(ls -1v ${md_folder}/${md_folder_2}/ipi/* | grep properties)
    # cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties
 
-    # Loop for the each snapshot pair
+    # Loop for the each snapshot pair of the forward direction
+    echo " * Preparing the snapshots of the forward direction"
+    snapshot_counter=1
     for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_fw}); do
 
+        # Variables
         snapshot_ID=${snapshot_folder/*\-}
+
+        # Checking if this snapshout should be skipped
+        if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
+            echo " * Skipping snapshot ${snapshot_ID} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
+            continue
+        fi
 
         # Foward direction
         # Extracting the free energies of system 1 evaluated at system 1
@@ -149,10 +156,22 @@ while read line; do
             echo "${energy_fw_U1_U1}" >>  ${fec_folder}/${TD_window}/U1_U1
             echo "${energy_fw_U1_U2}" >>  ${fec_folder}/${TD_window}/U1_U2
         fi
+        snapshot_counter=$((snapshot_counter+1))
     done
+
+    # Loop for the each snapshot pair of the backward direction
+    echo " * Preparing the snapshots of the backward direction"
+    snapshot_counter=1
     for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_bw}); do
 
+        # Variables
         snapshot_ID=${snapshot_folder/*\-}
+
+        # Checking if this snapshout should be skipped
+        if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
+            echo " * Skipping snapshot ${snapshot_ID} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
+            continue
+        fi
 
         # Backward direction
         # Extracting the free energies of system 2 evaluated at system 1
@@ -165,6 +184,7 @@ while read line; do
             echo "${energy_bw_U2_U1}" >> ${fec_folder}/${TD_window}/U2_U1
             echo "${energy_bw_U2_U2}" >> ${fec_folder}/${TD_window}/U2_U2
         fi
+        snapshot_counter=$((snapshot_counter+1))
     done
     
     # Applying the fec stride (additional stride)

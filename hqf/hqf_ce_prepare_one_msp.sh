@@ -287,12 +287,12 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     elif [ "${TD_cycle_type}" = "lambda" ]; then
 
         # Adjusting lambda_initialstate and lambda_endstate
-        #lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        #lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
-        lambda_initialstate=${lambda_initialstate:0:5}
-        lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
-        lambda_endstate=${lambda_endstate:0:5}
+        lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        #lambda_initialstate=$(echo "$((window_no-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
+        #lambda_initialstate=${lambda_initialstate:0:5}
+        #lambda_endstate=$(echo "${window_no}/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
+        #lambda_endstate=${lambda_endstate:0:5}
         lambda_configuration_initialstate=lambda_${lambda_initialstate}
         lambda_configuration_endstate=lambda_${lambda_endstate}
         md_folder_initialstate="md.lambda_${lambda_initialstate}"
@@ -352,50 +352,72 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     # Loop for preparing the restart files in md_folder 1 (forward evaluation)
     echo -e "\n * Preparing the snapshots for the fortward cross-evaluation."
     for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD1}); do
-        # Checking if this snapshot should be skipped
-        if [ "${ce_continue^^}" == "TRUE" ]; then
-            if [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
-                echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
-                continue
+
+            # Applying the crosseval trajectory stride
+            mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
+            if [ "${mod}" -eq "0" ]; then
+
+                # Checking if this snapshot has already been prepared and should be skipped
+                if [ "${ce_continue^^}" == "TRUE" ]; then
+                    if [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                        echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
+                        continue
+                    fi
+                fi
+
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_fw}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_fw}/snapshot-${restartID}/
+                fi
+
+                # Preparing the snapshot folder
+                restartFile=ipi.out.all_runs.restart_${restartID}
+                prepare_restart ${md_folder_initialstate} ${md_folder_endstate} ${restartFile} ${crosseval_folder_fw} ${restartID} "endstate"
+
+            else
+                echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_fw}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_fw}/snapshot-${restartID}/
+                    echo " * Deleting the previously prepared crosseval folder of snapshot ${restartID} due to the crosseval trajectory stride."
+                fi
             fi
-        fi
-        # Removing the snapshot folder if it exists already
-        if [ -d ${crosseval_folder_fw}/snapshot-${restartID}/ ]; then
-            rm -r ${crosseval_folder_fw}/snapshot-${restartID}/
-        fi
-        # Variables
-        restartFile=ipi.out.all_runs.restart_${restartID}
-        mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
-        # Preparing the snapshot folder while applying the crosseval_trajectory_stride
-        if [ "${mod}" -eq "0" ]; then
-            restartID=${restartFile/*_}
-            prepare_restart ${md_folder_initialstate} ${md_folder_endstate} ${restartFile} ${crosseval_folder_fw} ${restartID} "endstate"
-        fi
-    done
+        done
 
     # Loop for preparing the restart files in md_folder_endstate (backward evaluation)
     echo -e "\n * Preparing the snapshots for the backward cross-evaluation."
     for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD2}); do
-        # Checking if this snapshot should be skipped
-        if [ "${ce_continue^^}" == "TRUE" ]; then
-            if [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
-                echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
-                continue
+
+            # Applying the crosseval trajectory stride
+            mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
+            if [ "${mod}" -eq "0" ]; then
+
+                # Checking if this snapshot has already been prepared and should be skipped
+                if [ "${ce_continue^^}" == "TRUE" ]; then
+                    if [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                        echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
+                        continue
+                    fi
+                fi
+
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_bw}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_bw}/snapshot-${restartID}/
+                fi
+
+                # Preparing the snapshot folder
+                restartFile=ipi.out.all_runs.restart_${restartID}
+                prepare_restart ${md_folder_endstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_bw} ${restartID} "endstate"
+
+            else
+                echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_bw}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_bw}/snapshot-${restartID}/
+                    echo " * Deleting the previously prepared crosseval folder of snapshot ${restartID} due to the crosseval trajectory stride."
+                fi
             fi
-        fi
-        # Removing the snapshot folder if it exists already
-        if [ -d ${crosseval_folder_bw}/snapshot-${restartID}/ ]; then
-            rm -r ${crosseval_folder_bw}/snapshot-${restartID}/
-        fi
-        # Variables
-        restartFile=ipi.out.all_runs.restart_${restartID}
-        mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride))
-        # Preparing the snapshot folder while applying the crosseval_trajectory_stride
-        if [ "${mod}" -eq "0" ]; then
-            restartID=${restartFile/*_}
-            prepare_restart ${md_folder_endstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_bw} ${restartID} "initialstate"
-        fi
-    done
+        done
 
     if [ "${umbrella_sampling}" == "true" ]; then
         # Variables
@@ -404,27 +426,39 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
         # Only if first TD window
         if [[ "${window_no}" == "1" ]]; then
+
             # Loop for preparing the restart files in md_folder_initialstate
             echo -e "\n * Preparing the snapshots for the re-evaluation of the initial state (${md_folder_initialstate})."
             for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD1}); do
-                # Checking if this snapshot should be skipped
-                if [ "${ce_continue^^}" == "TRUE" ]; then
-                    if [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
-                        echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
-                        continue
-                    fi
-                fi
-                # Removing the snapshot folder if it exists already
-                if [ -d ${crosseval_folder_sn1}/snapshot-${restartID}/ ]; then
-                    rm -r ${crosseval_folder_sn1}/snapshot-${restartID}/
-                fi
-                # Variables
-                restartFile=ipi.out.all_runs.restart_${restartID}
+
+                # Applying the crosseval trajectory stride
                 mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
-                # Preparing the snapshot folder while applying the crosseval_trajectory_stride
                 if [ "${mod}" -eq "0" ]; then
-                    restartID=${restartFile/*_}
-                    prepare_restart ${md_folder_initialstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_sn1} ${restartID} "initialstate"
+
+                    # Checking if this snapshot has already been prepared and should be skipped
+                    if [ "${ce_continue^^}" == "TRUE" ]; then
+                        if [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                            echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
+                            continue
+                        fi
+                    fi
+
+                    # Removing the snapshot folder if it exists already
+                    if [ -d ${crosseval_folder_sn1}/snapshot-${restartID}/ ]; then
+                        rm -r ${crosseval_folder_sn1}/snapshot-${restartID}/
+                    fi
+
+                    # Preparing the snapshot folder
+                    restartFile=ipi.out.all_runs.restart_${restartID}
+                    prepare_restart ${md_folder_initialstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_sn1} ${restartID} "endstate"
+
+                else
+                    echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
+                    # Removing the snapshot folder if it exists already
+                    if [ -d ${crosseval_folder_sn1}/snapshot-${restartID}/ ]; then
+                        rm -r ${crosseval_folder_sn1}/snapshot-${restartID}/
+                        echo " * Deleting the previously prepared crosseval folder of snapshot ${restartID} due to the crosseval trajectory stride."
+                    fi
                 fi
             done
         fi
@@ -432,24 +466,35 @@ for window_no in $(seq 1 $((nsim-1)) ); do
         # Loop for preparing the restart files in md_folder_endstate
         echo -e "\n * Preparing the snapshots for the re-evaluation of the the end state (${md_folder_endstate})."
         for restartID in $(seq ${ce_first_restart_ID} ${restartFileCountMD2}); do
-            # Checking if this snapshot should be skipped
-            if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
-                    echo " * Snapshot ${restartID} has already been prepared, skipping this snapshot..."
-                    continue
-                fi
-            fi
-            # Removing the snapshot folder if it exists already
-            if [ -d ${crosseval_folder_sn2}/snapshot-${restartID}/ ]; then
-                rm -r ${crosseval_folder_sn2}/snapshot-${restartID}/
-            fi
-            # Variables
-            restartFile=ipi.out.all_runs.restart_${restartID}
+
+            # Applying the crosseval trajectory stride
             mod=$(( (restartID-ce_first_restart_ID) % crosseval_trajectory_stride ))
-            # Preparing the snapshot folder while applying the crosseval_trajectory_stride
             if [ "${mod}" -eq "0" ]; then
-                restartID=${restartFile/*_}
+
+                # Checking if this snapshot has already been prepared and should be skipped
+                if [ "${ce_continue^^}" == "TRUE" ]; then
+                    if [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                        echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
+                        continue
+                    fi
+                fi
+
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_sn2}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_sn2}/snapshot-${restartID}/
+                fi
+
+                # Preparing the snapshot folder
+                restartFile=ipi.out.all_runs.restart_${restartID}
                 prepare_restart ${md_folder_endstate} ${md_folder_endstate} ${restartFile} ${crosseval_folder_sn2} ${restartID} "endstate"
+
+            else
+                echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
+                # Removing the snapshot folder if it exists already
+                if [ -d ${crosseval_folder_sn2}/snapshot-${restartID}/ ]; then
+                    rm -r ${crosseval_folder_sn2}/snapshot-${restartID}/
+                    echo " * Deleting the previously prepared crosseval folder of snapshot ${restartID} due to the crosseval trajectory stride."
+                fi
             fi
         done
     fi

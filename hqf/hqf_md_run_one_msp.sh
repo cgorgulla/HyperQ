@@ -128,7 +128,7 @@ fi
 # Running the MDs
 i=0
 for folder in ${md_folders}; do
-    while [ "$(jobs | grep -v Done | wc -l)" -ge "${fes_md_parallel_max}" ]; do
+    while [ "$(jobs | { grep -v Done || true; } | wc -l)" -ge "${fes_md_parallel_max}" ]; do
         sleep 0.$RANDOM
     done;
     cd ${folder}/

@@ -163,8 +163,8 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             if [ -d "${md_folder}" ]; then
                 echo " * The folder ${md_folder} already exists. Checking its contents..."
                 cd ${md_folder}
-                restart_file_no=$(ls -1v ipi/ | grep restart | wc -l)
-                restart_file=$(ls -1v ipi/ | grep restart | tail -n 1)
+                restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
+                restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
                 if [[ -f ipi/ipi.in.md.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
                     echo " * The folder ${md_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
                     run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run." | grep -o "[0-9]*")
