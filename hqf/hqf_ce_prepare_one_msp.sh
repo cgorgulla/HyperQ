@@ -85,10 +85,10 @@ prepare_restart() {
     elif [ "${TD_cycle_type}" == "lambda" ]; then
         if [ "${evalstate}" == "endstate" ]; then
             lambda_configuration_local="${lambda_configuration_endstate}"
-            lambda_current_local="${lambda_endstate}"
+            lambda_currenteval_local="${lambda_endstate}"
         elif [[ "${evalstate}" == "initialstate" ]]; then
             lambda_configuration_local="${lambda_configuration_initialstate}"
-            lambda_current_local="${lambda_initialstate}"
+            lambda_currenteval_local="${lambda_initialstate}"
         fi
     fi
 
@@ -111,9 +111,9 @@ prepare_restart() {
         if [ "${TD_cycle_type}" == "lambda" ]; then
             cp ../../../input-files/cp2k/${inputfile_cp2k_ce_lambda} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
             sed -i "s/subconfiguration/${lambda_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-            sed -i "s/lambda_value/${lambda_current_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+            sed -i "s/lambda_value/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
         elif [ "${TD_cycle_type}" ==  "hq" ]; then
-            # Bead type 1
+            # Different bead types
             if [ ${bead} -le "${bead_count1_local}" ]; then
                 cp ../../../input-files/cp2k/${inputfile_cp2k_ce_k_0} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
             else
@@ -408,7 +408,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
             # Preparing the snapshot folder
             restartFile=ipi.out.all_runs.restart_${restartID}
-            prepare_restart ${md_folder_endstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_bw} ${restartID} "endstate"
+            prepare_restart ${md_folder_endstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_bw} ${restartID} "initialstate"
 
         else
             echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
@@ -451,7 +451,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
                     # Preparing the snapshot folder
                     restartFile=ipi.out.all_runs.restart_${restartID}
-                    prepare_restart ${md_folder_initialstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_sn1} ${restartID} "endstate"
+                    prepare_restart ${md_folder_initialstate} ${md_folder_initialstate} ${restartFile} ${crosseval_folder_sn1} ${restartID} "initialstate"
 
                 else
                     echo " * Snapshot ${restartID} will be skipped due to the crosseval trajectory stride..."
