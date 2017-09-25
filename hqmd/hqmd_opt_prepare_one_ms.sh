@@ -99,9 +99,9 @@ if [[ "${opt_programs}" == "cp2k" ]]; then
         rm -r opt/cp2k
     fi
     mkdir -p opt/cp2k
-    inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    cp ../../../input-files/cp2k/${inputfile_cp2k_opt} opt/cp2k/cp2k.in.opt
-    sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt/cp2k/cp2k.in.opt
+    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt} opt/cp2k/cp2k.in.main
+    sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt/cp2k/cp2k.in.main
 
     cp ../../../input-files/cp2k/cp2k.in.kind.* ./
 fi

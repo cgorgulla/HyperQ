@@ -1,0 +1,12 @@
+All DFTB3 folders
+- we might need 
+-- &KIND Hubbard parameters for each atom name/kind instead of element
+
+
+CPMD2
+- check again ascp order and hist_order
+- we might need: print history off, langevin ensemble, even if i-PI is used as a driver
+
+LSD now deactivated
+
+QMMM do we need geo check false for QMMM in MM section?

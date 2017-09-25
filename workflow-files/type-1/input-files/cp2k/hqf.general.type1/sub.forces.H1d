@@ -1,0 +1,36 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical
+  METHOD FIST
+  &MM
+    &NEIGHBOR_LISTS
+      GEO_CHECK false
+    &END NEIGHBOR_LISTS
+    &FORCEFIELD
+      IGNORE_MISSING_CRITICAL_PARAMS true
+      DO_NONBONDED false
+      @include subsystem_folder/cp2k.in.bonds.system2
+      @include subsystem_folder/cp2k.in.angles.system2
+      @include subsystem_folder/cp2k.in.dihedrals.system2
+    &END FORCEFIELD
+    &POISSON
+      PERIODIC none
+      &EWALD 
+        EWALD_TYPE none 
+      &END EWALD 
+    &END POISSON
+  &END MM
+  &SUBSYS
+    &TOPOLOGY
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system2.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system2.dummy.psf      
+      &GENERATE 
+        BONDLENGTH_MAX 100
+      &END GENERATE
+    &END TOPOLOGY
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+  &END SUBSYS
+&END FORCE_EVAL

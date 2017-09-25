@@ -1,0 +1,93 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical 
+  METHOD qmmm
+  &DFT
+    &QS
+      METHOD PM6
+      &SE
+        PERIODIC ewald
+#        INTEGRAL_SCREENING KDSO-D
+        &COULOMB
+          CUTOFF 12.0      # Default value for periodic computations, for non per-periodic this should be set to the cell dimensions
+        &END
+      &END
+    &END QS
+    &SCF
+      EPS_SCF 1.0E-5
+      MAX_SCF 100
+      &DIAGONALIZATION T
+        ALGORITHM standard
+        EPS_JACOBI 1.E-1
+        JACOBI_THRESHOLD 1.E-7
+      &END DIAGONALIZATION
+      SCF_GUESS atomic
+      &PRINT
+        &RESTART off
+        &END
+      &END
+    &END SCF
+    &POISSON
+      &EWALD
+        EWALD_TYPE ewald
+        ALPHA 0.5
+        GMAX cell_dimensions_odd_rounded
+        &MULTIPOLES
+          MAX_MULTIPOLE_EXPANSION quadrupole
+        &END
+        O_SPLINE 6
+      &END EWALD
+    &END POISSON
+  &END DFT
+  &MM
+    &FORCEFIELD
+      IGNORE_MISSING_CRITICAL_PARAMS true
+      PARM_FILE_NAME subsystem_folder/system2.prm
+      PARMTYPE chm
+      &SPLINE
+        EMAX_SPLINE 100000
+        RCUT_NB 12.0
+      &END
+    &END FORCEFIELD    
+    &NEIGHBOR_LISTS
+      GEO_CHECK false
+    &END NEIGHBOR_LISTS
+    &POISSON
+      &EWALD
+        EWALD_TYPE spme
+        ALPHA 1
+        GMAX cell_dimensions_full_rounded
+        O_SPLINE 6
+      &END EWALD
+    &END POISSON
+  &END MM  
+  &SUBSYS
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+    &TOPOLOGY
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system2.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system2.psf
+    &END TOPOLOGY
+    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+  &END SUBSYS  
+  &QMMM
+    &CELL
+      ABC cell_dimensions_full_rounded
+      PERIODIC xyz
+    &END CELL
+    E_COUPL coulomb
+    CENTER never
+    CENTER_GRID false
+    USE_GEEP_LIB 12               
+    @include subsystem_folder/cp2k.in.qm_kinds.system2
+    @include subsystem_folder/cp2k.in.qmmm.link.system2   
+    NOCOMPATIBILITY
+    &FORCEFIELD
+      &NONBONDED14
+        @include subsystem_folder/cp2k.in.qmmm.lj.system2
+      &END NONBONDED14
+    &END FORCEFIELD
+  &END QMMM
+&END FORCE_EVAL

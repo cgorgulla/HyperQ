@@ -103,8 +103,8 @@ cp ../../../opt/${system_basename}/${subsystem}/system1.opt.out.pdb ./
 # Preparation of the CP2K files
 if [[ "${md_programs}" == *"cp2k"* ]]; then
     # Variables
-    inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    inputfile_cp2k_md="$(grep -m 1 "^inputfile_cp2k_md_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    inputfolder_cp2k_md="$(grep -m 1 "^inputfolder_cp2k_md_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
     nbeads="$(grep -m 1 "^nbeads"  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
     # Folders
@@ -118,10 +118,10 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     done
     # Preparing the bead folders
     for bead in $(seq 1 ${nbeads}); do
-        cp ../../../input-files/cp2k/${inputfile_cp2k_md} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-        sed -i "s/system_basename/${system_basename}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-        sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+        cp ../../../input-files/cp2k/${inputfolder_cp2k_md} ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/system_basename/${system_basename}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
     done
 
     # Copying the kind files

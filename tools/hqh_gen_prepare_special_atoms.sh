@@ -83,7 +83,7 @@ while IFS= read -r line; do
             echo -n "${index} ">> ${outputfile_basename}.q_atoms
         else
             echo -e "\nError in the pdbx file ${pdbx_file}, wrong MQ atom type."
-            false
+            exit 1
         fi
 
         constraint_type=${line:81:1}
@@ -93,7 +93,7 @@ while IFS= read -r line; do
             echo -n "${index} " >> ${outputfile_basename}.c_atoms
         else
             echo -e "\nError in the pdbx file ${pdbx_file}, wrong constraint (UC) atom type."
-            false
+            exit 1
         fi
 
         index=$((index+1))

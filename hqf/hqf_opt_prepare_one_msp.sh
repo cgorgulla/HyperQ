@@ -73,7 +73,8 @@ system_1_basename="${1}"
 system_2_basename="${2}"
 subsystem=${3}
 msp_name=${system_1_basename}_${system_2_basename}
-inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -93,7 +94,7 @@ if [ "${TD_cycle_type}" == "hq" ]; then
     if [ "${mod}" != "0" ]; then
         echo "Check failed"
         echo " * The variables <nbeads> and <ntdsteps> are not compatible. nbeads % ntdsteps should be zero"
-        false
+        exit 1
     fi
     echo " OK"
 fi
@@ -103,13 +104,20 @@ echo -e -n " * Checking if the mapping file exists... "
 if [ -f input-files/mappings/${system_1_basename}_${system_2_basename} ]; then
     echo " OK"
 else
-    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings folder "
-    false
+    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings folder."
+    exit 1
 fi
 
-# Checking if the CP2K input file contains a lambda variable
-lambdavalue_count="$(grep -c lambda_value input-files/cp2k/${inputfile_cp2k_opt} )"
+# Checking if the CP2K opt input file contains a lambda variable
 echo -n " * Checking if the lambda_value variable is present in the CP2K input file... "
+if [ -f input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
+    lambdavalue_count="$(grep -c lambda_value input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda)"
+elif [ -f input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
+    lambdavalue_count="$(grep -c lambda_value input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda)"
+else
+    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+    exit 1
+fi
 if  [ ! "${lambdavalue_count}" -ge "1" ]; then
     echo "Check failed"
     echo -e "\n * Error: The CP2K optimization input file does not contain the lambda_value variable. Exiting...\n\n"
@@ -177,15 +185,58 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
         # Preparation of the cp2k files
         if [[ "${opt_programs}" == *"cp2k"* ]]; then
+
+            # Preparing the simulation folders
             mkdir -p opt.${bead_configuration}/cp2k
-            cp ../../../input-files/cp2k/${inputfile_cp2k_opt} opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/lambda_value/${lambda_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.opt
-            sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.opt
+
+            # Copying the CP2K input files
+            if [ "${lambda_current}" == "0.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 opt.${bead_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 opt.${bead_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            elif [ "${lambda_current}" == "1.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 opt.${bead_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 opt.${bead_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            else
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda opt.${bead_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda opt.${bead_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            fi
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/ -type f -name "sub*"); do
+                cp $file opt.${bead_configuration}/cp2k/cp2k.in.${file/*\/}
+            done
+            # The specific subfiles at the end so that they can overrride the general subfiles
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/ -type f -name "sub*"); do
+                cp $file opt.${bead_configuration}/cp2k/cp2k.in.${file/*\/}
+            done
+
+            # Adjust the CP2K input files
+            sed -i "s/lambda_value/${lambda_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.*
         fi
     done
 elif [ "${TD_cycle_type}" == "lambda" ]; then
@@ -197,19 +248,64 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
 
-        echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_stepsize}"
+        echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_current}"
 
         # Preparation of the cp2k files
         if [[ "${opt_programs}" == *"cp2k"* ]]; then
+
+            # Preparing the simulation folder
             mkdir -p opt.${lambda_configuration}/cp2k
-            cp ../../../input-files/cp2k/${inputfile_cp2k_opt} opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/lambda_value/${lambda_current}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.opt
-            sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.opt
+
+            # Copying the CP2K input files
+            # Copying the main files
+            if [ "${lambda_current}" == "0.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 opt.${lambda_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 opt.${lambda_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            elif [ "${lambda_current}" == "1.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 opt.${lambda_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 opt.${lambda_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            else
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda opt.${lambda_configuration}/cp2k/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda opt.${lambda_configuration}/cp2k/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            fi
+            # Copying the sub files
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/ -type f -name "sub*"); do
+                cp $file opt.${lambda_configuration}/cp2k/cp2k.in.${file/*\/}
+            done
+            # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/ -type f -name "sub*"); do
+                cp $file opt.${lambda_configuration}/cp2k/cp2k.in.${file/*\/}
+            done
+
+            # Adjust the CP2K input files
+            sed -i "s/lambda_value/${lambda_current}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.*
         fi
     done
 fi

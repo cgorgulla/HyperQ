@@ -57,7 +57,8 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 prepare_restart() {
-    
+
+    # Standard error response
     trap 'error_response_std $LINENO' ERR
     
     # Variables
@@ -79,7 +80,7 @@ prepare_restart() {
             bead_count2_local=${bead_count2_initialstate}
         else
             echo "Error: The variable evalstate has an unsupported value. Exiting..."
-            false
+            exit 1
         fi
 
     elif [ "${TD_cycle_type}" == "lambda" ]; then
@@ -109,32 +110,108 @@ prepare_restart() {
     for bead in $(eval echo "{1..${nbeads}}"); do
         mkdir -p ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/
         if [ "${TD_cycle_type}" == "lambda" ]; then
-            cp ../../../input-files/cp2k/${inputfile_cp2k_ce_lambda} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-            sed -i "s/subconfiguration/${lambda_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-            sed -i "s/lambda_value/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        elif [ "${TD_cycle_type}" ==  "hq" ]; then
-            # Different bead types
-            if [ ${bead} -le "${bead_count1_local}" ]; then
-                cp ../../../input-files/cp2k/${inputfile_cp2k_ce_k_0} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+
+            # Copying the CP2K input files
+            # Copying the main files
+            if [ "${lambda_currenteval_local}" == "0.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            elif [ "${lambda_currenteval_local}" == "1.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
             else
-                cp ../../../input-files/cp2k/${inputfile_cp2k_ce_k_1} ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.lambda ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.lambda ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
             fi
-            sed -i "s/subconfiguration/${bead_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+            # Copying the sub files
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do
+                cp $file  ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+            # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/ -type f -name "sub*"); do
+                cp $file  ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+
+            # Adjusting the CP2K files
+            sed -i "s/subconfiguration/${lambda_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/lambda_value/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+
+        elif [ "${TD_cycle_type}" ==  "hq" ]; then
+
+            # Copying the CP2K input files according to the bead type
+            # Copying the main files
+            if [ ${bead} -le "${bead_count1_local}" ]; then
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            else
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            fi
+            # Copying the sub files
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do
+                cp $file ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+            # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/ -type f -name "sub*"); do
+                cp $file ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+
+            # Adjusting the CP2K files
+            sed -i "s/subconfiguration/${bead_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         fi
-        sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/runtimeletter/${runtimeletter}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
-        sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.ce
+
+        # Adjusting the CP2K files
+        sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/runtimeletter/${runtimeletter}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder/|../../../../|" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|HOST.*|HOST ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${restartID}|g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
     if [[ "${md_programs}" == *"iqi"* ]]; then
+
+        # Preparing the i-QI files and folders
         mkdir -p ${crosseval_folder}/snapshot-${restartID}/iqi
         cp ../../../md/${msp_name}/${subsystem}/${md_folder_potential_source}/iqi/iqi.in.* ${crosseval_folder}/snapshot-${restartID}/iqi
+
+        # Adjusting the i-QI files
         sed -i "s|>.*\.\.\/\.\./|>\.\./\.\./\.\./|" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi* ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.xml
         sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
     fi
@@ -155,7 +232,6 @@ system1_basename="${1}"
 system2_basename="${2}"
 subsystem=${3}
 msp_name=${system1_basename}_${system2_basename}
-#msp_name=$(pwd | awk -F '/' '{print $(NF-1)}')
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
 ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -167,8 +243,9 @@ ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" input-files/config.txt | awk -
 umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_type="$(grep -m 1 "^ce_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 nsim="$((ntdsteps + 1))"
-
 
 
 # Printing some information
@@ -177,13 +254,13 @@ echo -e  "\n *** Preparing the crossevalutaions of the FES ${msp_name} (hqf_ce_p
 # Checking in the input values
 if [ ! "$ce_stride" -eq "$ce_stride" ] 2>/dev/null; then
     echo -e "\nError: The parameter crosseval_trajectory_stride in the configuration file has an unsupported value.\n"
-    false
+    exit 1
 fi
 
 # Checking if the md_folder exists
 if [ ! -d "md/${msp_name}/${subsystem}" ]; then
     echo -e "\nError: The folder md/${msp_name}/${subsystem} does not exist. Exiting\n\n" 1>&2
-    false
+    exit 1
 fi
 
 # Preparing the main folder
@@ -260,14 +337,6 @@ if [ "${TD_cycle_type}" = "hq" ]; then
     # Computing the bead step size
     beadStepSize=$((nbeads/ntdsteps))
 
-    # CP2K input files
-    inputfile_cp2k_ce_k_0="$(grep -m 1 "^inputfile_cp2k_ce_k_0_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    inputfile_cp2k_ce_k_1="$(grep -m 1 "^inputfile_cp2k_ce_k_1_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-
-elif [ "${TD_cycle_type}" == "lambda" ]; then
-
-    # CP2K input file
-    inputfile_cp2k_ce_lambda="$(grep -m 1 "^inputfile_cp2k_ce_lambda_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 fi
 
 # Loop for each TD window/step

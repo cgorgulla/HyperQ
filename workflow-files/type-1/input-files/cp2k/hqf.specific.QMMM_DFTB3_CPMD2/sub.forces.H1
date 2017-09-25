@@ -1,0 +1,118 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical
+  METHOD qmmm
+  &DFT
+#    LSD
+    WFN_RESTART_FILE_NAME cp2k.out.system1.restart_history.wfn
+    &QS  
+      EXTRAPOLATION ASPC 
+	    EXTRAPOLATION_ORDER 1
+      METHOD DFTB
+      &DFTB
+        DIAGONAL_DFTB3     T
+        SELF_CONSISTENT    T
+        DO_EWALD           T
+        DISPERSION         T
+        &PARAMETER
+          PARAM_FILE_PATH  subsystem_folder/../../../input-files/common/dftb/3ob-3-1
+          PARAM_FILE_NAME  file.associations
+          DISPERSION_TYPE  D3 
+          DISPERSION_RADIUS           15.
+          COORDINATION_CUTOFF         1.e-4
+          D3_SCALING                  1.0 1.0 1.5
+          DISPERSION_PARAMETER_FILE subsystem_folder/../../../input-files/common/dftd/dftd3.dat
+        &END PARAMETER
+      &END DFTB
+    &END QS
+    &SCF
+      EPS_SCF 1.0E-7 
+      MAX_SCF 20
+      MAX_SCF_HIST 1                                                    # instead of EPS_SCF_HIST for a fixed number of SCF steps 
+      SCF_GUESS HISTORY_RESTART 
+#      &MIXING
+#        METHOD DIRECT_P_MIXING
+#        ALPHA   0.2
+#      &END MIXING
+      &OT on 
+        MINIMIZER diis 
+        PRECONDITIONER full_all                                         # Trying the cheapest first 
+        STEPSIZE 0.1
+      &END OT 
+      &OUTER_SCF 
+        EPS_SCF 1.0E-7 
+        MAX_SCF 20 
+      &END OUTER_SCF     
+      &PRINT
+        &RESTART OFF
+        &END RESTART
+#        &RESTART_HISTORY off
+#        &END RESTART_HISTORY
+        &RESTART_HISTORY 
+          ADD_LAST numeric 
+        BACKUP_COPIES 3                                                 # ASPC order + 2 
+          FILENAME =cp2k.out.system1.restart_history.wfn 
+          &EACH 
+            __ROOT__ 1 
+            MD 1 
+            QS_SCF 0 
+          &END EACH 
+        &END RESTART_HISTORY 
+      &END PRINT 
+    &END SCF
+    &POISSON
+      &EWALD
+       EWALD_TYPE spme
+       GMAX cell_dimensions_full_rounded
+       O_SPLINE 6
+      &END EWALD
+    &END POISSON
+  &END DFT  
+  &MM
+    &FORCEFIELD
+      IGNORE_MISSING_CRITICAL_PARAMS true
+      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARMTYPE chm
+      &SPLINE
+        EMAX_SPLINE 100000
+        RCUT_NB 12.0
+      &END
+    &END FORCEFIELD    
+    &NEIGHBOR_LISTS
+      GEO_CHECK false
+    &END NEIGHBOR_LISTS
+    &POISSON
+      &EWALD
+        EWALD_TYPE spme
+        ALPHA 1
+        GMAX cell_dimensions_full_rounded
+        O_SPLINE 6
+      &END EWALD
+    &END POISSON
+  &END MM  
+  &SUBSYS
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+    &TOPOLOGY
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system1.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system1.psf
+    &END TOPOLOGY
+    @include subsystem_folder/cp2k.in.sub.kind.dftb3.3ob
+    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+  &END SUBSYS  
+  &QMMM
+    &CELL
+      ABC cell_dimensions_full_rounded
+      PERIODIC xyz
+    &END CELL
+    ECOUPL coloumb
+    CENTER never
+    CENTER_GRID false
+    USE_GEEP_LIB 12               
+    @include subsystem_folder/cp2k.in.qm_kinds.system1
+    @include subsystem_folder/cp2k.in.qmmm.link.system1   
+    NOCOMPATIBILITY
+  &END QMMM
+&END FORCE_EVAL

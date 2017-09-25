@@ -1,0 +1,36 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical
+  METHOD fist
+  &MM
+    &FORCEFIELD
+      PARM_FILE_NAME subsystem_folder/system2.prm
+      PARMTYPE chm
+      &SPLINE
+        EMAX_SPLINE 100000
+        RCUT_NB 12.0
+      &END
+    &END FORCEFIELD
+    &POISSON
+      POISSON_SOLVER wavelet
+      PERIODIC none
+      &EWALD 
+        EWALD_TYPE none 
+      &END EWALD 
+    &END POISSON
+  &END MM
+  &SUBSYS
+    &CELL
+      PERIODIC none    
+      ABC cell_dimensions_full_rounded
+    &END CELL
+    &TOPOLOGY
+      &CENTER_COORDINATES 
+      &END 
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system2.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system2.psf
+    &END TOPOLOGY
+    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+  &END SUBSYS
+&END FORCE_EVAL

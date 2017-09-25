@@ -79,13 +79,13 @@ sim_type=${6}
 sim_programs=${7}
 
 # Copying the kind files
-cp ../../../input-files/cp2k/cp2k.in.kind.* ./
+cp ../../../input-files/cp2k/cp2k.in.sub.* ./
 
 # Preparing the mapping files
 echo -e " * Preparing the cp2k mapping files"
 hqh_fes_prepare_jointsystem.py system1.pdb system2.pdb system.mcs.mapping
-grep -v "&END MAPPING" cp2k.in.mapping > cp2k.in.mapping.opt
-grep  -A 100000 "FORCE_EVAL 1" cp2k.in.mapping | sed "s/FORCE_EVAL 1/FORCE_EVAL 3/g" | sed "s/FORCE_EVAL 2/FORCE_EVAL 4/g" >> cp2k.in.mapping.opt
+grep -v "&END MAPPING" cp2k.in.mapping.single > cp2k.in.mapping.double
+grep  -A 100000 "FORCE_EVAL 1" cp2k.in.mapping.single | sed "s/FORCE_EVAL 1/FORCE_EVAL 3/g" | sed "s/FORCE_EVAL 2/FORCE_EVAL 4/g" >> cp2k.in.mapping.double
 echo -e " * Preparing the human readable mapping file"
 hqh_fes_prepare_human_mapping.py system1.pdb system2.pdb system.mcs.mapping
 

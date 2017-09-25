@@ -71,32 +71,41 @@ clean_exit() {
 
     echo
     echo " * Cleaning up..."
-    echo " * Removing socket files if still existent..."
+
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Terminating the child processes of the main processes
-    for pid in "${pids[@]}"; do
-        pkill -P "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in "${pids[@]}"; do
-        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
-    done
-    # Terminating the main processes
-    for pid in "${pids[@]}"; do
-        kill "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in "${pids[@]}"; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-    done
-    sleep 1
-    # Terminating everything elese which is still running and which was started by this script
-    pkill -P $$ || true
-    sleep 3
-    pkill -9 -P $$ || true
+    # Runniing the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid bash -c "
+
+        # Removing the socket files if still existent
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*
+
+        # Terminating the child processes of the main processes
+        pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
+        sleep 6
+        pkill -9 -P ${pids[@]} 1>/dev/null 2>&1 || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*
+
+        # Terminating the main processes
+        kill ${pids[@]} 1>/dev/null 2>&1 || true
+        sleep 1
+        kill -9 ${pids[@]} 1>/dev/null 2>&1 || true
+
+        # Terminating everything else which is still running and which was started by this script
+        pkill -P $$ || true
+        sleep 1
+        pkill -9 -P $$ || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*
+    "
 }
-trap 'clean_exit' EXIT
+trap 'clean_exit' SIGINT SIGTERM SIGQUIT EXIT
 
 # Bash options
 set -o pipefail
@@ -117,6 +126,7 @@ TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | a
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Getting the MD folders
 if [ "${TD_cycle_type}" == "hq" ]; then

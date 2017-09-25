@@ -1,0 +1,46 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical 
+  METHOD qs
+  &DFT
+    &QS
+      METHOD PM6
+      &SE
+        PERIODIC none
+#        INTEGRAL_SCREENING KDSO-D
+        &COULOMB
+          CUTOFF 12.0      # Default value for periodic computations, for non per-periodic this should be set to the cell dimensions
+        &END
+      &END
+    &END QS
+    &SCF
+      EPS_SCF 1.0E-5
+      MAX_SCF 100
+      &DIAGONALIZATION T
+        ALGORITHM standard
+        EPS_JACOBI 1.E-1
+        JACOBI_THRESHOLD 1.E-7
+      &END DIAGONALIZATION
+      SCF_GUESS atomic
+      &PRINT
+        &RESTART off
+        &END
+      &END
+    &END SCF
+    &POISSON 
+      POISSON_SOLVER wavelet 
+      PERIODIC none 
+    &END POISSON 
+  &END DFT
+  &SUBSYS
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+    &TOPOLOGY
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system1.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system1.psf
+    &END TOPOLOGY
+    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+  &END SUBSYS  
+&END FORCE_EVAL

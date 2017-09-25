@@ -113,15 +113,15 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     rm system*  1>/dev/null 2>&1 || true
     ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    ${cp2k_command} -e cp2k.in.opt 1> cp2k.out.config 2> cp2k.out.err
+    ${cp2k_command} -e cp2k.in.main 1> cp2k.out.config 2> cp2k.out.err
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}
-    ${cp2k_command} -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-    pid=$!
-    pids[sim_counter]=$pid
+    ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+    pid_cp2k=$!
+    pids[sim_counter]=$pid_cp2k
     sim_counter=$((sim_counter+1))
     echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
-    echo "CP2K PID PPID: $pid $(ps -o ppid $pid | grep -o "[0-9]*")"
-    echo "Shell PID PPID: $$ $(ps -o ppid $$ | grep -o "[0-9]*")"
+    #echo "CP2K PID PPID: $pid $(ps -o ppid $pid | grep -o "[0-9]*")"
+    #echo "Shell PID PPID: $$ $(ps -o ppid $$ | grep -o "[0-9]*")"
 
     # Checking if the file system-r-1.out does already exist.
     while [ ! -f cp2k.out.general ]; do
@@ -133,28 +133,31 @@ fi
 
 # Checking if the simulation is completed
 while true; do
+
+    # Checking the condition of the ouptput files of CP2k
     if [ -f cp2k.out.trajectory.pdb ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
+            echo " * CP2K seems to have completed the optimization."
             break
         fi
     fi
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
+            echo " * CP2K seems to have completed the optimization."
             break
         fi
     fi
-
-    # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
+    # Checking for memory error - happens often at the end of runs it seems, thus we treat it as a successful run
     if [ -f cp2k.out.err ]; then
         #pseudo_error_count="$( { grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true; } | wc -l)"
         pseudo_error_count="$( { grep -E "invalid memory reference" cp2k.out.err || true; } | wc -l)"
         if [ "${pseudo_error_count}" -ge "1" ]; then
+            echo " * CP2K seems to have completed the optimization."
             break
         fi
     fi
-
     if [ -f cp2k.out.err ]; then
         error_count="$( { grep -i error cp2k.out.err || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
@@ -163,12 +166,20 @@ while true; do
             set -o pipefail
             if [ "${backtrace_length}" -ge "1" ]; then
                 echo -e "Error detected in the file cp2k.out.err"
-                cat cp2k.out.err
-                false
+                echo -e "Contents of the file cp2k.out.err:"
+                cat cp2k.out.err | awk '{print "cp2k.out.err: " $0}'
+                echo
+                exit 1
             else
                 break
             fi
         fi
+    fi
+
+    # Checking if CP2K has terminated (hopefully wihtout error after the previous error checks)
+    if [ ! -e /proc/${pid_cp2k} ]; then
+        echo " * CP2K seems to have terminated without errors."
+        break
     fi
 
     # Sleeping shortly before next round

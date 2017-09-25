@@ -61,34 +61,42 @@ cleanup_exit() {
 
     echo
     echo " * Cleaning up..."
-    echo " * Removing socket files if still existent..."
-    rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.}  > /dev/null 2>&1 || true
 
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Terminating the child processes of the main processes
-    for pid in "${pids[@]}"; do
-        pkill -P "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in "${pids[@]}"; do
-        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
-    done
-    # Terminating the main processes
-    for pid in "${pids[@]}"; do
-        kill "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in "${pids[@]}"; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-    done
-    sleep 1
-    # Terminating everything elese which is still running and which was started by this script
-    pkill -P $$ || true
-    sleep 3
-    pkill -9 -P $$ || true
+    # Runniing the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid bash -c "
+        # Terminating the main processes
+        kill ${pids[@]} 1>/dev/null 2>&1 || true
+        sleep 5
+        kill -9 ${pids[@]} 1>/dev/null 2>&1 || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+
+        # Terminating the child processes of the main processes
+        pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
+        sleep 1
+        pkill -9 -P ${pids[@]} 1>/dev/null 2>&1 || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+
+        # Terminating everything elese which is still running and which was started by this script
+        pkill -P $$ || true
+        sleep 1
+        pkill -9 -P $$ || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+    "
 }
-trap "cleanup_exit" EXIT
+trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
+
+
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -150,8 +158,8 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
                 rm system* > /dev/null 2>&1 || true
                 echo " * Starting cp2k (${bead_folder})"
-                ${cp2k_command} -e cp2k.in.md > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
-                OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.md -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
+                ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
+                OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
                 pid=$!
                 pids[${sim_counter}]=$pid
                 echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
@@ -210,30 +218,33 @@ fi
 # Checking if the simulation is completed/crashed
 stop_flag="false"
 while true; do
+
+    # Checking the condition of the output files
     if [ -f ipi/ipi.out.run${run}.screen ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
         if [ "${timeDiff}" -ge "${md_timeout}" ]; then
+            echo " * i-PI seems to have completed the MD simulation."
             break
         fi
     fi
-
     if [ -f ipi/ipi.out.run${run}.err ]; then
         error_count="$( { grep -i error ipi/ipi.out.err || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
             echo -e "Error detected in the file ipi.out.run${run}.err"
-            false
+            echo "Exiting..."
+            exit 1
         fi
     fi
-
+    # Checking the condition of the output files of cp2k
     for bead_folder in $(ls -v cp2k/); do
         # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
             pseudo_error_count="$( { grep -E "invalid memory reference" cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
             if [ "${pseudo_error_count}" -ge "1" ]; then
+                echo " * The MD simulation seems to have completed."
                 break
             fi
         fi
-
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
             error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
             if [ ${error_count} -ge "1" ]; then
@@ -242,13 +253,20 @@ while true; do
                 set -o pipefail
                 if [ "${backtrace_length}" -ge "1" ]; then
                     echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err"
-                    false
+                    exit 1
                 else
+                    echo " * The MD simulation seems to have completed."
                     break
                 fi
             fi
         fi
     done
+
+    # Checking if ipi has terminated (hopefully wihtout error after the previous error checks)
+    if [ ! -e /proc/${pid_ipi} ]; then
+        echo " * i-PI seems to have terminated without errors."
+        break
+    fi
 
     # Sleeping before next round
     sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error

@@ -85,10 +85,10 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     rm system*  1>/dev/null 2>&1 || true
     ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    cp2k -e cp2k.in.opt > cp2k.out.config
+    cp2k -e cp2k.in.main > cp2k.out.config
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}
-    # timeout ${opt_timeout} cp2k -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-    cp2k -i cp2k.in.opt -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+    # timeout ${opt_timeout} cp2k -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+    cp2k -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
 
     # Checking if the file system-r-1.out does already exist.
     while [ ! -f cp2k.out.general ]; do

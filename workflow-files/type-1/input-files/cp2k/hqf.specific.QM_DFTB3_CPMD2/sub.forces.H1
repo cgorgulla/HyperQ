@@ -1,0 +1,83 @@
+&FORCE_EVAL
+  STRESS_TENSOR analytical 
+  METHOD qs
+  &DFT
+#    LSD
+    WFN_RESTART_FILE_NAME cp2k.out.system1.restart_history.wfn
+    &QS  
+      EXTRAPOLATION aspc 
+	    EXTRAPOLATION_ORDER 1
+      METHOD DFTB
+      &DFTB
+        DIAGONAL_DFTB3     T
+        SELF_CONSISTENT    T
+        DO_EWALD           T
+        DISPERSION         T
+        &PARAMETER
+          PARAM_FILE_PATH  subsystem_folder/../../../input-files/common/dftb/3ob-3-1
+          PARAM_FILE_NAME  file.associations
+          DISPERSION_TYPE  D3 
+          DISPERSION_RADIUS           15.
+          COORDINATION_CUTOFF         1.e-4
+          D3_SCALING                  1.0 1.0 1.5
+          DISPERSION_PARAMETER_FILE subsystem_folder/../../../input-files/common/dftd/dftd3.dat
+        &END PARAMETER
+      &END DFTB
+    &END QS
+    &SCF
+      EPS_SCF 1.0E-7 
+      MAX_SCF 20
+      MAX_SCF_HIST 1                                                      # instead of EPS_SCF_HIST for a fixed number of SCF steps 
+      SCF_GUESS history_restart 
+#      &MIXING
+#        METHOD direct_p_mixing
+#        ALPHA   0.2
+#      &END MIXING
+      &OT ON 
+        MINIMIZER diis 
+        PRECONDITIONER full_all                                           # trying the cheapest first 
+        STEPSIZE 0.1 
+      &END OT 
+      &OUTER_SCF 
+        EPS_SCF 1.0E-7 
+        MAX_SCF 20 
+      &END OUTER_SCF     
+      &PRINT
+        &RESTART off
+        &END RESTART
+#        &RESTART_HISTORY off
+#        &END RESTART_HISTORY
+        &RESTART_HISTORY 
+          ADD_LAST numeric 
+          BACKUP_COPIES 3                                                 # ASPC order + 2 
+          FILENAME =cp2k.out.system1.restart_history.wfn 
+          &EACH 
+            __ROOT__ 1 
+            MD 1 
+            QS_SCF 0 
+          &END EACH 
+        &END RESTART_HISTORY 
+      &END PRINT 
+    &END SCF
+    &POISSON
+      &EWALD
+       EWALD_TYPE spme
+       GMAX cell_dimensions_full_rounded
+       O_SPLINE 6
+      &END EWALD
+    &END POISSON
+  &END DFT  
+  &SUBSYS
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+    &TOPOLOGY
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system1.pdb
+      CONN_FILE_FORMAT psf
+      CONN_FILE_NAME subsystem_folder/system1.psf
+    &END TOPOLOGY
+    @include subsystem_folder/cp2k.in.sub.kind.dftb3.3ob
+    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+  &END SUBSYS
+&END FORCE_EVAL

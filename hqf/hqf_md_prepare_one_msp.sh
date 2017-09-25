@@ -73,12 +73,12 @@ system1_basename="${1}"
 system2_basename="${2}"
 subsystem=${3}
 msp_name=${system1_basename}_${system2_basename}
-inputfile_cp2k_opt="$(grep -m 1 "^inputfile_cp2k_opt_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
-opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -152,8 +152,6 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
     # Bead step size
     beadStepSize=$(expr ${ntdsteps} / ${nbeads})
-    inputfile_cp2k_md_k_0="$(grep -m 1 "^inputfile_cp2k_md_k_0_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    inputfile_cp2k_md_k_1="$(grep -m 1 "^inputfile_cp2k_md_k_1_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
     # Loop for each TD window
     for i in $(eval echo "{1..${nsim}}"); do
@@ -200,45 +198,88 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             mkdir ${md_folder}/cp2k/bead-${bead}
         done
 
-        # Copying in the input files of the packages
-        # ipi
+        # Preparing the input files of the packages
+        # Preparing the input files of i-PI
         cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
 
-        # CP2K
-        # Preparing the bead folders for the beads with at k=0.0
+        # Preparing the input files of CP2K
+        # Preparing the bead folders for the beads with at lambda=0 (k=0)
         if [ "1" -le "${bead_count1}" ]; then
             for bead in $(eval echo "{1..${bead_count1}}"); do
-                cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_0} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+
+                # Copying the CP2K input files
+                # Copying the main files
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+                # Copying the sub files
+                for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
+                    cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+                done
+                # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+                for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
+                    cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+                done
+
+                # Adjusting the CP2K input files
+                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             done
         fi
 
-        # Preparing the bead folders for the beads at k=1.0
+        # Preparing the bead folders for the beads at lambda=1 (k=1)
         if [ "$((${bead_count1}+1))" -le "${nbeads}"  ]; then
             for bead in $(eval echo "{$((${bead_count1}+1))..${nbeads}}"); do
-                cp ../../../input-files/cp2k/${inputfile_cp2k_md_k_1} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-                sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+
+                # Copying the CP2K input files
+                # Copying the main files
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+                # Copying the sub files
+                for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
+                    cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+                done
+                # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+                for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
+                    cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+                done
+
+                # Adjusting the CP2K input files
+                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             done
         fi
 
-        # QM/MM Case
+        # Preparing the input files of i-QI
         if [[ "${md_programs}" == *"iqi"* ]]; then
 
             # iqi
@@ -259,15 +300,19 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
-    # Variables
-    inputfile_cp2k_md_lambda="$(grep -m 1 "^inputfile_cp2k_md_lambda_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-
-    # Checking if the CP2K input file contains a lambda variable
-    lambdavalue_count="$(grep -c lambda_value ../../../input-files/cp2k/${inputfile_cp2k_md_lambda} )"
-    echo -n " * Checking if the lambda_value variable is present in the CP2K input file... "
+    # Checking if the CP2K opt input file contains a lambda variable
+    echo -n " * Checking if the lambda_value variable is present in the CP2K md input file... "
+    if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ]; then
+        lambdavalue_count="$(grep -c lambda_value ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda )"
+    elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ]; then
+        lambdavalue_count="$(grep -c lambda_value ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda )"
+    else
+        echo "Error: The input file main.ipi.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+        exit 1
+    fi
     if  [ ! "${lambdavalue_count}" -ge "1" ]; then
         echo "Check failed"
-        echo -e "\n * Error: The CP2K MD input file does not contain the lambda_value variable. Exiting...\n\n"
+        echo -e "\n * Error: The CP2K optimization input file does not contain the lambda_value variable. Exiting...\n\n"
         echo "" > runtime/error
         exit 1
     fi
@@ -320,29 +365,72 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             mkdir ${md_folder}/cp2k/bead-${bead}
         done
 
-        # Copying in the input files of the packages
-        # ipi
+        # Preparing the input files of the packages
+        # Preparing the input files of i-PI
         cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
         sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/ipi/ipi.in.md.xml
 
-        # CP2K
+        # Preparing the input files of CP2K
         for bead in $(eval echo "{1..${nbeads}}"); do
-            cp ../../../input-files/cp2k/${inputfile_cp2k_md_lambda} ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/ABC .*/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/GMAX *value/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/GMAX *half_value/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s/GMAX *odd_value/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
-            sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.md
+
+            # Copying the CP2K input files
+            # Copying the main files
+            if [ "${lambda_current}" == "0.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            elif [ "${lambda_current}" == "1.000" ]; then
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            else
+                # Checking the specific folder at first to give it priority over the general folder
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+                else
+                    echo "Error: The input file main.ipi.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+                    exit 1
+                fi
+            fi
+            # Copying the sub files
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
+                cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+            # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
+            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
+                cp $file ${md_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
+            done
+
+            # Adjusting the CP2K input files
+            sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
 
-        # iqi
+        # Preparing the input files of i-QI
         if [[ "${md_programs}" == *"iqi"* ]]; then
 
             # Variables

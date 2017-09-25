@@ -198,7 +198,7 @@ class JointSystem:
 
     def writeCP2Kfile(self):
 
-        with open("cp2k.in.mapping", "w") as cp2kFile:
+        with open("cp2k.in.mapping.single", "w") as cp2kFile:
 
             # Beginning of the mapping section 
             cp2kFile.write("&MAPPING\n")

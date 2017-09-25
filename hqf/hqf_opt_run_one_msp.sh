@@ -120,7 +120,7 @@ system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 
 # Running the geopts
 i=0
-for folder in opt.*; do
+for folder in $(ls -dv opt.* | tr -d "/"); do
     while [ "$(jobs | wc -l)" -ge "${fes_opt_parallel_max}" ]; do 
         sleep 1; 
     done;

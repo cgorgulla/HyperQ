@@ -47,6 +47,21 @@ if [ "$#" -ne "3" ]; then
     exit 1
 fi
 
+user_abort() {
+
+    echo "Info: User abort, cleaning up..."
+
+    # Forwarding the signal to our child processess
+    pkill -SIGINT -P $$ || true
+    pkill -SIGTERM -P $$ || true
+    pkill -SIGQUIT -P $$ || true
+
+    # Giving the child processes enough time to exit gracefully
+    sleep 10
+    exit 1
+}
+trap 'user_abort' SIGINT
+
 # Standard error response 
 error_response_std() {
     # Printing some information

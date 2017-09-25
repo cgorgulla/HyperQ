@@ -1,0 +1,57 @@
+&GLOBAL
+  PROJECT system
+  RUN_TYPE geo_opt
+  PRINT_LEVEL medium
+&END global
+
+&MOTION
+  &GEO_OPT
+    MAX_ITER 100
+    OPTIMIZER lbfgs
+  &END GEO_OPT
+  &PRINT
+    &TRAJECTORY on
+      FORMAT pdb
+      FILENAME =cp2k.out.trajectory.pdb
+      &EACH
+        GEO_OPT 1
+      &END EACH
+    &END TRAJECTORY
+  &END PRINT
+&END MOTION
+
+&MULTIPLE_FORCE_EVALS
+  FORCE_EVAL_ORDER 2 3
+  MULTIPLE_SUBSYS true
+&END
+
+&FORCE_EVAL
+  STRESS_TENSOR analytical
+  METHOD mixed
+  &MIXED
+    MIXING_TYPE genmix
+    &GENERIC
+      # a: H1   : Hamiltonian of system 1
+      # b: H2d  : Hamiltonian of system 2 dummies
+      # c: H1d  : Hamiltonian of system 1 dummies
+      # d: H2   : Hamltionian of system 2
+      VARIABLES a b
+      MIXING_FUNCTION a+b
+    &END
+    @include subsystem_folder/cp2k.in.mapping.single
+  &END
+  &SUBSYS
+    &TOPOLOGY
+      CONNECTIVITY off
+      COORDINATE pdb
+      COORD_FILE_NAME subsystem_folder/system.a1c1.pdb
+    &END TOPOLOGY
+    &CELL
+      ABC cell_dimensions_full_rounded
+    &END CELL
+  &END SUBSYS
+&END FORCE_EVAL
+
+@include cp2k.in.sub.forces.H1
+
+@include cp2k.in.sub.forces.H1d

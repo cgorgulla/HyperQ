@@ -61,15 +61,27 @@ clean_up() {
     echo
     echo " * Cleaning up..."
 
-    # Terminating processes.
-    echo " * Terminating remaining processes..."..
-    # Terminating everything which is still running and which was started by this script
-    # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
-    pkill -P $$ || true
-    sleep 5
-    pkill -9 -P $$ || true
+    # Terminating all remaining processes.
+    echo " * Terminating all remaining processes..."
+    # Runniing the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid bash -c "
+
+        # Removing the socket files if still existent
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.ce.${system_name}.${subsystem}.*
+
+        # Terminating everything which is still running and which was started by this script
+        # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
+        pkill -P $$ || true
+        sleep 8
+        pkill -9 -P $$ || true
+
+        # Removing the socket files if still existent (again because sometimes a few are still left)
+        echo " * Removing socket files if still existent..."
+        rm /tmp/ipi_ipi.${runtimeletter}.ce.${system_name}.${subsystem}.*
+    "
 }
-trap 'clean_up' EXIT
+trap 'clean_up' SIGINT SIGQUIT SIGTERM EXIT
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -87,6 +99,7 @@ system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Getting the energy eval folders
 if [ "${TD_cycle_type}" == "hq" ]; then
