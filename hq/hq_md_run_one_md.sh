@@ -228,9 +228,9 @@ while true; do
         fi
     fi
     if [ -f ipi/ipi.out.run${run}.err ]; then
-        error_count="$( { grep -i error ipi/ipi.out.err || true; } | wc -l)"
+        error_count="$( { grep -i error ipi/ipi.out.run${run}.err ipi/ipi.out.run${run}.screen || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
-            echo -e "Error detected in the file ipi.out.run${run}.err"
+            echo -e "Error detected in the ipi output files"
             echo "Exiting..."
             exit 1
         fi
@@ -264,8 +264,23 @@ while true; do
 
     # Checking if ipi has terminated (hopefully wihtout error after the previous error checks)
     if [ ! -e /proc/${pid_ipi} ]; then
-        echo " * i-PI seems to have terminated without errors."
-        break
+
+        # Checking the condition of the output files
+        sleep 1 || true
+        if [ -f ipi/ipi.out.run${run}.err ]; then
+            error_count="$( { grep -i error ipi/ipi.out.run${run}.err ipi/ipi.out.run${run}.screen || true; } | wc -l)"
+            if [ ${error_count} -ge "1" ]; then
+                echo -e "Error detected in the ipi output files"
+                echo "Exiting..."
+                exit 1
+            fi
+        else
+            timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+            if [ "${timeDiff}" -ge "${md_timeout}" ]; then
+                echo " * i-PI seems to have completed the MD simulation."
+                break
+            fi
+        fi
     fi
 
     # Sleeping before next round

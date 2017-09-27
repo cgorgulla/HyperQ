@@ -31,7 +31,7 @@ plt.switch_backend('agg')
 
 class BAR_DeltaU:
 
-    def __init__(self, U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, delta_F_min, delta_F_max, outputFilename, temp, C_absolute_tolerance):
+    def __init__(self, U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, delta_F_min, delta_F_max, outputFilename, temp, C_absolute_tolerance, reweighting=False, U1_U1biased_minus_U1_U1_values=None, U2_U2biased_minus_U2_U2_values=None):
         # The first potential is always the sampling potential, the second one is the evaluating potential.
 
         # Reading in the values of the input files into lists
@@ -50,14 +50,22 @@ class BAR_DeltaU:
         self.delta_F_min = float(delta_F_min)
         self.delta_F_max = float(delta_F_max)
         self.C_absolute_tolerance = float(C_absolute_tolerance)
+        self.reweighting = reweighting
+        self.U1_U1biased_minus_U1_U1_values = U1_U1biased_minus_U1_U1_values
+        self.U2_U2biased_minus_U2_U2_values = U2_U2biased_minus_U2_U2_values
 
     def compute_bar(self):
 
-        # Basic setup
-
         # First BAR equation
         self.n_1 = len(self.U1_U2_minus_U1_U1_values)  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
-        self.n_2 = len(self.U2_U1_minus_U2_U2_values)  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
+        self.n_2 = len(self.U2_U1_minus_U2_U2_values)  # The number of snapshots from the sampling wrt to U2 -> coordinates of U2 MD
+
+        # Checking the length of reweighting input data
+        if self.reweighting == True:
+            n_1_bias = len(self.U1_U1biased_minus_U1_U1_values)  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
+            n_2_bias = len(self.U2_U2biased_minus_U2_U2_values)  # The number of snapshots from the sampling wrt to U2 -> coordinates of U2 MD
+            if (self.n_1 != n_1_bias) or (self.n_2 != n_2_bias):
+                raise ValueError("The length of the reweighting input data does not match the length of the non-reweighted input data.")
 
         # C-values
         self.C_min = self.beta * self.delta_F_min + math.log(self.n_2 / self.n_1) # Delta F = k_b*T*(C-ln(n_2/n_1)) <=> C= beta*DeltaF+ln(n_2/n_1)
@@ -72,22 +80,61 @@ class BAR_DeltaU:
             print "=======================    C=%07.3f   =======================" % C
             sum_1 = 0
             sum_2 = 0
-            for i in range(0, self.n_2):
-                sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C)
-            for i in range(0, self.n_1):
-                sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C)
 
-            # If sum_2 is 0 we cannot use it... -> math error
-            if sum_2 == 0:
-                print("Warning: sum_2 is zero. Skipping this C-value...")
-                continue
+            # Checking if reweighting should be used
+            if self.reweighting == False:
 
-            # self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
-            self.delta_F_1.append((self.k_b * self.temp) * (math.log(sum_2 / sum_1) + C - math.log(self.n_2 / self.n_1)))  # https://en.wikipedia.org/wiki/Boltzmann_constant
-            self.C_values_accepted.append(C)
+                # Computing the sums of the BAR equation without reweighting
+                # Nominator of the BAR equation                
+                for i in range(0, self.n_2):
+                    sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C)
+                # Denominator of the BAR equation                    
+                for i in range(0, self.n_1):
+                    sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C)
 
-            # Second BAR equation
-            self.delta_F_2.append((self.k_b * self.temp) * (C - math.log(self.n_2 / self.n_1)))
+                # If sum_2 is 0 we cannot use it... -> math error
+                if sum_2 == 0:
+                    print("Warning: sum_2 is zero. Skipping this C-value...")
+                    continue
+
+                # Computing the free energy difference for this C-value
+                self.delta_F_1.append((self.k_b * self.temp) * (math.log(sum_2 / sum_1) + C - math.log(self.n_2 / self.n_1)))  # https://en.wikipedia.org/wiki/Boltzmann_constant
+                # Reduced form of the equation: self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
+                self.C_values_accepted.append(C)
+
+                # Second BAR equation
+                self.delta_F_2.append((self.k_b * self.temp) * (C - math.log(self.n_2 / self.n_1)))
+
+            elif self.reweighting == True:
+            
+                # Computing the sums of the BAR equation with reweighting
+                # Nominator of the BAR equation
+                for i in range(0, self.n_2):
+                    sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C) * (math.exp(self.beta * self.U2_U2biased_minus_U2_U2_values[i]))
+                # Denominator of the BAR equation
+                for i in range(0, self.n_1):
+                    sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C) * (math.exp(self.beta * self.U1_U1biased_minus_U1_U1_values[i]))
+                # Biasing factors
+                sum_1_bias = 0
+                sum_2_bias = 0
+                for i in range(0, self.n_2):
+                    sum_2_bias += math.exp(self.beta*self.U2_U2biased_minus_U2_U2_values[i])
+                for i in range(0, self.n_1):
+                    sum_1_bias += math.exp(self.beta*self.U1_U1biased_minus_U1_U1_values[i])
+
+                # If sum_2 is 0 we cannot use it... -> math error
+                if sum_2 == 0:
+                    print("Warning: sum_2 is zero. Skipping this C-value...")
+                    continue
+
+                # Computing the free energy difference for this C-value
+                self.delta_F_1.append((self.k_b * self.temp) * (math.log((sum_2*sum_1_bias) / (sum_1*sum_2_bias)) + C ))  # n_1, n_2 cancel each other out in the BAR equation due to the biasing factors
+
+                # Reduced form of the equation: self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
+                self.C_values_accepted.append(C)
+
+                # Second BAR equation
+                self.delta_F_2.append((self.k_b * self.temp) * (C - math.log(self.n_2 / self.n_1)))
 
             # Printing some information
             print "delta_F_1 (eqn_1) =", self.delta_F_1[-1]
@@ -118,6 +165,7 @@ class BAR_DeltaU:
         print "n_2: ", self.n_2
         print "C_min: ", self.C_min
         print "C_max: ", self.C_max
+        print "Reweighting: ", str(self.reweighting)
         print
         print " ***   Output data   ***"
         print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.C_values_accepted[self.diff_F_min_index]
@@ -148,7 +196,8 @@ class BAR_DeltaU:
             file.write("n_1: " + str(self.n_1) + "\n")
             file.write("n_2: " + str(self.n_2) + "\n")
             file.write("C_min: " + str(self.C_min) + "\n")
-            file.write("C_max: " + str(self.C_max) + "\n\n")
+            file.write("C_max: " + str(self.C_max) + "\n")
+            file.write("Reweighting: " + str(self.reweighting) + "\n\n")
             file.write(" ***   Results   ***\n")
             file.write("Min (Delta F_eqn1 - F_eqn2) found at location C=" + str(self.C_values_accepted[self.diff_F_min_index]) + "\n")
             file.write("Delta_F equation 1: " + str(self.diff_F_min_1) + " kcal/mol" + "\n")
@@ -180,7 +229,7 @@ class BAR_DeltaU:
 # rfa = root finding algorithm
 class BAR_DeltaU_rfa:
 
-    def __init__(self, U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, delta_F_min=-100, delta_F_max=100, outputFilename="bar.out", iteration_max=1000, temp=300, C_absolute_tolerance=0.001):
+    def __init__(self, U1_U2_minus_U1_U1_values, U2_U1_minus_U2_U2_values, delta_F_min=-100, delta_F_max=100, outputFilename="bar.out", iteration_max=1000, temp=300, C_absolute_tolerance=0.001, reweighting=False, U1_U1biased_minus_U1_U1_values=None, U2_U2biased_minus_U2_U2_values=None):
         # The first potential is always the sampling potential, the second one is the evaluating potential.
 
         # Variables
@@ -200,6 +249,9 @@ class BAR_DeltaU_rfa:
         self.delta_F_min = float(delta_F_min)
         self.delta_F_max = float(delta_F_max)
         self.C_absolute_tolerance = float(C_absolute_tolerance)
+        self.reweighting = reweighting
+        self.U1_U1biased_minus_U1_U1_values = U1_U1biased_minus_U1_U1_values
+        self.U2_U2biased_minus_U2_U2_values = U2_U2biased_minus_U2_U2_values
 
     # Method for running the BAR method
     def compute_bar(self):
@@ -234,6 +286,7 @@ class BAR_DeltaU_rfa:
         print "n_2: ", self.n_2
         print "C_min: ", self.C_min
         print "C_max: ", self.C_max
+        print "Reweighting: ", self.reweighting
         print
         print " ***   Input data   ***"
         print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.C_opt
@@ -248,20 +301,51 @@ class BAR_DeltaU_rfa:
         # Variables
         sum_1 = 0
         sum_2 = 0
-        for i in range(0, self.n_2):
-            sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C)
 
-        for i in range(0, self.n_1):
-            sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C)
+        if self.reweighting == True:
+            
+            # Computing the sums of the BAR equation without reweighting
+            # Nominator of the BAR equation
+            for i in range(0, self.n_2):
+                sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C)
+            # Denominator of the BAR equation
+            for i in range(0, self.n_1):
+                sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C)
+                
+            # If sum_2 is 0 we cannot use it... -> math error
+            if sum_2 == 0:
+                print("Warning: sum_2 is zero. Skipping this C-value...")
+                return np.nan
+    
+            # self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
+            delta_F_1 = ((self.k_b * self.temp) * (math.log(sum_2 / sum_1) + C - math.log(self.n_2 / self.n_1)))  # https://en.wikipedia.org/wiki/Boltzmann_constant
+            return delta_F_1
 
-        # If sum_2 is 0 we cannot use it... -> math error
-        if sum_2 == 0:
-            print("Warning: sum_2 is zero. Skipping this C-value...")
-            return np.nan
+        elif self.reweighting == True:
 
-        # self.delta_F_1_reduced.append(math.log(sum_2 / sum_1) + C - math.log(n_2 / n_1))
-        delta_F_1 = ((self.k_b * self.temp) * (math.log(sum_2 / sum_1) + C - math.log(self.n_2 / self.n_1)))  # https://en.wikipedia.org/wiki/Boltzmann_constant
-        return delta_F_1
+            # Computing the sums of the BAR equation with reweighting
+            # Nominator of the BAR equation
+            for i in range(0, self.n_2):
+                sum_2 += fermi_function(self.beta * self.energyFactor * self.U2_U1_minus_U2_U2_values[i] + C) * (math.exp(self.beta * self.U2_U2biased_minus_U2_U2_values[i]))
+            # Denominator of the BAR equation
+            for i in range(0, self.n_1):
+                sum_1 += fermi_function(self.beta * self.energyFactor * self.U1_U2_minus_U1_U1_values[i] - C) * (math.exp(self.beta * self.U1_U1biased_minus_U1_U1_values[i]))
+            # Biasing terms
+            sum_1_bias = 0
+            sum_2_bias = 0
+            for i in range(0, self.n_2):
+                sum_2_bias += math.exp(self.beta*self.U2_U2biased_minus_U2_U2_values[i])
+            for i in range(0, self.n_1):
+                sum_1_bias += math.exp(self.beta*self.U1_U1biased_minus_U1_U1_values[i])
+
+            # If sum_2 is 0 we cannot use it... -> math error
+            if sum_2 == 0:
+                print("Warning: sum_2 is zero. Skipping this C-value...")
+                return np.nan
+                
+            # Computing the free energy difference for this C-value
+            delta_F_1 = (self.k_b * self.temp) * (math.log((sum_2*sum_1_bias) / (sum_1*sum_2_bias)) + C )  # n_1, n_2 cancel each other out in the BAR equation due to the biasing factors
+            return delta_F_1
 
     # Second BAR equation
     def compute_bar_equation_2(self, C):
@@ -287,7 +371,8 @@ class BAR_DeltaU_rfa:
             file.write("n_1: " + str(self.n_1) + "\n")
             file.write("n_2: " + str(self.n_2) + "\n")
             file.write("C_min: " + str(self.C_min) + "\n")
-            file.write("C_max: " + str(self.C_max) + "\n\n")
+            file.write("C_max: " + str(self.C_max) + "\n")
+            file.write("Reweighting: " + str(self.reweighting) + "\n\n")
             file.write(" ***   Results   ***\n")
             file.write("Optimal C value: " + str(self.C_opt ) + "\n")
             file.write("Delta_F equation 1: " + str(self.delta_F_1_final) + " kcal/mol" + "\n")

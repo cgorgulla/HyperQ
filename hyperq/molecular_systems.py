@@ -150,7 +150,7 @@ class MolecularSystem2:
         with open("cp2k.in.qmmm.lj." + molecularSystem2.systemName, "w") as cp2kLJFile:
             for atom_pair in itertools.combinations_with_replacement(molecularSystem2.atomTypes, 2):
                 epsilon = math.sqrt(LJParameters.epsilon[atom_pair[0]] * LJParameters.epsilon[atom_pair[1]])
-                sigma = ( LJParameters.sigma[atom_pair[0]] + LJParameters.sigma[atom_pair[1]] ) * 1
+                sigma = ( LJParameters.sigma[atom_pair[0]] + LJParameters.sigma[atom_pair[1]] ) * 1                 # scaling factor set to 1
                 cp2kLJFile.write("""&LENNARD-JONES\n  ATOMS %s %s\n  EPSILON [kcalmol] %f\n  SIGMA [angstrom] %f\n  RCUT [angstrom] %f\n&END LENNARD-JONES\n"""
                               % (atom_pair[0], atom_pair[1], epsilon, sigma, 12))
 

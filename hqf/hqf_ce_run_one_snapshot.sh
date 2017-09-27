@@ -37,18 +37,6 @@ error_response_std() {
     echo
     echo
 
-    # Changing to the root folder
-    for i in {1..10}; do
-        if [ -d input-files ]; then
-            # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
-            exit 1
-        else
-            cd ..
-        fi
-    done
-
     # Printing some information
     echo "Error: Cannot find the input-files directory..."
     exit 1
@@ -217,22 +205,22 @@ while true; do
         echo " * CE-Timeout for snapshot ${snapshotID} reached. Skipping this snapshot..."
         exit 1
     fi
-    # Checking for cp2k errors
-    for bead_folder in $(ls -v cp2k/); do
-        # We are not interpreting pseudoerrors as successful runs, we rely only on the property file of ipi
-        if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
-            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.err || true; } | wc -l)"
-            if [ ${error_count} -ge "1" ]; then
-                set +o pipefail
-                backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.err | grep -v Backtrace | wc -l)"
-                set -o pipefail
-                if [ "${backtrace_length}" -ge "1" ]; then
-                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.err"
-                    exit 1
-                fi
-            fi
-        fi
-    done
+#    # Checking for cp2k errors
+#    for bead_folder in $(ls -v cp2k/); do
+#        # We are not interpreting pseudoerrors as successful runs, we rely only on the property file of ipi. But we would need to check for pseudo errors in order to be able to get the real errors
+#        if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
+#            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.err || true; } | wc -l)"
+#            if [ ${error_count} -ge "1" ]; then
+#                set +o pipefail
+#                backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.err | grep -v Backtrace | wc -l)"
+#                set -o pipefail
+#                if [ "${backtrace_length}" -ge "1" ]; then
+#                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.err"
+#                    exit 1
+#                fi
+#            fi
+#        fi
+#    done
 
     # Checking if ipi has terminated (most likely successfully after the previous error checks)
     if [ ! -e  /proc/${pid_ipi} ]; then

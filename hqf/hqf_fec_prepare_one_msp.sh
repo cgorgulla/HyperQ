@@ -74,6 +74,7 @@ ce_folder="ce/${msp_name}/${subsystem}"
 fec_folder="fec/AFE/${msp_name}/${subsystem}"
 fec_stride=$(grep -m 1 "^fec_stride_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
 fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
+umbrella_sampling=$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
 
 # Printing some information
@@ -90,6 +91,16 @@ if [ ! -d "${ce_folder}" ]; then
     echo "\nError: The folder ${ce_folder} does not exist. Exiting\n\n" 1>&2
     exit 1
 fi
+
+# If we want to change the filenames of the sampling potential according to the reweighting modus
+## Setting the sampling potential names
+#if [ ${umbrella_sampling^^} == "FALSE" ]; then
+#     sampling_potential_1="U1"
+#     sampling_potential_2="U2"
+#elif [ ${umbrella_sampling^^} == "TRUE" ]; then
+#     sampling_potential_1="U1b"
+#     sampling_potential_2="U2b"
+#fi
 
 # Loop for each TD Window
 while read line; do
@@ -141,6 +152,7 @@ while read line; do
     snapshot_counter=1
     for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_fw}); do
 
+
         # Variables
         snapshot_ID=${snapshot_folder/*\-}
 
@@ -151,17 +163,52 @@ while read line; do
             continue
         fi
 
-        # Foward direction
-        # Extracting the free energies of system 1 evaluated at system 1
-        energy_fw_U1_U1="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
         # Extracting the free energies of system 1 evaluated at system 2
-        energy_fw_U1_U2="$(grep -v "^#" ${ce_folder}/${crosseval_folder_fw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+        energy_bw_U1_U2="$(grep -v "^#" ${ce_folder}/${crosseval_folder_fw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
 
-        if [[ "${energy_fw_U1_U1}" == *[0-9]* ]] && [[ "${energy_fw_U1_U2}" == *[0-9]* ]]; then
-            echo "${energy_fw_U1_U1}" >>  ${fec_folder}/${TD_window}/U1_U1
-            echo "${energy_fw_U1_U2}" >>  ${fec_folder}/${TD_window}/U1_U2
+        # Extracting the free energies of system 1 evaluated at system 1
+        # Checking if reweighting should not be used
+        if [ "${umbrella_sampling^^}" == "FALSE" ]; then
+
+            # Extracting the free energies of system 1 evaluated at system 1
+            energy_bw_U1_U1="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+
+            # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
+            if [[ "${energy_bw_U1_U2}" == *[0-9]* ]] && [[ "${energy_bw_U1_U1}" == *[0-9]* ]]; then
+                echo "${energy_bw_U1_U2}" >> ${fec_folder}/${TD_window}/U1_U2
+                echo "${energy_bw_U1_U1}" >> ${fec_folder}/${TD_window}/U1_U1
+            fi
+            snapshot_counter=$((snapshot_counter+1))
+
+        # Checking if reweighting should be used
+        elif [ "${umbrella_sampling^^}" == "TRUE" ]; then
+
+            # Checking if the required stationary evaluatioin file exists
+            if [ -f ${ce_folder}/${md_folder_1}-${md_folder_1}/${snapshot_folder}/ipi/ipi.out.properties ]; then
+
+                # Extracting the energy values
+                energy_bw_U1_U1="$(grep -v "^#" ${ce_folder}/${md_folder_1}-${md_folder_1}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+                energy_bw_U1_U1biased="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+
+            else
+                echo "Warning: The postprocessing of snapshot ${snapshot_ID} in the forward direction of TD window ${TD_window} will be skipped due non-existent stationary snapshot files."
+                echo "         This should not happen since both cross evaluation and stationary re-evaluation are based on the same snapshots."
+                snapshot_counter=$((snapshot_counter+1))
+                continue
+            fi
+
+            # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
+            if [[ "${energy_bw_U1_U2}" == *[0-9]* ]] && [[ "${energy_bw_U1_U1}" == *[0-9]* ]] && [[ "${energy_bw_U1_U1biased}" == *[0-9]* ]]; then
+                echo "${energy_bw_U1_U2}" >> ${fec_folder}/${TD_window}/U1_U2
+                echo "${energy_bw_U1_U1}" >> ${fec_folder}/${TD_window}/U1_U1
+                echo "${energy_bw_U1_U1biased}" >> ${fec_folder}/${TD_window}/U1_U1biased
+            fi
+            snapshot_counter=$((snapshot_counter+1))
+
+        else
+            echo -e "Error: The parameter umbrella_sampling has an unsupported value (${umbrella_sampling}). Exiting...\n\n"
+            exit 1
         fi
-        snapshot_counter=$((snapshot_counter+1))
     done
 
     # Loop for the each snapshot pair of the backward direction
@@ -179,52 +226,99 @@ while read line; do
             continue
         fi
 
-        # Backward direction
         # Extracting the free energies of system 2 evaluated at system 1
         energy_bw_U2_U1="$(grep -v "^#" ${ce_folder}/${crosseval_folder_bw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
-        # Extracting the free energies of system 2 evaluated at system 2
-        energy_bw_U2_U2="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
 
-        # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
-        if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]]; then
-            echo "${energy_bw_U2_U1}" >> ${fec_folder}/${TD_window}/U2_U1
-            echo "${energy_bw_U2_U2}" >> ${fec_folder}/${TD_window}/U2_U2
+        # Extracting the free energies of system 1 evaluated at system 1
+        # Checking if reweighting should not be used
+        if [ "${umbrella_sampling^^}" == "FALSE" ]; then
+
+            # Extracting the free energies of system 2 evaluated at system 2
+            energy_bw_U2_U2="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+
+            # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
+            if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]]; then
+                echo "${energy_bw_U2_U1}" >> ${fec_folder}/${TD_window}/U2_U1
+                echo "${energy_bw_U2_U2}" >> ${fec_folder}/${TD_window}/U2_U2
+            fi
+            snapshot_counter=$((snapshot_counter+1))
+
+        # Checking if reweighting should be used
+        elif [ "${umbrella_sampling^^}" == "TRUE" ]; then
+
+            # Checking if the required stationary evaluatioin file exists
+            if [ -f ${ce_folder}/${md_folder_2}-${md_folder_2}/${snapshot_folder}/ipi/ipi.out.properties ]; then
+
+                # Extracting the energy values
+                energy_bw_U2_U2="$(grep -v "^#" ${ce_folder}/${md_folder_2}-${md_folder_2}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+                energy_bw_U2_U2biased="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+
+            else
+                echo "Warning: The postprocessing of snapshot ${snapshot_ID} in the backward direction of TD window ${TD_window} will be skipped due non-existent stationary snapshot files."
+                echo "         This should not happen since both cross evaluation and stationary re-evaluation are based on the same snapshots."
+                snapshot_counter=$((snapshot_counter+1))
+                continue
+            fi
+
+            # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
+            if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2biased}" == *[0-9]* ]]; then
+                echo "${energy_bw_U2_U1}" >> ${fec_folder}/${TD_window}/U2_U1
+                echo "${energy_bw_U2_U2}" >> ${fec_folder}/${TD_window}/U2_U2
+                echo "${energy_bw_U2_U2biased}" >> ${fec_folder}/${TD_window}/U2_U2biased
+            fi
+            snapshot_counter=$((snapshot_counter+1))
+
+        else
+            echo -e "Error: The parameter umbrella_sampling has an unsupported value (${umbrella_sampling}). Exiting...\n\n"
+            exit 1
         fi
-        snapshot_counter=$((snapshot_counter+1))
     done
-    
+
     # Applying the fec stride (additional stride)
-    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U1_U1 > ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
-    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U1_U2 > ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
-    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U2_U1 > ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
-    #sed -n "0~${fec_stride}p" ${fec_folder}/${TD_window}/U2_U2 > ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
     if [ "${fec_stride}" -gt "1" ]; then
         awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U1_U1 > ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
         awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U1_U2 > ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
         awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U2_U1 > ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
         awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U2_U2 > ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
+        if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+            awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U1_U1biased > ${fec_folder}/${TD_window}/U1_U1biased_stride${fec_stride}
+            awk -v fec_stride=${fec_stride} 'NR % fec_stride == 1' ${fec_folder}/${TD_window}/U2_U2biased > ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride}
+        fi
+
     elif [ "${fec_stride}" -eq "1" ]; then
         cp ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}
         cp ${fec_folder}/${TD_window}/U1_U2 ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}
         cp ${fec_folder}/${TD_window}/U2_U1 ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}
         cp ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}
+        if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+            cp ${fec_folder}/${TD_window}/U1_U1biased ${fec_folder}/${TD_window}/U1_U1biased_stride${fec_stride}
+            cp ${fec_folder}/${TD_window}/U2_U2biased ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride}
+        fi
     else
         echo -e "\nError: The variable fec_stride is not set correctly in the configuration file. Exiting...\n\n"
         exit 1
     fi
-
     
-    # Computing the free energy differences delta U (mainly for Mobley pymbar code)
-    paste ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1 # (U2-U1)_1 -> for out IP method implementation, and for original BAR equation of Bennett (denominator) and our implementation
+    # Computing the free energy differences delta U without stride (mainly for Mobley pymbar code)
+    paste ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1 # (U2-U1)_1 -> for our IP method implementation, and for original BAR equation of Bennett (denominator) and our implementation
     paste ${fec_folder}/${TD_window}/U2_U1 ${fec_folder}/${TD_window}/U2_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1 # (U2-U1)_2 -> for our IP method implemenation
     paste ${fec_folder}/${TD_window}/U2_U2 ${fec_folder}/${TD_window}/U2_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2 # for our original BAR equation of Bennett (nominator) implemenation
     paste ${fec_folder}/${TD_window}/U1_U2 ${fec_folder}/${TD_window}/U1_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2 # for our original BAR equation of Bennett (nominator) implemenation
-    
+    if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        paste ${fec_folder}/${TD_window}/U1_U1biased ${fec_folder}/${TD_window}/U1_U1 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1biased-U1_U1
+        paste ${fec_folder}/${TD_window}/U2_U2biased ${fec_folder}/${TD_window}/U2_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2biased-U2_U2
+    fi
+
+    # Computing the free energy differences delta U with stride applied (mainly for Mobley pymbar code)
     paste ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${fec_stride}
     paste ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}
     paste ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}
     paste ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride} ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${fec_stride}
-    
+    if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        paste ${fec_folder}/${TD_window}/U1_U1biased_stride${fec_stride} ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}
+        paste ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}
+    fi
+
     # Preparing the C-values
     #hqh_fec_prepare_cvalues.py ${c_values_min} ${c_values_max} ${c_values_count} > ${fec_folder}/${TD_window}/C-values
 
@@ -232,5 +326,9 @@ while read line; do
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}.plot"
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}.plot"
     hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/delta_1_U,delta_2_U_stride${fec_stride}.plot"
+    if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}.plot"
+        hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}.plot"
+    fi
     
 done <${ce_folder}/TD_windows.list

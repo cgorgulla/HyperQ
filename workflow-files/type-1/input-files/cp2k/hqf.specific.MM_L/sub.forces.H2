@@ -11,7 +11,7 @@
       &END
     &END FORCEFIELD
     &POISSON
-      POISSON_SOLVER wavelet
+      POISSON_SOLVER mt
       PERIODIC none
       &EWALD 
         EWALD_TYPE none 

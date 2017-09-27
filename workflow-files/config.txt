@@ -216,9 +216,9 @@ inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
 ce_first_restart_ID_L=1
 ce_first_restart_ID_LS=1
 ce_first_restart_ID_PLS=1
-ce_stride_L=10
-ce_stride_LS=10
-ce_stride_PLS=10
+ce_stride_L=1
+ce_stride_LS=1
+ce_stride_PLS=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
 # The restart files are indexed starting at one (1, 2, 3, ...)
 

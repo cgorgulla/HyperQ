@@ -27,15 +27,18 @@
       &END
     &END SCF
     &POISSON 
-      POISSON_SOLVER wavelet 
       PERIODIC none 
+      POISSON_SOLVER mt 
     &END POISSON 
   &END DFT
   &SUBSYS
     &CELL
+      PERIODIC none
       ABC cell_dimensions_full_rounded
     &END CELL
     &TOPOLOGY
+      &CENTER_COORDINATES 
+      &END 
       COORDINATE pdb
       COORD_FILE_NAME subsystem_folder/system2.pdb
       CONN_FILE_FORMAT psf

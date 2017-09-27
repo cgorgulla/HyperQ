@@ -67,6 +67,7 @@ temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | aw
 delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
@@ -90,6 +91,11 @@ for TDWindow in m*/; do
     cd ${TDWindow}
     rm bar.out.* >/dev/null  2>&1 || true
     #hqf_fec_run_bar.py U1_U1 U1_U2 U2_U1 U2_U2 C-values bar.out.results.all 2>&1 1> bar.out.screen.all
-    hqf_fec_run_bar.py U1_U1_stride${fec_stride} U1_U2_stride${fec_stride} U2_U1_stride${fec_stride} U2_U2_stride${fec_stride} ${delta_F_min} ${delta_F_max} bar.out.stride${fec_stride} ${temperature} ${C_absolute_tolerance}
+    # Checking if reweighting is used or not
+    if [ "${umbrella_sampling^^}" == "FALSE" ]; then
+        hqf_fec_run_bar.py U1_U1_stride${fec_stride} U1_U2_stride${fec_stride} U2_U1_stride${fec_stride} U2_U2_stride${fec_stride} ${delta_F_min} ${delta_F_max} bar.out.stride${fec_stride} ${temperature} ${C_absolute_tolerance}
+    elif [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        hqf_fec_run_bar_reweighting.py U1_U1_stride${fec_stride} U1_U2_stride${fec_stride} U2_U1_stride${fec_stride} U2_U2_stride${fec_stride} U1_U1biased_stride${fec_stride} U2_U2biased_stride${fec_stride} ${delta_F_min} ${delta_F_max} bar.out.stride${fec_stride} ${temperature} ${C_absolute_tolerance}
+    fi
     cd ..
 done

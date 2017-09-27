@@ -373,7 +373,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     crosseval_folder_fw="${md_folder_initialstate}-${md_folder_endstate}"     # md folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${md_folder_endstate}-${md_folder_initialstate}"     # Opposite of fw
 
-    echo "${md_folder_initialstate} ${md_folder_endstate}" >> TD_windows.list
+    echo "${md_folder_initialstate} ${md_folder_endstate}" >> TD_windows.list           # Does not include the stationary evaluations naturally
     
     # Printing some information
     echo -e " * Preparing TD window ${window_no}"
@@ -414,9 +414,9 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     done
 
     # Uniting all the ipi property files
-    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/* | grep properties)"
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/*properties)"
     cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/ipi.out.all_runs.properties
-    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/* | grep properties)"
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/*properties)"
     cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ipi.out.all_runs.properties
 
     # Loop for preparing the restart files in md_folder 1 (forward evaluation)
