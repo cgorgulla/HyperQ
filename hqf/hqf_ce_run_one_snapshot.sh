@@ -62,7 +62,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotID} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
@@ -71,7 +71,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotID} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
 
         # Terminating everything elese which is still running and which was started by this script
         pkill -P $$ || true
@@ -80,7 +80,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotID} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
     "
 }
 trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
@@ -125,7 +125,6 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     rm ipi.out.* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
     msp_name="$(pwd | awk -F '/' '{print $(NF-4)}')"
-    rm /tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.*.${crosseval_folder}.restart-${snapshotID} > /dev/null 2>&1 || true
     stdbuf -oL ipi ipi.in.ce.xml > ipi.out.screen 2> ipi.out.err &
     pid_ipi=$!
     echo "${pid_ipi} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
@@ -141,7 +140,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
     max_it=60
     iteration_no=0
     while true; do
-        if [ -e "/tmp/ipi_ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${snapshotID}" ]; then # -e for any fail, -f is only for regular files
+        if [ -e "/tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}" ]; then # -e for any fail, -f is only for regular files
             echo " * The socket file for snapshot ${snapshotID} has been detected. Starting CP2K..."
             for bead_folder in $(ls -v cp2k/); do
                 echo " * Starting CP2K for ${bead_folder}..."

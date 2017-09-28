@@ -93,13 +93,16 @@ cleanup_exit() {
         fi
     done
 
+    # Removing remaining socket files
+    rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.*  2>&1 > /dev/null
+
     # Terminating all remaining processes
     # Get our process group id
     pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
     # Terminating it in a new process group
     echo -e '\n * Terminating all remaining processes...\n\n'
     sleep 1
-    setsid bash -c "kill -- -$pgid 2>&1 1> /dev/null; sleep 5; kill -9 -$pgid 2>&1 1>/dev/null || true"  2>&1 > /dev/null ;
+    setsid bash -c "kill -- -$pgid 2>&1 1> /dev/null; sleep 5; kill -9 -$pgid 2>&1 1>/dev/null || true"  2>&1 > /dev/null
 }
 trap "cleanup_exit" EXIT
 
@@ -139,7 +142,10 @@ subsystem="${2}"
 pipeline_type="${3}"
 system1="${msp_name/_*}"
 system2="${msp_name/*_}"
+runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
+HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQF_STARTDATE
 
 # Removing old  file
 if [ -f runtime/error ]; then

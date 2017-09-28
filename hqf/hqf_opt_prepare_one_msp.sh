@@ -75,6 +75,7 @@ subsystem=${3}
 msp_name=${system_1_basename}_${system_2_basename}
 inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -157,10 +158,10 @@ C=${lineArray[3]}
 GMAX_A=${A/.*}
 GMAX_B=${B/.*}
 GMAX_C=${C/.*}
-GMAX_A_half=$((GMAX_A/2))
-GMAX_B_half=$((GMAX_B/2))
-GMAX_C_half=$((GMAX_C/2))
-for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
+GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
+GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
+GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
+for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
     mod=$((${value}%2))
     if [ "${mod}" == "0" ]; then
         eval ${value}_odd=$((${value}+1))
@@ -234,8 +235,9 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
             sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
             sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
             sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
             sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.*
         fi
     done
@@ -303,8 +305,9 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
             sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
             sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
             sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
+            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
             sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.*
         fi
     done

@@ -10,7 +10,7 @@
   <total_steps>0</total_steps>
   <prng> <seed> 32342 </seed> </prng>
   <ffsocket mode='unix' name='cp2k' pbc="true">
-    <address>ipi.runtimeletter.ce.fes_basename.cp2k.subconfiguration</address>
+    <address> address.cp2k </address>
     <latency>0.01</latency>
     <timeout>5000</timeout>
   </ffsocket>

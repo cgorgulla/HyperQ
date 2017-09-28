@@ -1,7 +1,7 @@
 <simulation verbosity="debug">
 	<interface type="socket">
 		<socket type="unix">
-			<address>ipi.runtimeletter.md.fes_basename.iqi.subconfiguration</address>
+			<address> address.iqi </address>
 		</socket>
 	</interface>
    	<atoms>

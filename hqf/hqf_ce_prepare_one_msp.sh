@@ -102,8 +102,8 @@ prepare_restart() {
     cp ../../../md/${msp_name}/${subsystem}/${md_folder_coordinate_source}/ipi/${restartFile} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.restart
     sed -i "/<step>/d" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.restart
     cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
-    sed -i "s|<address>.*cp2k.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
-    sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
+    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
+    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce..iqi.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
     sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
 
     # Preparing the CP2K files
@@ -196,12 +196,14 @@ prepare_restart() {
         # Adjusting the CP2K files
         sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/runtimeletter/${runtimeletter}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/starttime/${HQF_STARTDATE}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder/|../../../../|" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|HOST.*|HOST ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.cp2k.${crosseval_folder}.restart-${restartID}|g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${restartID}|g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
@@ -213,7 +215,7 @@ prepare_restart() {
 
         # Adjusting the i-QI files
         sed -i "s|>.*\.\.\/\.\./|>\.\./\.\./\.\./|" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi* ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.xml
-        sed -i "s|<address>.*iqi.*|<address>ipi.${runtimeletter}.ce.${msp_name}.${subsystem}.iqi.${crosseval_folder}.restart-${restartID}</address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
+        sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.iqi.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
     fi
 }
 
@@ -245,6 +247,7 @@ ce_type="$(grep -m 1 "^ce_type_${subsystem}=" input-files/config.txt | awk -F '=
 ce_continue="$(grep -m 1 "^ce_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 nsim="$((ntdsteps + 1))"
 
 
@@ -309,10 +312,10 @@ C=${lineArray[3]}
 GMAX_A=${A/.*}
 GMAX_B=${B/.*}
 GMAX_C=${C/.*}
-GMAX_A_half=$((GMAX_A/2))
-GMAX_B_half=$((GMAX_B/2))
-GMAX_C_half=$((GMAX_C/2))
-for value in GMAX_A GMAX_B GMAX_C GMAX_A_half GMAX_B_half GMAX_C_half; do
+GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
+GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
+GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
+for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
     mod=$((${value}%2))
     if [ "${mod}" == "0" ]; then
         eval ${value}_odd=$((${value}+1))

@@ -7,7 +7,7 @@
 &MOTION
   &DRIVER
     UNIX
-    HOST ipi.runtimeletter.md.fes_basename.cp2k.subconfiguration
+    HOST address.cp2k
   &END DRIVER
 &END MOTION
 

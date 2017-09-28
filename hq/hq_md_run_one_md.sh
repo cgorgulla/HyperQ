@@ -73,7 +73,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
@@ -82,7 +82,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
 
         # Terminating everything elese which is still running and which was started by this script
         pkill -P $$ || true
@@ -91,7 +91,7 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
     "
 }
 trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
@@ -128,7 +128,6 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     fi
     rm ipi.out.run${run}* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
-    rm /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.*.${md_name/md.}  > /dev/null 2>&1 || true
 
     echo " * Starting ipi"
     stdbuf -oL ipi ipi.in.md.xml > ipi.out.run${run}.screen 2>> ipi.out.run${run}.err &
@@ -148,7 +147,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     max_it=60
     iteration_no=0
     while true; do
-        if [ -e /tmp/ipi_ipi.${runtimeletter}.md.${system_name}.${subsystem}.cp2k.${md_name/md.} ]; then
+        if [ -e /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.} ]; then
             for bead_folder in $(ls -v cp2k/); do
                 cd cp2k/${bead_folder}
                 echo " * Cleaning up the cp2k folder"
