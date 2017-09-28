@@ -120,13 +120,20 @@ fi
 
 # Running ipi
 if [[ "${md_programs^^}" == *"IPI"* ]]; then
+
+    # Preparing files and folder
     cd ipi
     echo -e " * Starting ipi"
     rm ipi.out.* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
-    msp_name="$(pwd | awk -F '/' '{print $(NF-4)}')"
-    stdbuf -oL ipi ipi.in.ce.xml > ipi.out.screen 2> ipi.out.err &
+    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID} </address>|g" ipi.in.main.xml
+    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce..iqi.${crosseval_folder//md.}.r-${snapshotID} </address>|g" ipi.in.main.xml
+
+    # Starting ipi
+    stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
     pid_ipi=$!
+
+    # Updating variables
     echo "${pid_ipi} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     pids[${sim_counter}]=${pid_ipi}
     sim_counter=$((sim_counter+1))
@@ -135,24 +142,37 @@ fi
 
 # Running CP2K
 if [[ "${md_programs^^}" == *"CP2K"* ]]; then
+
+    #Variables
     ncpus_cp2k_ce="$(grep "^ncpus_cp2k_ce_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    export OMP_NUM_THREADS=${ncpus_cp2k_ce}
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     max_it=60
     iteration_no=0
+
+    # Loop for waiting until the socket file exists
     while true; do
         if [ -e "/tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}" ]; then # -e for any fail, -f is only for regular files
             echo " * The socket file for snapshot ${snapshotID} has been detected. Starting CP2K..."
+
+            # Loop for each bead
             for bead_folder in $(ls -v cp2k/); do
-                echo " * Starting CP2K for ${bead_folder}..."
-                echo -e " * Starting CP2K in folder (${bead_folder})"
+
+                # Preparing files and folder
                 cd cp2k/${bead_folder}/
                 rm cp2k.out* > /dev/null 2>&1 || true
                 rm system* > /dev/null 2>&1 || true
+                sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}|g" cp2k.in.main
+
+                # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
-                export OMP_NUM_THREADS=${ncpus_cp2k_ce}
-                # timeout -s SIGTERM ${ce_timeout} cp2k -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+
+                # Starting cp2k
+                echo " * Starting CP2K for ${bead_folder}..."
                 ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
                 pid=$!
+
+                # Updating variables
                 pids[${sim_counter}]=$pid
                 echo "${pid} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
                 sim_counter=$((sim_counter+1))
@@ -176,17 +196,25 @@ fi
 
 # i-QI
 if [[ "${md_programs^^}" == *"IQI"* ]]; then
+
+    # Preparing files and folder
     cd iqi
+    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.iqi.${crosseval_folder//md.}.r-${snapshotID} </address>|g" iqi.in.main.xml
+
+    # Starting iqi
     echo -e " * Starting iqi"
     rm iqi.out.* > /dev/null 2>&1 || true 
-    iqi iqi.in.xml > iqi.out.screen 2> iqi.out.err &
+    iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
     pid=$!
+
+    # Updating variables
     pids[${sim_counter}]=$pid
     echo "${pids[${sim_counter}]} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     sim_counter=$((sim_counter+1))
     cd ../
 fi
 
+# Checking the status of the simulation
 waiting_time_start=$(date +%s)
 while true; do
 

@@ -79,7 +79,6 @@ inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsy
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -170,16 +169,16 @@ if [ "${TD_cycle_type}" == "hq" ]; then
                 cd ${md_folder}
                 restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
                 restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
-                if [[ -f ipi/ipi.in.md.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
+                if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
                     echo " * The folder ${md_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
-                    run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run." | grep -o "[0-9]*")
+                    run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run." | grep -o "[0-9]*")
                     run_new=$((run_old + 1))
-                    sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.md.xml
+                    sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
                     if [ "${run_old}" == "1" ]; then
-                        sed -i "s|^.*opt.pdb.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
-                        sed -i "/momenta/d" ipi/ipi.in.md.xml
+                        sed -i "s|^.*opt.pdb.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                        sed -i "/momenta/d" ipi/ipi.in.main.xml
                     else
-                        sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
+                        sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                     fi
                     cd ..
                     continue
@@ -201,11 +200,10 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
         # Preparing the input files of the packages
         # Preparing the input files of i-PI
-        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|subconfiguration|${bead_configuration}|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${bead_configuration//md.} </address>|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${bead_configuration//md.} </address>|g" ${md_folder}/ipi/ipi.in.md.xml
+        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|subconfiguration|${bead_configuration}|g" ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|subsystem_folder|../..|g" ${md_folder}/ipi/ipi.in.main.xml
 
         # Preparing the input files of CP2K
         # Preparing the bead folders for the beads with at lambda=0 (k=0)
@@ -233,14 +231,12 @@ if [ "${TD_cycle_type}" == "hq" ]; then
                 done
 
                 # Adjusting the CP2K input files
-                sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
-                sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
-                sed -i "s/starttime/${HQF_STARTDATE}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
-                sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             done
         fi
@@ -270,12 +266,12 @@ if [ "${TD_cycle_type}" == "hq" ]; then
                 done
 
                 # Adjusting the CP2K input files
-                sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${bead_configuration//md.}|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/subconfiguration/${bead_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
-                sed -i "s/GMAX *cell_dimensions_half_rounded/GMAX ${GMAX_A_half} ${GMAX_B_half} ${GMAX_C_half}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
+                sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
                 sed -i "s|subsystem_folder/|../../../|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             done
         fi
@@ -283,13 +279,15 @@ if [ "${TD_cycle_type}" == "hq" ]; then
         # Preparing the input files of i-QI
         if [[ "${md_programs}" == *"iqi"* ]]; then
 
-            # iqi
+            # Variables
             inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
             inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
+            # Preparing the files and folders
             mkdir ${md_folder}/iqi
-            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
-            sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${bead_configuration//md.} </address>|g" ${md_folder}/iqi/iqi.in.xml
+            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.main.xml
             cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
+            sed -i "s|subsystem_folder|../..|g" ${md_folder}/iqi/iqi.in.main.xml
         fi
 
         # Copying the geo-opt coordinate files
@@ -334,17 +332,17 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
                 echo " * The folder ${md_folder} already exists. Checking its contents..."
                 cd ${md_folder}
                 restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
-                if [[ -f ipi/ipi.in.md.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
+                if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
                     echo " * The folder ${md_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
                     restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
-                    run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run." | grep -o "[0-9]*")
+                    run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run." | grep -o "[0-9]*")
                     run_new=$((run_old + 1))
-                    sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.md.xml
+                    sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
                     if [ "${run_old}" == "1" ]; then
-                        sed -i "s|^.*opt.pdb.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
-                        sed -i "/momenta/d" ipi/ipi.in.md.xml
+                        sed -i "s|^.*opt.pdb.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                        sed -i "/momenta/d" ipi/ipi.in.main.xml
                     else
-                        sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.md.xml
+                        sed -i "s|^.file.*chk.*|      <file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                     fi
                     cd ..
                     continue
@@ -366,11 +364,10 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
 
         # Preparing the input files of the packages
         # Preparing the input files of i-PI
-        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|subconfiguration|${lambda_configuration}|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${lambda_configuration//md.} </address>|g" ${md_folder}/ipi/ipi.in.md.xml
-        sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${lambda_configuration//md.} </address>|g" ${md_folder}/ipi/ipi.in.md.xml
+        cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|subconfiguration|${lambda_configuration}|g" ${md_folder}/ipi/ipi.in.main.xml
+        sed -i "s|subsystem_folder|../..|g" ${md_folder}/ipi/ipi.in.main.xml
 
         # Preparing the input files of CP2K
         for bead in $(eval echo "{1..${nbeads}}"); do
@@ -418,7 +415,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             done
 
             # Adjusting the CP2K input files
-            sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${lambda_configuration//md.}|g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/subconfiguration/${lambda_configuration}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/lambda_value/${lambda_current}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.*
@@ -438,9 +434,9 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
 
             # Preparing the files and folders
             mkdir ${md_folder}/iqi
-            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
-            sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${lambda_configuration//md.} </address>|g" ${md_folder}/iqi/iqi.in.xml
+            cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.main.xml
             cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
+            sed -i "s|subsystem_folder|../..|g" ${md_folder}/iqi/iqi.in.main.xml
         fi
 
         # Copying the geo-opt coordinate files

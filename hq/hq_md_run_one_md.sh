@@ -116,11 +116,13 @@ md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/co
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-run=$(grep "output.*ipi.out.run" ipi/ipi.in.md.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
+run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
 
 # Running ipi
 if [[ "${md_programs}" == *"ipi"* ]]; then
+
+    # Preparing files and folder
     cd ipi
     echo " * Cleaning up the ipi folder"
     if [ ${md_continue^^} == "FALSE" ]; then
@@ -128,38 +130,51 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     fi
     rm ipi.out.run${run}* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
+    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.} </address>|g" ipi.in.main.xml
+    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${md_name//md.} </address>|g" ipi.in.main.xml
 
+    # Starting ipi
     echo " * Starting ipi"
-    stdbuf -oL ipi ipi.in.md.xml > ipi.out.run${run}.screen 2>> ipi.out.run${run}.err &
-    pid=$!
-    pids[${sim_counter}]=$pid
-    echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
+    stdbuf -oL ipi ipi.in.main.xml > ipi.out.run${run}.screen 2>> ipi.out.run${run}.err &
+    pid_ipi=$!
+
+    # Updating variables
+    pids[${sim_counter}]=$pid_ipi
+    echo "${pid_ipi} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
     sim_counter=$((sim_counter+1))
     cd ..
-    sleep 10
 fi
 
 # Running CP2K
 if [[ "${md_programs}" == *"cp2k"* ]]; then
+
     # Variables
     ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     max_it=60
     iteration_no=0
+
+    # Loop for waiting until the socket file exists
     while true; do
         if [ -e /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.} ]; then
             for bead_folder in $(ls -v cp2k/); do
+
+                # Preparing files and folder
                 cd cp2k/${bead_folder}
-                echo " * Cleaning up the cp2k folder"
                 if [ ${md_continue^^} == "FALSE" ]; then
                     rm cp2k.out* > /dev/null 2>&1 || true
                 fi
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
                 rm system* > /dev/null 2>&1 || true
+                sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.}|g" cp2k.in.main
+
+                # Starting CP2k
                 echo " * Starting cp2k (${bead_folder})"
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
                 OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
                 pid=$!
+
+                # Updating variables
                 pids[${sim_counter}]=$pid
                 echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
                 sim_counter=$((sim_counter+1))
@@ -185,16 +200,22 @@ fi
 
 # Running i-QI
 if [[ "${md_programs}" == *"iqi"* ]]; then
+
+    # Preparing files and folder
     cd iqi
     echo " * Cleaning up the iqi folder"
     if [ ${md_continue^^} == "FALSE" ]; then
         rm iqi.out.* > /dev/null 2>&1 || true
     fi
     rm iqi.out.run${run}* > /dev/null 2>&1 || true
+    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${md_name//md.} </address>|g" iqi.in.main.xml
+
+    # Starting i-QI
     echo " * Starting iqi"
-    stdbuf -oL iqi iqi.in.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
+    stdbuf -oL iqi iqi.in.main.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
     pid=$!
-    pid_ipi=${pid}
+
+    # Updating variables
     pids[${sim_counter}]=$pid
     echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
     sim_counter=$((sim_counter+1))
@@ -214,7 +235,7 @@ if [[ "${md_programs}" == "namd" ]]; then
     cd ..
 fi
 
-# Checking if the simulation is completed/crashed
+# Checking the status of the simulation
 stop_flag="false"
 while true; do
 

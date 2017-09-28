@@ -103,18 +103,18 @@ runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | a
 
 # Getting the energy eval folders
 if [ "${TD_cycle_type}" == "hq" ]; then
-    energyeval_folder="$(ls -vrd */)"
+    crosseval_folder="$(ls -vrd */)"
 elif [ "${TD_cycle_type}" == "lambda" ]; then
-    energyeval_folder="$(ls -vd */)"
+    crosseval_folder="$(ls -vd */)"
 fi
-energyeval_folder=${energyeval_folder//\/}
+crosseval_folder=${crosseval_folder//\/}
 
 # Running the md simulations
 i=0
-for energyeval_folder in ${energyeval_folder}; do
+for crosseval_folder in ${crosseval_folder}; do
 
-    cd ${energyeval_folder}
-    echo -e "\n ** Running the cross evaluations of folder ${energyeval_folder}"
+    cd ${crosseval_folder}
+    echo -e "\n ** Running the cross evaluations of folder ${crosseval_folder}"
 
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
@@ -131,7 +131,7 @@ for energyeval_folder in ${energyeval_folder}; do
             fi
             while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
                 jobs
-                echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} of folder ${energyeval_folder} (hqf_ce_run_one_msp.sh)"
+                echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder} (hqf_ce_run_one_msp.sh)"
                 sleep 1.$RANDOM
                 echo
             done;
@@ -148,7 +148,7 @@ for energyeval_folder in ${energyeval_folder}; do
             cd ..
         done
     else
-        echo -e " * Warning: No snapshots found in folder ${energyeval_folder}, skipping."
+        echo -e " * Warning: No snapshots found in folder ${crosseval_folder}, skipping."
     fi
 
     cd ../

@@ -101,10 +101,9 @@ prepare_restart() {
     # Preparing the ipi files
     cp ../../../md/${msp_name}/${subsystem}/${md_folder_coordinate_source}/ipi/${restartFile} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.restart
     sed -i "/<step>/d" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.restart
-    cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
-    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
-    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce..iqi.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
-    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.ce.xml
+    cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder|../../..|g" ${crosseval_folder}/snapshot-${restartID}/ipi/ipi.in.main.xml
 
     # Preparing the CP2K files
     for bead in $(eval echo "{1..${nbeads}}"); do
@@ -194,28 +193,27 @@ prepare_restart() {
         fi
 
         # Adjusting the CP2K files
-        sed -i "s/fes_basename/${msp_name}.${subsystem}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/runtimeletter/${runtimeletter}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/starttime/${HQF_STARTDATE}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder/|../../../../|" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${restartID}|g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
     if [[ "${md_programs}" == *"iqi"* ]]; then
 
+        # Variables
+        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
         # Preparing the i-QI files and folders
         mkdir -p ${crosseval_folder}/snapshot-${restartID}/iqi
-        cp ../../../md/${msp_name}/${subsystem}/${md_folder_potential_source}/iqi/iqi.in.* ${crosseval_folder}/snapshot-${restartID}/iqi
+        cp ../../../input-files/iqi/${inputfile_iqi_md} ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.main.xml
+        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${crosseval_folder}/snapshot-${restartID}/iqi/
+        sed -i "s|subsystem_folder|../../..|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.main.xml
 
-        # Adjusting the i-QI files
-        sed -i "s|>.*\.\.\/\.\./|>\.\./\.\./\.\./|" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi* ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.xml
-        sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.iqi.${crosseval_folder//md.}.r-${restartID} </address>|g" ${crosseval_folder}/snapshot-${restartID}/iqi/iqi.in.*
     fi
 }
 
@@ -238,7 +236,6 @@ nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')
 ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -432,7 +429,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
             # Checking if this snapshot has already been prepared and should be skipped
             if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                if [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
                     echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
                     continue
                 fi
@@ -467,7 +464,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
             # Checking if this snapshot has already been prepared and should be skipped
             if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                if [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
                     echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
                     continue
                 fi
@@ -510,7 +507,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
                     # Checking if this snapshot has already been prepared and should be skipped
                     if [ "${ce_continue^^}" == "TRUE" ]; then
-                        if [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                        if [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
                             echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
                             continue
                         fi
@@ -546,7 +543,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
 
                 # Checking if this snapshot has already been prepared and should be skipped
                 if [ "${ce_continue^^}" == "TRUE" ]; then
-                    if [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.ce.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
+                    if [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restartID}/ipi/ipi.in.restart ]]; then
                         echo " * Snapshot ${restartID} has already been prepared and ce_continue=true, skipping this snapshot..."
                         continue
                     fi
