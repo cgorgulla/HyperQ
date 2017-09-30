@@ -204,6 +204,10 @@ inputfile_ipi_ce_LS=ipi.in.ce.cp2k_iqi.xml
 inputfile_ipi_md_PLS=ipi.in.md.medium_iqi.xml
 inputfile_ipi_ce_PLS=ipi.in.ce.cp2k_iqi.xml
 
+ipi_set_randomseed=true
+# Possible values: true, false
+# Replaces the seed of the prng in the i-pi input files with a random number
+
 
 ****************************************************************************** i-QI *****************************************************************************
 

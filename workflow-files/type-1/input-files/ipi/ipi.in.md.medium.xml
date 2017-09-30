@@ -16,7 +16,7 @@
   </ffsocket>
   <system>
     <initialize nbeads='1'>
-      <file mode='pdb'>../../system.subconfiguration.opt.pdb</file>
+      <file mode='pdb'> subsystem_folder/system.subconfiguration.opt.pdb</file>
       <momenta mode="thermal" units="kelvin"> 300 </momenta>
     </initialize>
     <forces>

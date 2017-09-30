@@ -148,9 +148,9 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
         rm -r ${md_folder}/ipi
     fi
     mkdir ${md_folder}/ipi
-    cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.md.xml
-    sed -i "s/system_basename/${system_basename}/g" ${md_folder}/ipi/ipi.in.md.xml
-    sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.md.xml
+    cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.main.xml
+    sed -i "s/system_basename/${system_basename}/g" ${md_folder}/ipi/ipi.in.main.xml
+    sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.main.xml
 fi
 
 # Preparation of the iqi files

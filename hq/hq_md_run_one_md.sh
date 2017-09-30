@@ -248,7 +248,7 @@ while true; do
         fi
     fi
     if [ -f ipi/ipi.out.run${run}.err ]; then
-        error_count="$( { grep -i error ipi/ipi.out.run${run}.err ipi/ipi.out.run${run}.screen || true; } | wc -l)"
+        error_count="$( { grep -i error ipi/ipi.out.run${run}.err  || true; } | wc -l)"
         if [ ${error_count} -ge "1" ]; then
             echo -e "Error detected in the ipi output files"
             echo "Exiting..."
@@ -288,7 +288,7 @@ while true; do
         # Checking the condition of the output files
         sleep 1 || true
         if [ -f ipi/ipi.out.run${run}.err ]; then
-            error_count="$( { grep -i error ipi/ipi.out.run${run}.err ipi/ipi.out.run${run}.screen || true; } | wc -l)"
+            error_count="$( { grep -i error ipi/ipi.out.run${run}.err || true; } | wc -l)"
             if [ ${error_count} -ge "1" ]; then
                 echo -e "Error detected in the ipi output files"
                 echo "Exiting..."

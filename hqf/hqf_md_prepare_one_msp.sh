@@ -86,6 +86,7 @@ ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $
 nsim="$((ntdsteps + 1))"
 stride_ipi_properties="$(grep "potential" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
 stride_ipi_trajectory="$(grep "<checkpoint" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
+ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Printing information
 echo -e "\n *** Preparing the md simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
@@ -204,6 +205,9 @@ if [ "${TD_cycle_type}" == "hq" ]; then
         sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.main.xml
         sed -i "s|subconfiguration|${bead_configuration}|g" ${md_folder}/ipi/ipi.in.main.xml
         sed -i "s|subsystem_folder|../..|g" ${md_folder}/ipi/ipi.in.main.xml
+        if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
+            sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${md_folder}/ipi/ipi.in.main.xml
+        fi
 
         # Preparing the input files of CP2K
         # Preparing the bead folders for the beads with at lambda=0 (k=0)
@@ -368,6 +372,9 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${md_folder}/ipi/ipi.in.main.xml
         sed -i "s|subconfiguration|${lambda_configuration}|g" ${md_folder}/ipi/ipi.in.main.xml
         sed -i "s|subsystem_folder|../..|g" ${md_folder}/ipi/ipi.in.main.xml
+        if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
+            sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${md_folder}/ipi/ipi.in.main.xml
+        fi
 
         # Preparing the input files of CP2K
         for bead in $(eval echo "{1..${nbeads}}"); do
