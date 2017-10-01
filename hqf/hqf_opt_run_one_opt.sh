@@ -80,7 +80,7 @@ cleanup_exit() {
         kill -9 "${pid}"  1>/dev/null 2>&1 || true
     done
     sleep 1
-    # Terminating everything elese which is still running and which was started by this script
+    # Terminating everything else which is still running and which was started by this script
     pkill -P $$ || true
     sleep 3
     pkill -9 -P $$ || true

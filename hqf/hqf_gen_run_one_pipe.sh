@@ -98,13 +98,28 @@ cleanup_exit() {
 
     # Terminating all remaining processes
     # Get our process group id
-    pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
+    #pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
+    # $$ (process id) equals pgid since we are the session leader
+    pgid=$$
+
     # Terminating it in a new process group
     echo -e '\n * Terminating all remaining processes...\n\n'
-    sleep 1
-    setsid bash -c "kill -- -$pgid 2>&1 1> /dev/null; sleep 5; kill -9 -$pgid 2>&1 1>/dev/null || true"  2>&1 > /dev/null
+    sleep 1 || true
+    setsid nohup bash -c "
+
+        # Trapping signals
+        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+        # Terminating everything which was started by this script
+        pkill -SIGTERM -P $$ || true
+
+        # Terminating everything belonging to this process group
+        kill -SIGTERM -$pgid 2>&1 1>/dev/null || true
+        sleep 10 || true
+        kill -9 -$pgid 2>&1 1>/dev/null || true
+    " 2>&1 1>/dev/null
 }
-trap "cleanup_exit" EXIT
+trap "cleanup_exit" EXIT SIGINT
 
 # Error indicator check
 check_error_indicators() {
@@ -115,6 +130,12 @@ check_error_indicators() {
         echo -e " * Error detected. Exiting...\n\n"
         exit 1
     fi
+}
+
+# Convert pid to pgid
+pgid_from_pid() {
+    pid=$1
+    ps -o pgid= "$pid" 2>/dev/null | egrep -o "[0-9]+"
 }
 
 # Bash options
@@ -132,7 +153,7 @@ fi
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
 export verbosity
-if [ "${verbosity}" = "debug" ]; then
+if [ "${verbosity}" == "debug" ]; then
     set -x
 fi
 
@@ -147,6 +168,10 @@ date="$(date --rfc-3339=seconds | tr ": " "_")"
 HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 export HQF_STARTDATE
 
+# Logging the output of this script
+#exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
+
+
 # Removing old  file
 if [ -f runtime/error ]; then
     rm runtime/error
@@ -157,9 +182,14 @@ mkdir -p log-files/${date}/${msp_name}_${subsystem}
 mkdir -p runtime
 mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
+# Making sure the script is run in its own process group
+#if [ "$$" != "$(pgid_from_pid $$)" ]; then
+#    exec setsid "$(readlink -f "$0")" "$@"
+#fi
+
 # Optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp_${system1}_${system2}_${subsystem}
+    hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp
     check_error_indicators 1
 fi
 
@@ -189,7 +219,7 @@ if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]
     if [ -d runtime/pids/${msp_name}_${subsystem}/md ]; then
         rm -r runtime/pids/${msp_name}_${subsystem}/md
     fi
-    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp_${system1}_${system2}_${subsystem}
+    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp
     check_error_indicators 1
 fi
 
@@ -203,7 +233,7 @@ fi
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh_${system1}_${system2}_${subsystem}
+    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh
     check_error_indicators 1
 fi
 
@@ -220,7 +250,7 @@ fi
 
 # Preparing the fec
 if [[ ${pipeline_type} == *"_prf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_fec_prepare_one_msp_${system1}_${system2}_${subsystem}
+    hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_fec_prepare_one_msp
     check_error_indicators 1
 fi
 

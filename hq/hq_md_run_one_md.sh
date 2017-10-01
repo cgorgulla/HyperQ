@@ -64,11 +64,15 @@ cleanup_exit() {
 
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Runniing the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
-    setsid bash -c "
+    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid nohup bash -c "
+
+        # Trapping signals
+        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
         # Terminating the main processes
         kill ${pids[@]} 1>/dev/null 2>&1 || true
-        sleep 5
+        sleep 5 || true
         kill -9 ${pids[@]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
@@ -77,16 +81,16 @@ cleanup_exit() {
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
-        sleep 1
+        sleep 1 || true
         pkill -9 -P ${pids[@]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         echo " * Removing socket files if still existent..."
         rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
 
-        # Terminating everything elese which is still running and which was started by this script
+        # Terminating everything else which is still running and which was started by this script
         pkill -P $$ || true
-        sleep 1
+        sleep 1 || true
         pkill -9 -P $$ || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)

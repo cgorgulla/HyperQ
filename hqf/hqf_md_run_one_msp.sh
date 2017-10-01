@@ -74,8 +74,11 @@ clean_exit() {
 
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Runniing the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
-    setsid bash -c "
+    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid nohup bash -c "
+
+        # Trapping signals
+        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
         echo " * Removing socket files if still existent..."
