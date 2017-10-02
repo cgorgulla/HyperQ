@@ -76,6 +76,7 @@ fec_stride=$(grep -m 1 "^fec_stride_${subsystem}=" input-files/config.txt | awk 
 fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
 umbrella_sampling=$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')
 md_folder="md/${msp_name}/${subsystem}"
+cutoff=1000
 
 # Printing some information
 echo -e "\n *** Preparing the FEC between the systems ${system_1_basename} and ${system_2_basename}"
@@ -298,7 +299,17 @@ while read line; do
         echo -e "\nError: The variable fec_stride is not set correctly in the configuration file. Exiting...\n\n"
         exit 1
     fi
-    
+
+    # Creating cutoff versions
+    awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U1_stride${fec_stride}_cutoff1000
+    awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U2_stride${fec_stride}_cutoff1000
+    awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U1_stride${fec_stride}_cutoff1000
+    awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride}_cutoff1000
+    if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U1_U1biased_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U1biased_stride${fec_stride}_cutoff1000
+        awk '{if($1==$1+0 && $1<1000 && $1>-1000)print $1}' ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride}_cutoff1000
+    fi
+
     # Computing the free energy differences delta U without stride (mainly for Mobley pymbar code)
     paste ${fec_folder}/${TD_window}/U1_U1 ${fec_folder}/${TD_window}/U1_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U1_U2-U1_U1 # (U2-U1)_1 -> for our IP method implementation, and for original BAR equation of Bennett (denominator) and our implementation
     paste ${fec_folder}/${TD_window}/U2_U1 ${fec_folder}/${TD_window}/U2_U2 | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2-U2_U1 # (U2-U1)_2 -> for our IP method implemenation
@@ -319,16 +330,28 @@ while read line; do
         paste ${fec_folder}/${TD_window}/U2_U2biased_stride${fec_stride} ${fec_folder}/${TD_window}/U2_U2_stride${fec_stride} | awk '{print $2 - $1}' > ${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}
     fi
 
-    # Preparing the C-values
-    #hqh_fec_prepare_cvalues.py ${c_values_min} ${c_values_max} ${c_values_count} > ${fec_folder}/${TD_window}/C-values
+    # Creating cutoff versions of the difference files
+    awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U1-U2_U2_stride${fec_stride}_cutoff${cutoff}
+    awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}_cutoff${cutoff}
+    awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}_cutoff${cutoff}
+    awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U1-U1_U2_stride${fec_stride}_cutoff${cutoff}
+    if [ "${umbrella_sampling^^}" == "TRUE" ]; then
+        awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride} > ${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}_cutoff${cutoff}
+        awk -v cutoff="${cutoff}" '{if($1==$1+0 && $1<cutoff && $1>-cutoff)print $1}' ${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride} > ${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}_cutoff${cutoff}
+    fi
 
     # Drawing histograms
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}.plot"
     hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}.plot"
     hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/delta_1_U,delta_2_U_stride${fec_stride}.plot"
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}_cutoff${cutoff}.plot"
+    hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}_cutoff${cutoff}.plot"
+    hqh_fec_plot_two_hist.py "${fec_folder}/${TD_window}/U1_U2-U1_U1_stride${fec_stride}_cutoff${cutoff}" "${fec_folder}/${TD_window}/U2_U2-U2_U1_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/delta_1_U,delta_2_U_stride${fec_stride}_cutoff${cutoff}.plot"
     if [ "${umbrella_sampling^^}" == "TRUE" ]; then
         hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}.plot"
         hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}" "normal" "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}.plot"
+        hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/U1_U1biased-U1_U1_stride${fec_stride}_cutoff${cutoff}.plot"
+        hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}_cutoff${cutoff}.plot"
     fi
     
 done <${ce_folder}/TD_windows.list

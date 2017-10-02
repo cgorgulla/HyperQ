@@ -70,18 +70,13 @@ clean_up() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        echo " * Removing socket files if still existent..."
         rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.* >/dev/null 2>&1 || true
 
-        # Terminating everything which is still running and which was started by this script
+        # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
         pkill -P $$ || true
         sleep 8
         pkill -9 -P $$ || true
-
-        # Removing the socket files if still existent (again because sometimes a few are still left)
-        echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.* >/dev/null 2>&1 || true
     "
 }
 trap 'clean_up' SIGINT SIGQUIT SIGTERM EXIT

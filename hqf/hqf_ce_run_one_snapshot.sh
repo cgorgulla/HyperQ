@@ -59,31 +59,25 @@ cleanup_exit() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Terminating the main processes
-        kill ${pids[@]} 1>/dev/null 2>&1 || true
+        kill ${pids[*]} 1>/dev/null 2>&1 || true
         sleep 5
-        kill -9 ${pids[@]} 1>/dev/null 2>&1 || true
+        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        echo " * Removing socket files if still existent..."
         rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
-        pkill -P ${pids[@]} 1>/dev/null 2>&1 || true
+        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
         sleep 1
-        pkill -9 -P ${pids[@]} 1>/dev/null 2>&1 || true
+        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        echo " * Removing socket files if still existent..."
         rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
 
-        # Terminating everything else which is still running and which was started by this script
+        # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
         sleep 1
         pkill -9 -P $$ || true
-
-        # Removing the socket files if still existent (again because sometimes a few are still left)
-        echo " * Removing socket files if still existent..."
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
     "
 }
 trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT

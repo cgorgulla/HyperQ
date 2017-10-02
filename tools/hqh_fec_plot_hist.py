@@ -6,17 +6,7 @@ plt.switch_backend('agg')
 import math
 import sys
 
-def main(data_filename, fitting_type, outputfile_basename):
-
-    # Reading the data from a text file, one number per line
-    values = []
-    for item in open(data_filename,'r'):
-        item = item.strip()
-        if item != '':
-            try:
-                values.append(float(item))
-            except ValueError:
-                pass
+def createPlot(values, fitting_type, outputfile_basename):
 
     # the histogram of the data
     bin_count=int(math.sqrt(len(values)))
@@ -54,4 +44,22 @@ if __name__ == '__main__':
         exit(1)
 
     else:
-        main(*sys.argv[1:])
+
+        # Variables
+        data_filename = sys.argv[1]
+        fitting_type = sys.argv[2]
+        outputfile_basename = sys.argv[3]
+
+        # Reading the data from the input text file, one number per line
+        values = []
+        for item in open(data_filename,'r'):
+            item = item.strip()
+            if item != '':
+                itemFloat = float(item)
+                try:
+                    values.append(itemFloat)
+                except ValueError:
+                    pass
+
+        # Creating the plot
+        createPlot(values, fitting_type, outputfile_basename)

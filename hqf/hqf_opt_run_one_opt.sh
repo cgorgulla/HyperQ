@@ -64,19 +64,19 @@ cleanup_exit() {
     # Terminating all processes
     echo " * Terminating remaining processes..."
     # Terminating the child processes of the main processes
-    for pid in "${pids[@]}"; do
+    for pid in "${pids[*]}"; do
         pkill -P "${pid}" 1>/dev/null 2>&1 || true
     done
     sleep 3
-    for pid in "${pids[@]}"; do
+    for pid in "${pids[*]}"; do
         pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
     done
     # Terminating the main processes
-    for pid in "${pids[@]}"; do
+    for pid in "${pids[*]}"; do
         kill "${pid}" 1>/dev/null 2>&1 || true
     done
     sleep 3
-    for pid in "${pids[@]}"; do
+    for pid in "${pids[*]}"; do
         kill -9 "${pid}"  1>/dev/null 2>&1 || true
     done
     sleep 1

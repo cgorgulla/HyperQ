@@ -102,18 +102,18 @@ cleanup_exit() {
     # $$ (process id) equals pgid since we are the session leader
     pgid=$$
 
+    # Terminating everything which was started by this script
+    pkill -SIGTERM -P $$ || true
+    sleep 1 || true
+
     # Terminating it in a new process group
     echo -e '\n * Terminating all remaining processes...\n\n'
-    sleep 1 || true
     setsid nohup bash -c "
 
         # Trapping signals
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
-        # Terminating everything which was started by this script
-        pkill -SIGTERM -P $$ || true
-
-        # Terminating everything belonging to this process group
+        # Terminating the entire process group
         kill -SIGTERM -$pgid 2>&1 1>/dev/null || true
         sleep 10 || true
         kill -9 -$pgid 2>&1 1>/dev/null || true
@@ -169,7 +169,7 @@ HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 export HQF_STARTDATE
 
 # Logging the output of this script
-#exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
+exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
 
 # Removing old  file
@@ -183,9 +183,9 @@ mkdir -p runtime
 mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Making sure the script is run in its own process group
-#if [ "$$" != "$(pgid_from_pid $$)" ]; then
-#    exec setsid "$(readlink -f "$0")" "$@"
-#fi
+if [ "$$" != "$(pgid_from_pid $$)" ]; then
+    exec setsid "$(readlink -f "$0")" "$@"
+fi
 
 # Optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
