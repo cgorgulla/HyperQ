@@ -7,7 +7,7 @@ The format is read from the file input-files/config.txt
 
 <subsystems> can be L, LS, PLS. Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)
 
-The lomap flag can be specified if the atom mappings for the thermodynamic cycles should be computed (with LOMAP)."
+The lomap flag can be specified if the atom mappings for the thermodynamic cycles should be computed (with LOMAP). This requires a terminal connected to an X-server due to Lomap."
 
 # Checking the input paras
 if [ "${1}" == "-h" ]; then
@@ -101,7 +101,7 @@ if [ "${input_file_format}" = "pdbqt" ]; then
 
     # Checking the presence of the input file fodler
     if [ ! -d input-files/ligands/pdbqt ]; then
-        echo -e "\nError: The folder input-files/ligands/pdbqt does not exist. Exiting."
+        echo -e "\nError: The folder input-files/ligands/pdbqt does not exist. Exiting...\n"
         exit 1
     fi
     
@@ -130,7 +130,7 @@ elif [ "${input_file_format}" = "sdf" ]; then
 
     # Checking the presence of the input file fodler
     if [ ! -d input-files/ligands/sdf ]; then
-        echo -e "\nError: The folder input-files/ligands/sdf does not exist. Exiting."
+        echo -e "\nError: The folder input-files/ligands/sdf does not exist. Exiting...\n"
         exit 1
     fi
     
@@ -159,7 +159,7 @@ elif [ "${input_file_format}" = "mol2_2d_h" ]; then
 
     # Checking the presence of the input file fodler
     if [ ! -d input-files/ligands/mol2 ]; then
-        echo -e "\nError: The folder input-files/ligands/mol2 does not exist. Exiting."
+        echo -e "\nError: The folder input-files/ligands/mol2 does not exist. Exiting...\n"
         exit 1
     fi
 
@@ -188,7 +188,7 @@ elif [ "${input_file_format}" = "pdb_3d_h" ]; then
     
     # Checking the presence of the input file fodler
     if [ ! -d input-files/ligands/pdb ]; then
-        echo -e "\nError: The folder input-files/ligands/pdb does not exist. Exiting."
+        echo -e "\nError: The folder input-files/ligands/pdb does not exist. Exiting...\n"
         exit 1
     fi
 
@@ -212,7 +212,7 @@ elif [ "${input_file_format}" = "smi" ]; then
     
     # Checking the presence of the input file fodler
     if [ ! -d input-files/ligands/smi ]; then
-        echo -e "\nError: The folder input-files/ligands/pdb does not exist. Exiting."
+        echo -e "\nError: The folder input-files/ligands/smi does not exist. Exiting...\n"
         exit 1
     fi
 
@@ -241,6 +241,9 @@ elif [ "${input_file_format}" = "smi" ]; then
         obabel -ipdb input-files/ligands/pdb/${file} -omol2 -O input-files/ligands/mol2-Li/${ligand_basename}.mol2
         sed -i "s/ H / Li/g" input-files/ligands/mol2-Li/${ligand_basename}.mol2
     done
+else
+    echo -e "\nError the input file format for the ligands has an unsupported value. Exiting...\n"
+    exit 1
 fi
 
 # Preparing the complete systems
@@ -329,13 +332,12 @@ done
 
 # Preparing the remaining files for each system
 for subsystem in ${subsystems}; do
-    for ligand in $(ls -v input-files/systems/); do
+    for ligand in $(find input-files/systems/ -type d -name ${subsystem} | awk -F '/' '{print $(NF-1)}'); do
         hqh_sp_prepare_system_2.sh ${ligand} ${subsystem}
     done
 done
 
-
-# Preparing the molecule pairings via MCS searches using lomap
+# Preparing the molecule pairings via MCS searches using Lomap
 if [ "${lomap}" == "true" ]; then
     hqh_sp_prepare_td_pairings.sh
 fi

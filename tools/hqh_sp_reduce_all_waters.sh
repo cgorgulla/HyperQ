@@ -72,8 +72,8 @@ subsystem=${1}
 # Finding the minimum water number
 set +o pipefail # not used because if no water the pipe would file
 i=0
-for folder in input-files/systems/*; do
-    waterCount[i]=$(grep "^ATOM" ${folder}/${subsystem}/system_complete.pdb | grep " OH2 " | wc -l)
+for folder in $(find input-files/systems/ -type d -name ${subsystem}); do
+    waterCount[i]=$(grep "^ATOM" ${folder}/system_complete.pdb | grep " OH2 " | wc -l)
     i=$((i+=1))
 done
 set -o pipefail # not used because if no water the pipe would file
@@ -85,7 +85,7 @@ for i in ${waterCount[@]}; do
     fi
 done
 
-for folder in $(ls -v input-files/systems); do
+for folder in $(find input-files/systems/ -type d -name ${subsystem}); do
     if [ "${minimumWaterCount}" -eq "0" ]; then
         echo -e " * Minimum water count is 0. No water to reduce...\n"
         cp input-files/systems/${folder}/${subsystem}/system_complete.pdb input-files/systems/${folder}/${subsystem}/system_complete.reduced.pdb
