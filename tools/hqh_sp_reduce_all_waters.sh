@@ -88,11 +88,11 @@ done
 for folder in $(find input-files/systems/ -type d -name ${subsystem}); do
     if [ "${minimumWaterCount}" -eq "0" ]; then
         echo -e " * Minimum water count is 0. No water to reduce...\n"
-        cp input-files/systems/${folder}/${subsystem}/system_complete.pdb input-files/systems/${folder}/${subsystem}/system_complete.reduced.pdb
-        cp input-files/systems/${folder}/${subsystem}/system_complete.psf input-files/systems/${folder}/${subsystem}/system_complete.reduced.psf
+        cp input-files/systems/${folder}/${subsystem}/system_complete.pdb ${folder}/system_complete.reduced.pdb
+        cp input-files/systems/${folder}/${subsystem}/system_complete.psf ${folder}/system_complete.reduced.psf
     else
         # Reducing the number of water molecules in all the systems (which remained)
-        cd input-files/systems/${folder}/${subsystem}/
+        cd ${folder}
             vmdc ${script_dir}/hqh_sp_reduce_waters.vmd -args system_complete ${minimumWaterCount}
         cd ../../../..
     fi
