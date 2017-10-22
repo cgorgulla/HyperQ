@@ -315,7 +315,7 @@ mkdir input-files/ligands/${lomap_mol2_folder}.omit
 mkdir input-files/systems.omit
 for folder in $(ls -v input-files/systems/) ; do
     for subsystem in ${subsystems}; do 
-        if [ ! -f input-files/systems/${folder}/${subsystem}/system_complete.psf ]; then
+        if [[ ! -f input-files/systems/${folder}/${subsystem}/system_complete.psf ]] && [[ -d input-files/systems/${folder}/${subsystem}/ ]]; then
             echo -e "\n * Removing ligand ${folder} due to failure in the preparation."
             mkdir -p input-files/systems.omit/${folder}
             mv input-files/systems/${folder}/${subsystem} input-files/systems.omit/${folder}
