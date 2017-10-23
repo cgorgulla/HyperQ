@@ -4,7 +4,7 @@
 usage="Usage: hqh_sp_reduce_all_waters.sh <subsystem>
 
 Should be run in the root folder.
-Possible subsystems are: L, LS, PLS."
+Possible subsystems are: L, LS, RLS."
 
 # Standard error response 
 error_response_std() {

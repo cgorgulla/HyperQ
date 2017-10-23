@@ -5,10 +5,11 @@ def main(psfFilenameIn, psfFilenameOut):
     
     with open(psfFilenameOut, "w") as pdbFileOut:
         with open(psfFilenameIn, "r") as pdbFileIn:
-            section = "not atoms"
+            currentSection = "not atoms"
             for line in pdbFileIn:
                 lineSplit = line.split()
                 # Checking the current section
+                currentSection = "not atoms"
                 if len(lineSplit) <= 1:
                     currentSection = "not atoms"
                 elif len(lineSplit) > 1:
@@ -29,6 +30,9 @@ def main(psfFilenameIn, psfFilenameOut):
                             print "Exiting."
                             exit(1)
                         line = ''.join(line)
+                else:
+                    currentSection = "not atoms"
+
                 pdbFileOut.write(line)
 
 

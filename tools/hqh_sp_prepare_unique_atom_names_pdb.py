@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 
-def main(pdbFilenameIn, pdbFilenameOut):
+def main(pdbFilenameIn, pdbFilenameOut, atomNameChar):
     
     elementTypes = set()
     
@@ -26,22 +26,24 @@ def main(pdbFilenameIn, pdbFilenameOut):
                         print "Too many atoms of the type (" + element + ") in molecule. The maximum number is 9."
                         exit()
                     line = list(line)
-                    line[12:16] = (element + str(elementCount[element]) + "Q").ljust(4)
+                    line[12:16] = (element + str(elementCount[element]) + atomNameChar).ljust(4)
                     line = ''.join(line)
                     
                 pdbFileOut.write(line)
 
 
 def help():
-    print "\nUsage: hqh_sp_prepare_unique_atom_names_pdb.py <pdb filename> <output filename>\n\n"
+    print "\nUsage: hqh_sp_prepare_unique_atom_names_pdb.py <pdb filename> <atom name character> <output filename>"
+    print "<atom name character>: Is a letter which is used in the atom names to make them unique."
+    print "                       J and Q are quite unique in the context of the CGFF, but this does not seem to matter since atom names are different from atom types.\n\n"
 
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
     # Checking the number of arguments 
-    if (len(sys.argv) != 3):
+    if (len(sys.argv) != 4):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 2 parameters. Exiting..."
+        print "Required are 3 parameters. Exiting..."
         help()
         exit(1)
 

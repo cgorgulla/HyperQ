@@ -4,7 +4,7 @@ usage="Usage: hqmd_md_prepare_one_molecule.py <system basename> <subsystem type>
 
 Has to be run in the root folder.
 
-Possible subsystems are: L, LS, PLS."
+Possible subsystems are: L, LS, RLS."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then

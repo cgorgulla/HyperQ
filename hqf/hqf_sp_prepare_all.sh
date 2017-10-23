@@ -5,7 +5,7 @@ usage="Usage: hqf_sp_prepare_all.sh <subsystems> [lomap]
 
 The format is read from the file input-files/config.txt
 
-<subsystems> can be L, LS, PLS. Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)
+<subsystems> can be L, LS, HLS, PLS. Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)
 
 The lomap flag can be specified if the atom mappings for the thermodynamic cycles should be computed (with LOMAP). This requires a terminal connected to an X-server due to Lomap."
 
@@ -258,10 +258,11 @@ for subsystem in ${subsystems}; do
                 rm -r input-files/systems/${ligand_basename}/${subsystem}
             fi
             mkdir -p input-files/systems/${ligand_basename}/${subsystem}
+
+            # Preparing the system files
             hqh_sp_prepare_L.sh ${ligand_basename}
         done
     elif [[ "${subsystem}" == "LS" ]]; then
-        waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS=" input-files/config.txt | awk -F '=' '{print $2}')"
         for file in $(ls -v input-files/ligands/pdb); do
             ligand_basename="${file/.*}"
             # Creating folders
@@ -269,35 +270,104 @@ for subsystem in ${subsystems}; do
                 rm -r input-files/systems/${ligand_basename}/${subsystem}
             fi
             mkdir -p input-files/systems/${ligand_basename}/${subsystem}
+
+            # Preparing the system files
             hqh_sp_prepare_LS.sh ${ligand_basename}
         done
-    elif [[ "${subsystem}" == "PLS" ]]; then
-        waterbox_padding_size_PLS="$(grep -m 1 "^waterbox_padding_size_PLS=" input-files/config.txt | awk -F '=' '{print $2}')"
-        receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
-        if [[ -z "${receptor_mode}" ]]; then
-            receptor_mode="common"
-        fi
-        for file in $(ls -v input-files/ligands/pdb); do
-            ligand_basename="${file/.pdb}"
-            if [[ ${receptor_mode} == "common" ]]; then
-                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
-            elif [[ ${receptor_mode} == "individual" ]]; then
-                receptor_basename="${ligand_basename}"
-            fi
-            if [[ ! -f "input-files/receptor/${receptor_basename}.pdb" ]]; then
-                echo -e "\n * Error: The receptorfile ${receptor_basename} for ligand ${ligand_basename} could not be found. Exiting.\n\n"
+
+    elif [[ "${subsystem}" == "RLS" ]]; then
+
+        # Variables
+        receptor_type="$(grep -m 1 "^receptor_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+
+        if [[ "${receptor_type}" == "H" ]]; then
+            # Variables
+            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
+            if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
+                echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
+                echo -e " *        Supported values are: common, individual"
+                echo -e " *        Exiting..."
                 exit 1
             fi
 
-            # Creating folders
-            if [ -d input-files/systems/${ligand_basename}/${subsystem} ]; then
-                rm -r input-files/systems/${ligand_basename}/${subsystem}
+            # Preparing the receptor files
+            if [[ ${receptor_mode} == "common" ]]; then
+                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
+                cd input-files/receptor
+                hqh_sp_prepare_H.sh ${receptor_basename}
+                cd ../..
+            elif [[ ${receptor_mode} == "individual" ]]; then
+                for file in $(ls -v input-files/ligands/pdb); do
+                    if [[ ! -f "input-files/receptor/${receptor_basename}.pdb" ]]; then
+                        echo -e "\n * Error: The receptorfile ${receptor_basename} for ligand ${ligand_basename} could not be found. Exiting.\n\n"
+                        exit 1
+                    fi
+                    ligand_basename="${file/.pdb}"
+                    receptor_basename="${ligand_basename}"
+                    cd input-files/receptor
+                    hqh_sp_prepare_H.sh ${receptor_basename}
+                    cd ../..
+                done
             fi
-            mkdir -p input-files/systems/${ligand_basename}/${subsystem}
-            hqh_sp_prepare_PLS.sh ${receptor_basename} ${ligand_basename}
-        done
+
+            # Preparing the system files and folders
+            for file in $(ls -v input-files/ligands/pdb); do
+
+                # Variables
+                ligand_basename="${file/.pdb}"
+                if [[ ${receptor_mode} == "individual" ]]; then
+                    receptor_basename="${ligand_basename}"
+                fi
+
+                # Creating folders
+                if [ -d input-files/systems/${ligand_basename}/${subsystem} ]; then
+                    rm -r input-files/systems/${ligand_basename}/${subsystem}
+                fi
+                mkdir -p input-files/systems/${ligand_basename}/${subsystem}
+
+                # Preparing the system files
+                hqh_sp_prepare_HLS.sh ${receptor_basename} ${ligand_basename}
+            done
+
+        elif [[ "${receptor_type}" == "P" ]]; then
+
+            # Variables
+            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
+            if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
+                echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
+                echo -e " *        Supported values are: common, individual"
+                echo -e " *        Exiting..."
+                exit 1
+            fi
+
+            for file in $(ls -v input-files/ligands/pdb); do
+                ligand_basename="${file/.pdb}"
+                if [[ ${receptor_mode} == "common" ]]; then
+                    receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
+                elif [[ ${receptor_mode} == "individual" ]]; then
+                    receptor_basename="${ligand_basename}"
+                fi
+                if [[ ! -f "input-files/receptor/${receptor_basename}.pdb" ]]; then
+                    echo -e "\n * Error: The receptorfile ${receptor_basename} for ligand ${ligand_basename} could not be found. Exiting.\n\n"
+                    exit 1
+                fi
+
+                # Creating folders
+                if [ -d input-files/systems/${ligand_basename}/${subsystem} ]; then
+                    rm -r input-files/systems/${ligand_basename}/${subsystem}
+                fi
+                mkdir -p input-files/systems/${ligand_basename}/${subsystem}
+
+                # Preparing the system files
+                hqh_sp_prepare_PLS.sh ${receptor_basename} ${ligand_basename}
+            done
+        else
+            echo -e " * Error: The receptor_type which was specified ($receptor_type) is not supported. Exiting..."
+            exit 1
+        fi
+
     else
-        echo -e " * The subsystem which was specified ($subsystem) is not supported. Exiting..."
+        echo -e " * Error: The subsystem which was specified ($subsystem) is not supported. Exiting..."
         exit 1
     fi
 done
@@ -342,4 +412,4 @@ if [ "${lomap}" == "true" ]; then
     hqh_sp_prepare_td_pairings.sh
 fi
 
-echo -e " * The structures of all the molecules has been prepared"
+echo -e " * The structures of all the molecules has been prepared\n\n"

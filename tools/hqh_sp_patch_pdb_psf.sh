@@ -86,3 +86,4 @@ echo "size_z: ${size_z_new}" >> cell.dimensions
 
 # Patching the psf file
 sed -i "s/CMAP//g" ${1}.psf
+#sed -i "s/^PSF EXT/PSF/g" ${1}.psf

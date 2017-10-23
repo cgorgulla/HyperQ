@@ -6,7 +6,7 @@ usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <ntdsteps> <system 1 ba
 
 Has to be run in the system root folder.
 <ntdstepds> is the number TD windows (minimal value is 1).
-Possible subsystems are: L, LS, PLS.\nThe <qm_flag> can be: MM, QMMM"
+Possible subsystems are: L, LS, RLS.\nThe <qm_flag> can be: MM, QMMM"
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then

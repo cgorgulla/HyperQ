@@ -80,21 +80,20 @@ ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" input-files
 
 # Copying files, creating folders
 echo -e "\n * Copying files and folders"
-if [ -d input-files/systems/${ligand_basename}/PLS ]; then
-    rm -r input-files/systems/${ligand_basename}/PLS
+if [ -d input-files/systems/${ligand_basename}/RLS ]; then
+    rm -r input-files/systems/${ligand_basename}/RLS
 fi
-mkdir -p input-files/systems/${ligand_basename}/PLS
-
-cd input-files/systems/${ligand_basename}/PLS
+mkdir -p input-files/systems/${ligand_basename}/RLS
+cd input-files/systems/${ligand_basename}/RLS
 cp ../../../ligands/pdb/${ligand_basename}.pdb ./${ligand_basename}.pdb
 cp ../../../receptor/${protein_basename}.pdb ./receptor_original.pdb
 
-
+# Preparing the ligand
 if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
 
     # Assigning uniqe atom names
     echo -e "\n *** Assigning unique atom names (uniqe_atom_names_pdb.py) ***"
-    hqh_sp_prepare_unique_atom_names_pdb.py ${ligand_basename}.pdb ${ligand_basename}_unique.pdb
+    hqh_sp_prepare_unique_atom_names_pdb.py ${ligand_basename}.pdb ${ligand_basename}_unique.pdb Q
 
     # Atom typing with MATCH - and unique atom names (required also by us regarding cp2k and dummy atoms)
     echo -e "\n * Atom typing with MATCH\n"
@@ -106,10 +105,10 @@ if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
     exit_code=${?}
     if [ "${exit_code}" == "124" ]; then
         echo " * MATCH seems to take too long. Aborting and trying again with the option UsingRefiningIncrements turned off"
-        timeout 1m MATCH.pl -forcefield top_all36_cgenff_new -ExitifNotInitiated 0 -CreatePdb ${ligand_basename}_unique_typed.pdb -UsingRefiningIncrements 0 ${ligand_basename}_unique.sdf;
+        timeout 1m MATCH.pl -forcefield top_all36_cgenff_new -ExitifNotInitiated 0 -CreatePdb ${ligand_basename}_unique_match.pdb -UsingRefiningIncrements 0 ${ligand_basename}_unique.sdf;
         if [ "${exit_code}" == "124" ]; then
             echo " * MATCH still seems to take too long. Aborting and trying again with the option SubstituteIncrements turned off"
-            timeout 1m MATCH.pl -forcefield top_all36_cgenff_new -ExitifNotInitiated 0 -CreatePdb ${ligand_basename}_unique_typed.pdb -SubstituteIncrements 0 ${ligand_basename}_unique.sdf;
+            timeout 1m MATCH.pl -forcefield top_all36_cgenff_new -ExitifNotInitiated 0 -CreatePdb ${ligand_basename}_unique_match.pdb -SubstituteIncrements 0 ${ligand_basename}_unique.sdf;
             if [ "${exit_code}" == "124" ]; then
                 echo " * MATCH still seems to take too long. Giving up... "
             else
@@ -235,13 +234,19 @@ if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
 
     # mv ${ligand_basename}_unique.pdb ${ligand_basename}_unique_typed.pdb # only needed when not using MATCH's pdb file
     cc_match_pp_pdb.sh ${ligand_basename}_unique.pdb ${ligand_basename}_unique_match.pdb ${ligand_basename}_unique_typed.pdb
+
+
+    # Patching the prm file of MATCH
+    # MATCH does not add the END statement which is needed by CP2K (in particular when joining multiple parameter files)
+    echo "END" >> ${ligand_basename}_unique.prm
+
     # Renaming the output files
     mv ${ligand_basename}_unique.prm ${ligand_basename}_unique_typed.prm
     mv ${ligand_basename}_unique.rtf ${ligand_basename}_unique_typed.rtf
 elif [ "${ligand_FFparameter_source}" == "folder" ]; then
     cp ${ligand_basename}.pdb ${ligand_basename}_unique_typed.pdb
-    cp ../../../FF/${ligand_basename}.rtf ${ligand_basename}_unique_typed.rtf
-    cp ../../../FF/${ligand_basename}.prm ${ligand_basename}_unique_typed.prm
+    cp ../../../ligands/FF/${ligand_basename}.rtf ${ligand_basename}_unique_typed.rtf
+    cp ../../../ligands/FF/${ligand_basename}.prm ${ligand_basename}_unique_typed.prm
 fi
 
 echo
@@ -257,7 +262,11 @@ sed -i "/^SOD    OCL/d" ./system_complete.prm
 sed -i "/^SOD    OC2D2/d" ./system_complete.prm
 sed -i "/^SOD    OG2D2/d" ./system_complete.prm
 cat ${ligand_basename}_unique_typed.prm >> system_complete.prm
-echo -e "END\nreturn" >> system_complete.prm # return is the file end keyword, not END. END is for sections in file
+
+# Some parameter files seem to contain the section keyword IMPROPERS instead of IMPROPER, but CP2K only understands the latter)
+sed -i "s/^IMPROPERS/IMPROPER/g" system_complete.prm
+# Removing any return statements (from Charmm stream files)
+sed -i "/return/d" system_complete.prm
 
 # Waterbox generation
 echo -e "\n *** Preparing the joint protein-ligand-solvent system (hqh_sp_prepare_waterbox_PLS.sh) ***"

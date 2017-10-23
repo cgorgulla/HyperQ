@@ -103,8 +103,8 @@ if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
     echo
 elif [ "${ligand_FFparameter_source}" == "folder" ]; then
     cp ${ligand_basename}.pdb ${ligand_basename}_unique_typed.pdb
-    cp ../../../FF/${ligand_basename}.rtf ${ligand_basename}_unique_typed.rtf
-    cp ../../../FF/${ligand_basename}.prm ${ligand_basename}_unique_typed.prm
+    cp ../../../ligands/FF/${ligand_basename}.rtf ${ligand_basename}_unique_typed.rtf
+    cp ../../../ligands/FF/${ligand_basename}.prm ${ligand_basename}_unique_typed.prm
 fi
 
 # Creating the joint parameter file ligand

@@ -75,9 +75,27 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Extracting the last snapshot
-echo -e "\n * Extracting the last snapshot from the trajectory file"
+echo -e "\n * Preparing the extraction of the last snapshot from the trajectory file"
 if [[ "${opt_programs}" == "cp2k" ]]; then
+
+    # Checking if trajectory file exists and contains proper coordinates
+    echo -n " * Checking the trajectory file... "
+    if [[ -f ${trajectory_filename} ]]; then
+        word_count=$(grep -m 1 "^ATOM" ${trajectory_filename} | wc -w)
+        if [[ "${word_count}" -ne "9" ]] ; then
+            echo "failed"
+            echo" * Error: The file ${trajectory_filename} does exist but does not seem to contain data in a compatible format. Exiting..."
+            exit 1
+        fi
+    else
+        echo "failed"
+        echo " * Error: The file ${trajectory_filename} does not exist. Exiting..."
+        exit 1
+    fi
+    echo "OK"
+
     # Getting the last snapshot, only the atom entries
+    echo -e " * Extraction of the last snapshot from the trajectory file"
     tac ${trajectory_filename} | grep -m 1 REMARK -B 1000000 | tac | grep -E "^(ATOM|HETATM)" > ${output_filename}.tmp || true
 elif [[ "${opt_programs}" == "namd" ]]; then
     cc_vmd_dcd2pdb_lastframe.sh ${psf_filename} ${trajectory_filename} ${output_filename}.tmp2

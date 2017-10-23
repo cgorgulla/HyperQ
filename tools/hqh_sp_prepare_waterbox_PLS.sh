@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqh_sp_prepare_waterbox_PLS.sh <protein file basename> <ligand file basename> <output file basename>
+usage="Usage: hqh_sp_prepare_waterbox_PLS.sh <protein basename> <ligand basename> <outputfile basename>
 
 Required ligand files: pdb and rtf file.
 Required protein files: pdb file."
@@ -70,8 +70,8 @@ script_dir=$(dirname $0)
 protein_basename=$1
 ligand_basename=$2
 output_basename=$3
-waterbox_padding_size_PLS="$(grep -m 1 "^waterbox_padding_size_PLS=" ../../../config.txt | awk -F '=' '{print $2}')"
+waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" ../../../config.txt | awk -F '=' '{print $2}')"
 
 # Body
-vmdc "${script_dir}/hqh_sp_prepare_waterbox_PLS.vmd" -args $protein_basename $ligand_basename $output_basename ${script_dir} $waterbox_padding_size_PLS
-sed -i "s/PRT   $/PRT  H/g" system_complete.pdb
+vmdc "${script_dir}/hqh_sp_prepare_waterbox_PLS.vmd" -args $protein_basename $ligand_basename $output_basename ${script_dir} $waterbox_padding_size_RLS
+sed -i "s/RCP   $/RCP  H/g" system_complete.pdb

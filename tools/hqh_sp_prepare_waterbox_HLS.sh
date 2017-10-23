@@ -1,11 +1,12 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqh_sp_prepare_waterbox_LS.sh <ligand file basename> <output file basename>
+usage="Usage: hqh_sp_prepare_waterbox_HLS.sh <receptor basename> <ligand basename> <outputfile basename>
 
-Required ligand files: pdb and rtf file."
+Required ligand files: pdb and rtf file.
+Required protein files: pdb file."
 
-# Standard error response 
+# Standard error response
 error_response_std() {
     # Printing some information
     echo
@@ -50,11 +51,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "2" ]; then
+if [ "$#" -ne "3" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 2"
+    echo "Number of expected arguments: 3"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -66,12 +67,11 @@ fi
 
 # Variables
 script_dir=$(dirname $0)
-ligand_basename=$1
-output_basename=$2
-waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS="  ../../../config.txt | awk -F '=' '{print $2}')"
+receptor_basename=$1
+ligand_basename=$2
+output_basename=$3
+waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" ../../../config.txt | awk -F '=' '{print $2}')"
 
 # Body
-vmdc "${script_dir}/hqh_sp_prepare_waterbox_LS.vmd" -args $ligand_basename $output_basename ${script_dir} ${waterbox_padding_size_LS}
-sed -i "s/RCP   $/RCP  H/g" system_wb.pdb
-mv system_wb.pdb system_complete.pdb
-mv system_wb.psf system_complete.psf
+vmdc "${script_dir}/hqh_sp_prepare_waterbox_HLS.vmd" -args $receptor_basename $ligand_basename $output_basename ${script_dir} $waterbox_padding_size_RLS
+sed -i "s/RCP   $/RCP  H/g" system_complete.pdb

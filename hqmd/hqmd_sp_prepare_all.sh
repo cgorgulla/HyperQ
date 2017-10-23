@@ -4,9 +4,9 @@ usage="Usage: hqmd_sp_prepare_all.sh <subsystems>
 
 The format is read from the file input-files/config.txt
 
-<subsystems> can be L, LS, PLS.
+<subsystems> can be L, LS, RLS.
 
-Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)"
+Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,RLS)"
 
 # Standard error response 
 error_response_std() {
@@ -219,8 +219,8 @@ for subsystem in ${subsystems}; do
             mkdir -p input-files/systems/${ligand_basename}/${subsystem}
             hqh_sp_prepare_LS.sh ${ligand_basename}
         done
-    elif [[ "${subsystem}" == "PLS" ]]; then
-        waterbox_padding_size_PLS="$(grep -m 1 "^waterbox_padding_size_PLS=" input-files/config.txt | awk -F '=' '{print $2}')"
+    elif [[ "${subsystem}" == "RLS" ]]; then
+        waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" input-files/config.txt | awk -F '=' '{print $2}')"
         receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
         if [[ -z "${receptor_mode}" ]]; then
             receptor_mode="common"
@@ -242,7 +242,7 @@ for subsystem in ${subsystems}; do
                 rm -r input-files/systems/${ligand_basename}/${subsystem}
             fi
             mkdir -p input-files/systems/${ligand_basename}/${subsystem}
-            hqh_sp_prepare_PLS.sh ${receptor_basename} ${ligand_basename}
+            hqh_sp_prepare_RLS.sh ${receptor_basename} ${ligand_basename}
         done
     else
         echo -e " * The subsystem which was specified ($subsystem) is not supported. Exiting..."

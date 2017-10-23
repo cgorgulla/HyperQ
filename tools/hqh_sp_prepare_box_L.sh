@@ -76,7 +76,7 @@ vmdc "${script_dir}/hqh_sp_prepare_box_L.vmd" -args $ligand_basename $output_bas
 # Patching the output files
 cp system_nosolv.pdb system_complete.pdb
 cp system_nosolv.psf system_complete.psf
-sed -i "s/PRT   $/PRT  H/g" system_complete.pdb
+sed -i "s/RCP   $/RCP  H/g" system_complete.pdb
 line_cryst="$(printf "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1           1" ${padding_size} ${padding_size} ${padding_size} 90 90 90)"
 sed -i "s/REMARK.*/${line_cryst}/" system_complete.pdb 
 sed -i "s/LIG     1/LIG L   1/g" system_complete.pdb

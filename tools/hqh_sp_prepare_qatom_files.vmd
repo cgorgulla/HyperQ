@@ -17,8 +17,8 @@ mol addfile ${system_basename}.psf
 # Setting atom selections
 set atomselection_c_all "not $file_data_u_all"
 set atomselection_q_all "$file_data_q_all"
-set atomselection_q_nonsolvent "$file_data_q_all and (chain L P)"
-set atomselection_q_solvent "$file_data_q_all and (not chain L P)"
+set atomselection_q_nonsolvent "$file_data_q_all and (chain L R)"
+set atomselection_q_solvent "$file_data_q_all and (not chain L R)"
 
 # Setting atoms
 set qatoms_all [atomselect top ${atomselection_q_all}]

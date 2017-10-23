@@ -11,7 +11,7 @@
    	</atoms>
 	<potential type="QMMM1">
 		<constraints>
-			<file type="xml">iqi.in.sub.constraints.PLS.xml</file>
+			<file type="xml">iqi.in.sub.constraints.RLS.xml</file>
 		</constraints>
 		<forceconstant>0.001</forceconstant>
 		<force_distribution>molecule</force_distribution>

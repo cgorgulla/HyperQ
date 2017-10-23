@@ -43,6 +43,6 @@
   &END SUBSYS
 &END FORCE_EVAL
 
-@include cp2k.in.sub.forces.H2d
+@include cp2k.in.sub.forces.H1d
 
 @include cp2k.in.sub.forces.H2

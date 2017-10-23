@@ -5,7 +5,7 @@ usage="Usage: hqf_md_prepare_one_msp.py <system 1 basename> <system 2 basename> 
 
 Has to be run in the root folder.
 
-Possible subsystems are: L, LS, PLS."
+Possible subsystems are: L, LS, RLS."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then

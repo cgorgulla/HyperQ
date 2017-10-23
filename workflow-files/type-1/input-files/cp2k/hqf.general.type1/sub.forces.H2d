@@ -8,9 +8,9 @@
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
       DO_NONBONDED false
-      @include subsystem_folder/cp2k.in.bonds.system1
-      @include subsystem_folder/cp2k.in.angles.system1
-      @include subsystem_folder/cp2k.in.dihedrals.system1
+      @include subsystem_folder/cp2k.in.bonds.system2
+      @include subsystem_folder/cp2k.in.angles.system2
+      @include subsystem_folder/cp2k.in.dihedrals.system2
     &END FORCEFIELD
     &POISSON
       PERIODIC none
@@ -22,9 +22,9 @@
   &SUBSYS
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder/system2.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.dummy.psf      
+      CONN_FILE_NAME subsystem_folder/system2.dummy.psf      
       &GENERATE 
         BONDLENGTH_MAX 100
       &END GENERATE

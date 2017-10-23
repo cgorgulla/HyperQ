@@ -17,25 +17,40 @@ verbosity=debug
 input_file_format=smi
 # Currently supported are smi, pdbqt, sdf, mol2_2d_h, pdb_3d_h
 # The format should be in lowercase letters
-# If the subsystem is PLS or PL, then the coordinates of the ligands have to be provided in the input files to suit the coordinates of the receptor.
+# If the subsystem is RLS, then the coordinates of the ligands have to be provided in the input files to suit the coordinates of the receptor.
 # Ligand names should not contain the underscore "_" letter
+# Resanme doesn't matter for the ligand, it will be changed to LIG, as well as the chain which will be set to L
 
 receptor_mode=common
 # Possible values: individual, common
 # If individual, then a receptor has to be in the receptor folder for each ligand with the same name as the ligand
-# Only needed if the subsystem includes a receptor (e.g. PLS, PL)
+# Only needed if the subsystem includes a receptor (e.g. RLS)
 
 receptor_basename=
-# Only required if (receptor_mode=common) and if the simulations include a receptor (e.g. PLS, PL)
+# Only required if receptor_mode=common and if the simulations include a receptor (e.g. RLS)
+
+receptor_type=P
+# Possible values: P (protein), H (Host)
+# Only required if the simulations include a receptor (e.g. RLS)
 
 box_edge_length_L=10
 waterbox_padding_size_LS=10
-waterbox_padding_size_PLS=10
+waterbox_padding_size_RLS=10
 
 ligand_FFparameter_source=MATCH
 # Possible choices: folder, MATCH
-# If set to folder, then in the folder input-files/FF there need to be the files: ligand_name.rtf, ligand_name.prm for each ligand
+# If set to folder, then in the folder input-files/ligands/FF there need to be the files for each ligand:
+#   * ligand_name.rtf
+#   * ligand_name.prm
+# The prm files need to have a proper END statement at the end of the file
 
+receptor_FFparameter_source=MATCH
+# Possible choices: folder, MATCH
+# If set to folder, then in the folder input-files/receptor there need to be for each receptor (common or all the individual ones) the following files:
+#   * receptorname.pdb
+#   * receptorname.rtf
+#   * receptorname.prm
+# The prm files need to have a proper END statement at the end of the file
 
 ***************************************************************************** LOMAP *****************************************************************************
 
@@ -59,33 +74,34 @@ mcs_time=1
 **************************************************************************** General ****************************************************************************
 
 runtimeletter=a
-# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q
+# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q.
+# In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
 
 opt_programs_L=cp2k
 opt_programs_LS=cp2k
-opt_programs_PLS=cp2k
+opt_programs_RLS=cp2k
 # possible: cp2k
 
 opt_type_L=MM
 opt_type_LS=QMMM 
-opt_type_PLS=MM 
+opt_type_RLS=MM
 # Possible values: MM, QM, QMMM
 
 md_programs_L=ipi-cp2k
 md_programs_LS=ipi-cp2k-iqi
-md_programs_PLS=ipi-cp2k-iqi
+md_programs_RLS=ipi-cp2k-iqi
 # Possible values: ipi-cp2k, ipi-cp2k-iqi
 # Will also be used for the CE (due to the restart files)
 
 md_type_L=QM
 md_type_LS=QMMM
-md_type_PLS=QMMM
+md_type_RLS=QMMM
 # Possible values: QMMM, MM, QM
 # QMMM requires that md_programs contains cp2k (and possibly ipi, iqi)
 
 ce_type_L=QM
 ce_type_LS=QMMM
-ce_type_PLS=QMMM
+ce_type_RLS=QMMM
 # If umbrella_sampling=false, then this setting should be the same as md_type (since the md files are copied)
 # Possible values: QMMM, MM, QM
 
@@ -103,20 +119,20 @@ nbeads=2
 
 opt_timeout_L=100
 opt_timeout_LS=100
-opt_timeout_PLS=100
+opt_timeout_RLS=100
 # Unit: seconds
 # This value is used to detect whether the optimization is completed by checking if the file is still changing or not, 
 # because sometimes a program (in particular CP2K is done but the program doesn't terminate, or CP2K fails and ipi doesn't quit)
 
 md_timeout_L=100
 md_timeout_LS=500
-md_timeout_PLS=1000
+md_timeout_RLS=1000
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
 ce_timeout_L=30
 ce_timeout_LS=100
-ce_timeout_PLS=100
+ce_timeout_RLS=100
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
@@ -142,7 +158,7 @@ umbrella_sampling=false
 
 cell_dimensions_scaling_factor_L=2
 cell_dimensions_scaling_factor_LS=2
-cell_dimensions_scaling_factor_PLS=2
+cell_dimensions_scaling_factor_RLS=2
 # This value will be used for the variables cell_dimensions_scaled_rounded and cell_dimensions_scaled_odd_rounded in the simulation software input files (e.g. cp2k)
 
 
@@ -176,13 +192,13 @@ inputfolder_cp2k_opt_specific_LS=hqf.specific.QMMM_PM6_BOMD
 inputfolder_cp2k_md_specific_LS=hqf.specific.QMMM_PM6_BOMD
 inputfolder_cp2k_ce_specific_LS=hqf.specific.QMMM_PM6_BOMD
 
-# Protein, ligand, solvent (PLS) input folder
-inputfolder_cp2k_opt_general_PLS=hqf.general.type1
-inputfolder_cp2k_md_general_PLS=hqf.general.type1
-inputfolder_cp2k_ce_general_PLS=hqf.general.type1
-inputfolder_cp2k_opt_specific_PLS=hqf.specific.MM
-inputfolder_cp2k_md_specific_PLS=hqf.specific.MM
-inputfolder_cp2k_ce_specific_PLS=hqf.specific.MM
+# Protein, ligand, solvent (RLS) input folder
+inputfolder_cp2k_opt_general_RLS=hqf.general.type1
+inputfolder_cp2k_md_general_RLS=hqf.general.type1
+inputfolder_cp2k_ce_general_RLS=hqf.general.type1
+inputfolder_cp2k_opt_specific_RLS=hqf.specific.MM
+inputfolder_cp2k_md_specific_RLS=hqf.specific.MM
+inputfolder_cp2k_ce_specific_RLS=hqf.specific.MM
 
 cp2k_command=cp2k.ssmp
 #cp2k_command=/home/wagner/cgorgulla/Dropbox/Software/installed/bin/cp2k.ssmp 
@@ -200,9 +216,9 @@ inputfile_ipi_ce_L=ipi.in.ce.cp2k.xml
 inputfile_ipi_md_LS=ipi.in.md.medium_iqi.xml
 inputfile_ipi_ce_LS=ipi.in.ce.cp2k_iqi.xml
 
-# Protein, ligand, solvent (PLS) input files
-inputfile_ipi_md_PLS=ipi.in.md.medium_iqi.xml
-inputfile_ipi_ce_PLS=ipi.in.ce.cp2k_iqi.xml
+# Protein, ligand, solvent (RLS) input files
+inputfile_ipi_md_RLS=ipi.in.md.medium_iqi.xml
+inputfile_ipi_ce_RLS=ipi.in.ce.cp2k_iqi.xml
 
 ipi_set_randomseed=true
 # Possible values: true, false
@@ -219,19 +235,19 @@ inputfile_iqi_constraints_L=iqi.in.constraints.L.xml
 inputfile_iqi_md_LS=iqi.in.LS.xml
 inputfile_iqi_constraints_LS=iqi.in.constraints.LS.xml
 
-# Protein, ligand, solvent (PLS) input files
-inputfile_iqi_md_PLS=iqi.in.PLS.xml
-inputfile_iqi_constraints_PLS=iqi.in.constraints.PLS.xml
+# Protein, ligand, solvent (RLS) input files
+inputfile_iqi_md_RLS=iqi.in.RLS.xml
+inputfile_iqi_constraints_RLS=iqi.in.constraints.RLS.xml
 
 
 *********************************************************************** Cross-Evaluations ***********************************************************************
 
 ce_first_restart_ID_L=1
 ce_first_restart_ID_LS=1
-ce_first_restart_ID_PLS=1
+ce_first_restart_ID_RLS=1
 ce_stride_L=1
 ce_stride_LS=1
-ce_stride_PLS=1
+ce_stride_RLS=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
@@ -240,10 +256,10 @@ ce_stride_PLS=1
 
 fec_first_snapshot_index_L=10
 fec_first_snapshot_index_LS=10
-fec_first_snapshot_index_PLS=10
+fec_first_snapshot_index_RLS=10
 fec_stride_L=1
 fec_stride_LS=1
-fec_stride_PLS=1
+fec_stride_RLS=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
 # The snaphot folder in the cross evaluation folders are indexed starting by 1
 
@@ -257,23 +273,23 @@ delta_F_max=3270
 
 ncpus_cp2k_opt_L=1
 ncpus_cp2k_opt_LS=1
-ncpus_cp2k_opt_PLS=1
+ncpus_cp2k_opt_RLS=1
 ncpus_cp2k_md_L=1
 ncpus_cp2k_md_LS=1
-ncpus_cp2k_md_PLS=1
+ncpus_cp2k_md_RLS=1
 ncpus_cp2k_ce_L=1
 ncpus_cp2k_ce_LS=1
-ncpus_cp2k_ce_PLS=1
+ncpus_cp2k_ce_RLS=1
 
 fes_opt_parallel_max_L=30
 fes_opt_parallel_max_LS=30
-fes_opt_parallel_max_PLS=30
+fes_opt_parallel_max_RLS=30
 fes_md_parallel_max_L=100
 fes_md_parallel_max_LS=100
-fes_md_parallel_max_PLS=100
+fes_md_parallel_max_RLS=100
 fes_ce_parallel_max_L=1
 fes_ce_parallel_max_LS=1
-fes_ce_parallel_max_PLS=1
+fes_ce_parallel_max_RLS=1
 
 
 ************************************************************************** Batchsystem **************************************************************************
