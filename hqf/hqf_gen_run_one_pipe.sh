@@ -72,7 +72,7 @@ user_abort() {
     pkill -SIGQUIT -P $$ || true
 
     # Giving the child processes enough time to exit gracefully
-    sleep 10
+    sleep 5
     exit 1
 }
 trap 'user_abort' SIGINT
@@ -119,7 +119,7 @@ cleanup_exit() {
         kill -9 -$pgid 2>&1 1>/dev/null || true
     " 2>&1 1>/dev/null
 }
-trap "cleanup_exit" EXIT SIGINT
+trap "cleanup_exit" EXIT
 
 # Error indicator check
 check_error_indicators() {
@@ -168,8 +168,6 @@ date="$(date --rfc-3339=seconds | tr ": " "_")"
 HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 export HQF_STARTDATE
 
-# Logging the output of this script
-exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
 
 # Removing old  file
@@ -186,6 +184,9 @@ mkdir -p runtime/pids/${msp_name}_${subsystem}/
 if [ "$$" != "$(pgid_from_pid $$)" ]; then
     exec setsid "$(readlink -f "$0")" "$@"
 fi
+
+# Logging the output of this script
+exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
 # Optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then

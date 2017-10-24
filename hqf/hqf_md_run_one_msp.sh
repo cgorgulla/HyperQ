@@ -104,7 +104,7 @@ clean_exit() {
         pkill -P $$ || true
         sleep 1
         pkill -9 -P $$ || true
-    "
+    " || true
 }
 trap 'clean_exit' SIGINT SIGTERM SIGQUIT EXIT
 

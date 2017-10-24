@@ -36,10 +36,6 @@ error_response_std() {
     echo "Exiting..."
     echo
     echo
-
-    # Printing some information
-    echo "Error: Cannot find the input-files directory..."
-    exit 1
 }
 trap 'error_response_std $LINENO' ERR
 
@@ -78,7 +74,7 @@ cleanup_exit() {
         pkill -P $$ || true
         sleep 1
         pkill -9 -P $$ || true
-    "
+    " || true
 }
 trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
 

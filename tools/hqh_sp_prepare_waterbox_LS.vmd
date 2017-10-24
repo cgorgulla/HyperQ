@@ -6,6 +6,7 @@ set padding_size [lindex $argv 3]
 package require psfgen
 resetpsf
 topology ${script_dir}/../common/charmm36/toppar_water_ions_namd.str
+topology ${script_dir}/../common/charmm36/top_all36_cgenff.rtf
 topology ${ligand_file_basename}.rtf
 
 segment LIG {pdb ${ligand_file_basename}.pdb}

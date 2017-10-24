@@ -5,7 +5,7 @@ import networkx as nx
 
 
 
-def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwise_mcs=False):
+def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwise_mcs="false"):
     # Create the molecule database by using .mol2 files
     # The DBMolecule class must be created with a valid
     # directory name
@@ -50,7 +50,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
         atomIndex2 = edge[1]
         MC_noh[atomIndex1, atomIndex2] = lomap.MCS(db_mol[atomIndex1].getMolecule(), db_mol[atomIndex2].getMolecule(), timeout=time)
         
-    if draw_pairwise_mcs == "True":
+    if draw_pairwise_mcs.lower() == "true":
         for edge in edges:
             print " * Drawing MCS of molecules " + str(atomIndex1) + " and " + str(atomIndex2)
             atomIndex1 = edge[0]

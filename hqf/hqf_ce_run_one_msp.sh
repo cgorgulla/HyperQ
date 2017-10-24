@@ -77,7 +77,7 @@ clean_up() {
         pkill -P $$ || true
         sleep 8
         pkill -9 -P $$ || true
-    "
+    " || true
 }
 trap 'clean_up' SIGINT SIGQUIT SIGTERM EXIT
 

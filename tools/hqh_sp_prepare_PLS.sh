@@ -253,7 +253,8 @@ echo
 
 # Creating the joint parameter file for protein+ligand
 script_dir=$(dirname $0)
-cp ${script_dir}/../common/charmm36/par_all36_prot_solvent.prm ./system_complete.prm
+cp ${script_dir}/../common/charmm36/par_all36_prot_solvent.prm system_complete.prm
+cat ${script_dir}/../common/charmm36/par_all36_cgenff.prm >> system_complete.prm
 # We need to remove these three atoms because they would require charmms lipid/carb/cgenff prm file to be loaded at first,
 # and the cgenff caused an error with NAMD, it was not happy
 # The END/return needs to be correct for cp2k

@@ -57,8 +57,8 @@ receptor_FFparameter_source=MATCH
 lomap_mol2_folder=mol2-Li
 # For lomap, relative path name wrt to input-files/ligands
 
-draw_pairwise_mcs=False
-# False or True, cases matter (at least for True, all else is considered as "False")
+draw_pairwise_mcs=false
+# Possible values: false or true (case insensitive)
 
 lomap_ncpus=6
 
@@ -83,37 +83,39 @@ opt_programs_RLS=cp2k
 # possible: cp2k
 
 opt_type_L=MM
-opt_type_LS=QMMM 
+opt_type_LS=MM
 opt_type_RLS=MM
 # Possible values: MM, QM, QMMM
+# Currently obsolete
 
 md_programs_L=ipi-cp2k
-md_programs_LS=ipi-cp2k-iqi
-md_programs_RLS=ipi-cp2k-iqi
+md_programs_LS=ipi-cp2k
+md_programs_RLS=ipi-cp2k
 # Possible values: ipi-cp2k, ipi-cp2k-iqi
-# Will also be used for the CE (due to the restart files)
+# Will also be used for the CE (due to the restart files requiring the same clients)
 
-md_type_L=QM
-md_type_LS=QMMM
-md_type_RLS=QMMM
+md_type_L=MM
+md_type_LS=MM
+md_type_RLS=MM
 # Possible values: QMMM, MM, QM
-# QMMM requires that md_programs contains cp2k (and possibly ipi, iqi)
+# Currently obsolete
 
-ce_type_L=QM
-ce_type_LS=QMMM
-ce_type_RLS=QMMM
+ce_type_L=MM
+ce_type_LS=MM
+ce_type_RLS=MM
 # If umbrella_sampling=false, then this setting should be the same as md_type (since the md files are copied)
 # Possible values: QMMM, MM, QM
+# Currently obsolete
 
-TD_cycle_type=hq
+TD_cycle_type=lambda
 # Possible options: hq, lambda
 # If using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the k_0 and k_1 files
 
-ntdsteps=2
+ntdsteps=1
 # The number TD windows
 # Minimal value: 1
 
-nbeads=2
+nbeads=1
 # Minimum value: 1
 # for MD simulation only (doesn't make sense for opt)
 
@@ -180,17 +182,17 @@ cell_dimensions_scaling_factor_RLS=2
 inputfolder_cp2k_opt_general_L=hqf.general.type1
 inputfolder_cp2k_md_general_L=hqf.general.type1
 inputfolder_cp2k_ce_general_L=hqf.general.type1
-inputfolder_cp2k_opt_specific_L=hqf.specific.QM_PM6_BOMD_L
-inputfolder_cp2k_md_specific_L=hqf.specific.QM_PM6_BOMD_L
-inputfolder_cp2k_ce_specific_L=hqf.specific.QM_PM6_BOMD_L
+inputfolder_cp2k_opt_specific_L=hqf.specific.MM
+inputfolder_cp2k_md_specific_L=hqf.specific.MM
+inputfolder_cp2k_ce_specific_L=hqf.specific.MM
 
 # Ligand, solvent (LS) input folder
 inputfolder_cp2k_opt_general_LS=hqf.general.type1
 inputfolder_cp2k_md_general_LS=hqf.general.type1
 inputfolder_cp2k_ce_general_LS=hqf.general.type1
-inputfolder_cp2k_opt_specific_LS=hqf.specific.QMMM_PM6_BOMD
-inputfolder_cp2k_md_specific_LS=hqf.specific.QMMM_PM6_BOMD
-inputfolder_cp2k_ce_specific_LS=hqf.specific.QMMM_PM6_BOMD
+inputfolder_cp2k_opt_specific_LS=hqf.specific.MM
+inputfolder_cp2k_md_specific_LS=hqf.specific.MM
+inputfolder_cp2k_ce_specific_LS=hqf.specific.MM
 
 # Protein, ligand, solvent (RLS) input folder
 inputfolder_cp2k_opt_general_RLS=hqf.general.type1
@@ -213,12 +215,12 @@ inputfile_ipi_md_L=ipi.in.md.fast.xml
 inputfile_ipi_ce_L=ipi.in.ce.cp2k.xml
 
 # Ligand, solvent (LS) input files
-inputfile_ipi_md_LS=ipi.in.md.medium_iqi.xml
-inputfile_ipi_ce_LS=ipi.in.ce.cp2k_iqi.xml
+inputfile_ipi_md_LS=ipi.in.md.medium.xml
+inputfile_ipi_ce_LS=ipi.in.ce.cp2k.xml
 
 # Protein, ligand, solvent (RLS) input files
-inputfile_ipi_md_RLS=ipi.in.md.medium_iqi.xml
-inputfile_ipi_ce_RLS=ipi.in.ce.cp2k_iqi.xml
+inputfile_ipi_md_RLS=ipi.in.md.slow.xml
+inputfile_ipi_ce_RLS=ipi.in.ce.cp2k.xml
 
 ipi_set_randomseed=true
 # Possible values: true, false
@@ -228,16 +230,17 @@ ipi_set_randomseed=true
 ****************************************************************************** i-QI *****************************************************************************
 
 # Ligand (L) input files
-inputfile_iqi_md_L=iqi.in.L.xml
-inputfile_iqi_constraints_L=iqi.in.constraints.L.xml
+inputfile_iqi_md_L=
+inputfile_iqi_constraints_L=
+# Usually not used because iqi is usually not used foro L only simulations
 
 # Ligand, solvent (LS) input files
 inputfile_iqi_md_LS=iqi.in.LS.xml
-inputfile_iqi_constraints_LS=iqi.in.constraints.LS.xml
+inputfile_iqi_constraints_LS=iqi.in.sub.constraints.LS.xml
 
 # Protein, ligand, solvent (RLS) input files
 inputfile_iqi_md_RLS=iqi.in.RLS.xml
-inputfile_iqi_constraints_RLS=iqi.in.constraints.RLS.xml
+inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 
 *********************************************************************** Cross-Evaluations ***********************************************************************
@@ -264,9 +267,9 @@ fec_stride_RLS=1
 # The snaphot folder in the cross evaluation folders are indexed starting by 1
 
 temperature=300
-C_absolute_tolerance=0.01
-delta_F_min=3250
-delta_F_max=3270
+C_absolute_tolerance=1
+delta_F_min=-10000
+delta_F_max=10000
 
 
 ************************************************************************ Parallelization ************************************************************************
@@ -281,12 +284,12 @@ ncpus_cp2k_ce_L=1
 ncpus_cp2k_ce_LS=1
 ncpus_cp2k_ce_RLS=1
 
-fes_opt_parallel_max_L=30
-fes_opt_parallel_max_LS=30
-fes_opt_parallel_max_RLS=30
-fes_md_parallel_max_L=100
-fes_md_parallel_max_LS=100
-fes_md_parallel_max_RLS=100
+fes_opt_parallel_max_L=10
+fes_opt_parallel_max_LS=10
+fes_opt_parallel_max_RLS=10
+fes_md_parallel_max_L=10
+fes_md_parallel_max_LS=10
+fes_md_parallel_max_RLS=10
 fes_ce_parallel_max_L=1
 fes_ce_parallel_max_LS=1
 fes_ce_parallel_max_RLS=1

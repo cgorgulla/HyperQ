@@ -95,6 +95,11 @@ if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
     #MATCH.pl -ExitifNotInitiated 0 -ExitifNotTyped 0 -ExitifNotCharged 0 ${ligand_basename}_unique.pdb
     #obabel -ipdb ${ligand_basename}_unique.pdb -osdf -O ${ligand_basename}_unique.sdf   # because of the bond orders,but that was because of the missing hydrogens
     MATCH.pl -forcefield top_all36_cgenff_new -ExitifNotInitiated 0 ${ligand_basename}_unique.pdb
+
+    # Patching the prm file of MATCH
+    # MATCH does not add the END statement which is needed by CP2K (in particular when joining multiple parameter files)
+    echo "END" >> ${ligand_basename}_unique.prm
+
     mv top_${ligand_basename}_unique.rtf protein_ligand.rtf
     mv ${ligand_basename}_unique.pdb ${ligand_basename}_unique_typed.pdb
     mv ${ligand_basename}_unique.prm ${ligand_basename}_unique_typed.prm
@@ -110,8 +115,13 @@ echo
 # Creating the joint parameter file ligand
 script_dir=$(dirname $0)
 cp ${script_dir}/../common/charmm36/par_all36_prot_solvent.prm ./system_complete.prm
+cat ${script_dir}/../common/charmm36/par_all36_cgenff.prm >> system_complete.prm
 cat ${ligand_basename}_unique_typed.prm >> system_complete.prm
-echo "END" >> system_complete.prm
+
+# Some parameter files seem to contain the section keyword IMPROPERS instead of IMPROPER, but CP2K only understands the latter)
+sed -i "s/^IMPROPERS/IMPROPER/g" system_complete.prm
+# Removing any return statements (from Charmm stream files)
+sed -i "/return/d" system_complete.prm
 
 # Waterbox generation
 echo -e "\n *** Preparing the joint ligand system (prepare_waterbox_ligand.sh) ***"
