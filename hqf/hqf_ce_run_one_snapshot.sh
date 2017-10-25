@@ -37,7 +37,7 @@ error_response_std() {
     echo
     echo
 }
-trap 'error_response_std $LINENO' ERR
+trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
 # Exit cleanup
 cleanup_exit() {
@@ -76,7 +76,7 @@ cleanup_exit() {
         pkill -9 -P $$ || true
     " || true
 }
-trap "cleanup_exit" SIGINT SIGQUIT SIGTERM EXIT
+trap "cleanup_exit" EXIT
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"

@@ -54,7 +54,7 @@ error_response_std() {
     echo "Error: Cannot find the input-files directory..."
     exit 1
 }
-trap 'error_response_std $LINENO' ERR
+trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
 # Exit cleanup
 cleanup_exit() {

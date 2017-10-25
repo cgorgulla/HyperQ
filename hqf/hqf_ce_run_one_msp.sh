@@ -54,7 +54,7 @@ error_response_std() {
     echo "Error: Cannot find the input-files directory..."
     exit 1
 }
-trap 'error_response_std $LINENO' ERR
+trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
 clean_up() {
 
@@ -79,7 +79,7 @@ clean_up() {
         pkill -9 -P $$ || true
     " || true
 }
-trap 'clean_up' SIGINT SIGQUIT SIGTERM EXIT
+trap 'clean_up' EXIT
 
 # Verbosity
 verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -98,6 +98,7 @@ fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../i
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Getting the energy eval folders
 if [ "${TD_cycle_type}" == "hq" ]; then
@@ -137,7 +138,7 @@ for crosseval_folder in ${crosseval_folder}; do
             cd ${snapshot_folder}/
             echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
             trap '' ERR
-            hqf_ce_run_one_snapshot.sh &
+            ${command_prefix_ce_run_one_snapshot} hqf_ce_run_one_snapshot.sh &
             pid=$!
             pids[i]=$pid
             trap 'error_response_std $LINENO' ERR

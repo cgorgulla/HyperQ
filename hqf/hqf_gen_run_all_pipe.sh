@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage infomation
-usage="Usage: hq_gen_run_all_pipe.sh <subsystem> <pipeline_type> <maximum parallel pipes>
+usage="Usage: hq_gen_run_all_pipe.sh <subsystem> <pipeline_type> <maximum parallel pipes> [<sim_index_range>]
 
 The script has to be run in the root folder.
 
@@ -23,6 +23,8 @@ The pipeline can be composed of:
   _allce_ : equals _prc_rce_
   _allfec_: equals _prf_rfe_ppf_
   _all_   : equals _allopt_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
+
+<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1.
 "
 
 #Checking the input arguments
@@ -33,7 +35,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "3" ]; then
+if [[ "$#" -ne "3" ]] && [[ "$#" -ne "4" ]]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
@@ -60,7 +62,7 @@ user_abort() {
     sleep 10
     exit 1
 }
-trap 'user_abort' SIGINT
+trap 'user_abort' SIGINT SIGQUIT SIGTERM
 
 # Standard error response 
 error_response_std() {
@@ -112,16 +114,21 @@ fi
 subsystem=${1}
 pipeline_type=${2}
 maximum_parallel_pipes=${3}
+if [ -z "${4}" ]; then
+    sim_index_range="all"
+else
+    sim_index_range="${4}"
+fi
 
 # Printing information
 echo -e "\n ***** Running one pipeline (${pipeline_type}) for each in input-folder/systems where the subsystem is ${subsystem} *****"
 
 # Loop for each system
-for system in $(ls -v input-files/systems); do
+for msp in $(find input-files/mappings/ -type f -maxdepth 1 -name "*_*" | awk -F '/' '{print $3}'); do
 
     while [ "$(jobs | wc -l)" -ge "${maximum_parallel_pipes}" ]; do
         jobs
         sleep 1.$RANDOM
     done;
-    hqf_gen_run_one_pipe.sh "${system}" "${subsystem}" "${pipeline_type}" &
+    hqf_gen_run_one_pipe.sh "${msp}" "${subsystem}" "${pipeline_type}" &
 done

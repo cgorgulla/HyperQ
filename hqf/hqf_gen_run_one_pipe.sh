@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage infomation
-usage="Usage: hqf_gen_run_one_pipe.sh <msp_name> <subsystem> <pipeline_type>
+usage="Usage: hqf_gen_run_one_pipe.sh <msp_name> <subsystem> <pipeline_type> [<sim_index_range>]
 
 The script has to be run in the root folder.
 
@@ -24,6 +24,8 @@ The pipeline can be composed of:
   _allce_ : equals _prc_rce_
   _allfec_: equals _prf_rfe_ppf_
   _all_   : equals _allopt_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
+
+<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1.
 "
 
 # Checking the input arguments
@@ -34,7 +36,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "3" ]; then
+if [[ "$#" -ne "3" ]] && [[ "$#" -ne "4" ]]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
@@ -167,7 +169,11 @@ runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '='
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 export HQF_STARTDATE
-
+if [ -z "${4}" ]; then
+    sim_index_range="all"
+else
+    sim_index_range="${4}"
+fi
 
 
 # Removing old  file
@@ -196,13 +202,11 @@ fi
 
 # Running the optimizations
 if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"*  ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-
     if [ -d runtime/pids/${msp_name}_${subsystem}/opt ]; then
         rm -r runtime/pids/${msp_name}_${subsystem}/opt
     fi
-
     cd opt/${msp_name}/${subsystem}
-    hqf_opt_run_one_msp.sh 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_run_one_msp
+    hqf_opt_run_one_msp.sh ${sim_index_range} 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi 
@@ -227,7 +231,7 @@ fi
 # Running the md simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd md/${msp_name}/${subsystem}
-    hqf_md_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_md_run_one_msp
+    hqf_md_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_md_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi
