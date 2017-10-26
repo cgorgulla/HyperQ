@@ -257,10 +257,10 @@ while true; do
     for bead_folder in $(ls -v cp2k/); do
         # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
-            pseudo_error_count="$( { grep -E "invalid memory reference" cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
+            pseudo_error_count="$( { grep -E "invalid memory reference | corrupted | Caught" cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
             if [ "${pseudo_error_count}" -ge "1" ]; then
                 echo " * The MD simulation seems to have completed."
-                break
+                break 2
             fi
         fi
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
@@ -268,13 +268,17 @@ while true; do
             if [ ${error_count} -ge "1" ]; then
                 set +o pipefail
                 backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.run${run}.err | grep -v Backtrace | wc -l)"
+                socket_error_count="$(grep -A 100 socket cp2k/${bead_folder}/cp2k.out.run${run}.err | wc -l)"
                 set -o pipefail
                 if [ "${backtrace_length}" -ge "1" ]; then
-                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err"
+                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err."
+                    exit 1
+                elif [ "${socket_error_count}" -ge "1" ]; then
+                    echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err related to the socket."
                     exit 1
                 else
                     echo " * The MD simulation seems to have completed."
-                    break
+                    break 2
                 fi
             fi
         fi
@@ -296,11 +300,11 @@ while true; do
             timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
             if [ "${timeDiff}" -ge "${md_timeout}" ]; then
                 echo " * i-PI seems to have completed the MD simulation."
-                break
+                break 2
             fi
         fi
     fi
 
     # Sleeping before next round
-    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
+    sleep 1 || true   # true because the script might be terminated while sleeping, which would result in an error
 done
