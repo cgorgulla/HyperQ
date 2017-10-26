@@ -152,7 +152,7 @@ while true; do
     # Checking for memory error - happens often at the end of runs it seems, thus we treat it as a successful run
     if [ -f cp2k.out.err ]; then
         #pseudo_error_count="$( { grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true; } | wc -l)"
-        pseudo_error_count="$( { grep -E "invalid memory reference" cp2k.out.err || true; } | wc -l)"
+        pseudo_error_count="$( { grep -E "invalid memory reference | corrupted double-linked | Caught" cp2k.out.err || true; } | wc -l)"
         if [ "${pseudo_error_count}" -ge "1" ]; then
             echo " * CP2K seems to have completed the optimization."
             break
