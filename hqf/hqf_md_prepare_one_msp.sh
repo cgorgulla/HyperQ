@@ -121,32 +121,10 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     (( systemID += 1 ))
 done
 cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
+cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
-
-# Getting the cell size in the cp2k input files
-line=$(grep CRYST1 system1.pdb)
-IFS=' ' read -r -a lineArray <<< "$line"
-A=${lineArray[1]}
-B=${lineArray[2]}
-C=${lineArray[3]}
-
-# Computing the GMAX values for CP2K
-GMAX_A=${A/.*}
-GMAX_B=${B/.*}
-GMAX_C=${C/.*}
-GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
-GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
-GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
-for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
-    mod=$((${value}%2))
-    if [ "${mod}" == "0" ]; then
-        eval ${value}_odd=$((${value}+1))
-    else
-        eval ${value}_odd=$((${value}))
-    fi
-done
 
 # Preparing the individual md folders for each thermodynamic state
 if [ "${TD_cycle_type}" == "hq" ]; then
@@ -162,6 +140,29 @@ if [ "${TD_cycle_type}" == "hq" ]; then
         md_folder="md.${bead_configuration}"
         k_stepsize=$(echo "1 / $ntdsteps" | bc -l)
         echo -e "\n * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+
+        # Getting the cell size in the cp2k input files
+        line=$(grep CRYST1 system.${bead_configuration}.eq.pdb)
+        IFS=' ' read -r -a lineArray <<< "$line"
+        A=${lineArray[1]}
+        B=${lineArray[2]}
+        C=${lineArray[3]}
+
+        # Computing the GMAX values for CP2K
+        GMAX_A=${A/.*}
+        GMAX_B=${B/.*}
+        GMAX_C=${C/.*}
+        GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
+        GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
+        GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
+        for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
+            mod=$((${value}%2))
+            if [ "${mod}" == "0" ]; then
+                eval ${value}_odd=$((${value}+1))
+            else
+                eval ${value}_odd=$((${value}))
+            fi
+        done
 
         # Checking if the MD folder already exists
         if [[ "${md_continue^^}" == "TRUE" ]]; then
@@ -185,7 +186,7 @@ if [ "${TD_cycle_type}" == "hq" ]; then
                     # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
                     # We do not distinguish the cases with an if statement because this way is more robust
                     sed -i "/momenta/d" ipi/ipi.in.main.xml
-                    sed -i "s|<file.*opt.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                    sed -i "s|<file.*eq.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                     # If the previous run was started from a restart file, we only need to update the checkpoint tag
                     sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
 
@@ -230,7 +231,7 @@ if [ "${TD_cycle_type}" == "hq" ]; then
                 elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
                     cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
                 else
-                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    echo "Error: The input file main.eq.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
                     exit 1
                 fi
                 # Copying the sub files
@@ -302,14 +303,11 @@ if [ "${TD_cycle_type}" == "hq" ]; then
             sed -i "s|subsystem_folder|../..|g" ${md_folder}/iqi/iqi.in.main.xml
         fi
 
-        # Copying the geo-opt coordinate files
-        cp ../../../opt/${msp_name}/${subsystem}/system.${bead_configuration}.opt.pdb ./
-
     done
 
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
-    # Checking if the CP2K opt input file contains a lambda variable
+    # Checking if the CP2K eq input file contains a lambda variable
     echo -n " * Checking if the lambda_value variable is present in the CP2K md input file... "
     if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ]; then
         lambdavalue_count="$(grep -c lambda_value ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda )"
@@ -321,7 +319,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     fi
     if  [ ! "${lambdavalue_count}" -ge "1" ]; then
         echo "Check failed"
-        echo -e "\n * Error: The CP2K optimization input file does not contain the lambda_value variable. Exiting...\n\n"
+        echo -e "\n * Error: The CP2K equilibration input file does not contain the lambda_value variable. Exiting...\n\n"
         echo "" > runtime/error
         exit 1
     fi
@@ -337,6 +335,29 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         lambda_configuration=lambda_${lambda_current}
         md_folder="md.lambda_${lambda_current}"
         echo -e "\n * Preparing the files and directories for the fes with lambda-configuration ${lambda_configuration}"
+
+        # Getting the cell size in the cp2k input files
+        line=$(grep CRYST1 system.${lambda_configuration}.eq.pdb)
+        IFS=' ' read -r -a lineArray <<< "$line"
+        A=${lineArray[1]}
+        B=${lineArray[2]}
+        C=${lineArray[3]}
+
+        # Computing the GMAX values for CP2K
+        GMAX_A=${A/.*}
+        GMAX_B=${B/.*}
+        GMAX_C=${C/.*}
+        GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
+        GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
+        GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
+        for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
+            mod=$((${value}%2))
+            if [ "${mod}" == "0" ]; then
+                eval ${value}_odd=$((${value}+1))
+            else
+                eval ${value}_odd=$((${value}))
+            fi
+        done
 
         # Checking if the MD folder already exists
         if [[ "${md_continue^^}" == "TRUE" ]]; then
@@ -359,7 +380,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
                     # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
                     # We do not distinguish the cases with an if statement because this way is more robust
                     sed -i "/momenta/d" ipi/ipi.in.main.xml
-                    sed -i "s|<file.*opt.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                    sed -i "s|<file.*eq.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                     # If the previous run was started from a restart file, we only need to update the checkpoint tag
                     sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
 
@@ -460,9 +481,6 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
             cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
             sed -i "s|subsystem_folder|../..|g" ${md_folder}/iqi/iqi.in.main.xml
         fi
-
-        # Copying the geo-opt coordinate files
-        cp ../../../opt/${msp_name}/${subsystem}/system.${lambda_configuration}.opt.pdb ./
 
     done
 fi

@@ -1,27 +1,40 @@
 &GLOBAL
   PROJECT system
-  RUN_TYPE geo_opt
+  RUN_TYPE md
   PRINT_LEVEL medium
 &END global
 
 &MOTION
-  &GEO_OPT
-    MAX_ITER 500
-    OPTIMIZER lbfgs
-  &END GEO_OPT
+  &MD
+    ENSEMBLE NPT_I
+    STEPS 2000
+    TIMESTEP 1.0
+    TEMPERATURE 300
+    &BAROSTAT
+      PRESSURE 1.0
+      TIMECON [fs] 200.0
+    &END BAROSTAT
+    &THERMOSTAT
+      TYPE NOSE
+      REGION molecule
+      &NOSE
+        TIMECON [fs] 200.0
+      &END
+    &END
+  &END MD
   &PRINT
     &TRAJECTORY on
       FORMAT pdb
       FILENAME =cp2k.out.trajectory.pdb
       &EACH
-        GEO_OPT 1
+        MD 1000
       &END EACH
     &END TRAJECTORY
   &END PRINT
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS
-  FORCE_EVAL_ORDER 2 3 4 5
+  FORCE_EVAL_ORDER 2 3
   MULTIPLE_SUBSYS true
 &END
 
@@ -35,26 +48,22 @@
       # b: H2d  : Hamiltonian of system 2 dummies
       # c: H1d  : Hamiltonian of system 1 dummies
       # d: H2   : Hamltionian of system 2
-      VARIABLES a b c d
-      MIXING_FUNCTION (1-lambda_value)*(a+b)+lambda_value*(c+d)
+      VARIABLES c d
+      MIXING_FUNCTION c+d
     &END
-    @include subsystem_folder/cp2k.in.mapping.double
+    @include subsystem_folder/cp2k.in.mapping.single
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.a1c1.pdb
+      COORD_FILE_NAME subsystem_folder/system.subconfiguration.opt.pdb
     &END TOPOLOGY
     &CELL
       ABC cell_dimensions_full_rounded
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL
-
-@include cp2k.in.sub.forces.H1
-
-@include cp2k.in.sub.forces.H2d
 
 @include cp2k.in.sub.forces.H1d
 

@@ -71,11 +71,11 @@ prepare_restart() {
     inputfile_ipi_ce=$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
     if [ "${TD_cycle_type}" == "hq" ]; then
         if [ "${evalstate}" == "endstate" ]; then
-            bead_configuration_local="${bead_configuration_endstate}"
+            subconfiguration_local="${bead_configuration_endstate}"
             bead_count1_local=${bead_count1_endstate}
             bead_count2_local=${bead_count2_endstate}
         elif [[ "${evalstate}" == "initialstate" ]]; then
-            bead_configuration_local="${bead_configuration_initialstate}"
+            subconfiguration_local="${bead_configuration_initialstate}"
             bead_count1_local=${bead_count1_initialstate}
             bead_count2_local=${bead_count2_initialstate}
         else
@@ -85,15 +85,41 @@ prepare_restart() {
 
     elif [ "${TD_cycle_type}" == "lambda" ]; then
         if [ "${evalstate}" == "endstate" ]; then
-            lambda_configuration_local="${lambda_configuration_endstate}"
+            subconfiguration_local="${lambda_configuration_endstate}"
             lambda_currenteval_local="${lambda_endstate}"
         elif [[ "${evalstate}" == "initialstate" ]]; then
-            lambda_configuration_local="${lambda_configuration_initialstate}"
+            subconfiguration_local="${lambda_configuration_initialstate}"
             lambda_currenteval_local="${lambda_initialstate}"
         fi
     fi
 
-    # Creating up the folders
+    # Getting the cell size for the CP2K input files. We might need to use the potential source values in order to evaluate at the same potential (same GMAX values)
+    # Coordinates should not matter since they come from i-PI
+    trap '' ERR
+    line="$(tail -n +${restartID} ../../../md/${msp_name}/${subsystem}/${md_folder_coordinate_source}/ipi/ipi.out.all_runs.cell | head -n 1)"
+    trap 'error_response_std $LINENO' ERR
+    IFS=' ' read -r -a lineArray <<< "$line"
+    # Not rounding up since the values have already been rounded up before the MD simulation and this is just a single force evaluation
+    A=$(awk -v x="${lineArray[0]}" 'BEGIN{printf("%9.1f", x)}')
+    B=$(awk -v y="${lineArray[1]}" 'BEGIN{printf("%9.1f", y)}')
+    C=$(awk -v z="${lineArray[2]}" 'BEGIN{printf("%9.1f", z)}')
+    # Computing the GMAX values for CP2K
+    GMAX_A=${A/.*}
+    GMAX_B=${B/.*}
+    GMAX_C=${C/.*}
+    GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
+    GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
+    GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
+    for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
+        mod=$((${value}%2))
+        if [ "${mod}" == "0" ]; then
+            eval ${value}_odd=$((${value}+1))
+        else
+            eval ${value}_odd=$((${value}))
+        fi
+    done
+
+    # Creating the folders
     mkdir -p ${crosseval_folder}/snapshot-${restartID}
     mkdir -p ${crosseval_folder}/snapshot-${restartID}/ipi
     mkdir -p ${crosseval_folder}/snapshot-${restartID}/cp2k
@@ -153,7 +179,7 @@ prepare_restart() {
             done
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration/${lambda_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/lambda_value/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
 
         elif [ "${TD_cycle_type}" ==  "hq" ]; then
@@ -189,7 +215,7 @@ prepare_restart() {
             done
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration/${bead_configuration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restartID}/cp2k/bead-${bead}/cp2k.in.*
         fi
 
         # Adjusting the CP2K files
@@ -292,34 +318,11 @@ fi
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${ce_type} ${md_programs}
 
-# Copying the geo-opt coordinate files (not really needed, just for CP2K as some initial coordinate files which are not really used)
-cp ../../../md/${msp_name}/${subsystem}/system.*.opt.pdb ./
+# Copying the equilibration coordinate files (just for CP2K as some initial coordinate files which are not really used by CP2K)
+cp ../../../md/${msp_name}/${subsystem}/system.*.eq.pdb ./
 
 # Creating the list of intermediate states
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
-
-# Getting the cell size for the cp2k input files
-line=$(grep CRYST1 system1.pdb)
-IFS=' ' read -r -a lineArray <<< "$line"
-A=${lineArray[1]}
-B=${lineArray[2]}
-C=${lineArray[3]}
-
-# Computing the GMAX values for CP2K
-GMAX_A=${A/.*}
-GMAX_B=${B/.*}
-GMAX_C=${C/.*}
-GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
-GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
-GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
-for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
-    mod=$((${value}%2))
-    if [ "${mod}" == "0" ]; then
-        eval ${value}_odd=$((${value}+1))
-    else
-        eval ${value}_odd=$((${value}))
-    fi
-done
 
 if [ "${TD_cycle_type}" = "hq" ]; then
 
@@ -413,11 +416,21 @@ for window_no in $(seq 1 $((nsim-1)) ); do
         counter=$((counter + 1))
     done
 
-    # Uniting all the ipi property files
+    # Uniting all the ipi property files (previous all_runs files have already been cleaned)
     property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/*properties)"
     cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/ipi.out.all_runs.properties
     property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/*properties)"
     cat ${property_files} | grep -v "^#" | grep -v "^ *0.00000000e+00" > ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ipi.out.all_runs.properties
+
+    # Uniting all the ipi cell files (previous all_runs files have already been cleaned)
+    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/*cell)"
+    for cell_file in ${cell_files}; do
+        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/ipi.out.all_runs.cell
+    done
+    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/*cell)"
+    for cell_file in ${cell_files}; do
+        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ipi.out.all_runs.cell
+    done
 
     # Loop for preparing the restart files in md_folder 1 (forward evaluation)
     echo -e "\n * Preparing the snapshots for the fortward cross-evaluation."

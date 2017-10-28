@@ -172,7 +172,7 @@ while read line; do
         if [ "${umbrella_sampling^^}" == "FALSE" ]; then
 
             # Extracting the free energies of system 1 evaluated at system 1
-            energy_bw_U1_U1="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+            energy_bw_U1_U1="$(awk '{print $4}' ${md_folder}/${md_folder_1}/ipi/ipi.out.all_runs.properties | tail -n +${snapshot_ID} | head -n 1)"
 
             # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
             if [[ "${energy_bw_U1_U2}" == *[0-9]* ]] && [[ "${energy_bw_U1_U1}" == *[0-9]* ]]; then
@@ -235,7 +235,7 @@ while read line; do
         if [ "${umbrella_sampling^^}" == "FALSE" ]; then
 
             # Extracting the free energies of system 2 evaluated at system 2
-            energy_bw_U2_U2="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+            energy_bw_U2_U2="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n +${snapshot_ID} | head -n 1)"
 
             # Checking if the energies were computed and extracted successfully, which is usually the case if there is a number in the value
             if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]]; then
@@ -252,7 +252,7 @@ while read line; do
 
                 # Extracting the energy values
                 energy_bw_U2_U2="$(grep -v "^#" ${ce_folder}/${md_folder_2}-${md_folder_2}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
-                energy_bw_U2_U2biased="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_ID} | head -n 1)"
+                energy_bw_U2_U2biased="$(awk '{print $4}' ${md_folder}/${md_folder_2}/ipi/ipi.out.all_runs.properties | tail -n +${snapshot_ID} | head -n 1)"
 
             else
                 echo "Warning: The postprocessing of snapshot ${snapshot_ID} in the backward direction of TD window ${TD_window} will be skipped due non-existent stationary snapshot files."

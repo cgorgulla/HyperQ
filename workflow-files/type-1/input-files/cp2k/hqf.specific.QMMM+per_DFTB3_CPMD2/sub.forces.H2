@@ -61,9 +61,10 @@
     &END SCF
     &POISSON
       &EWALD
-       EWALD_TYPE spme
-       GMAX cell_dimensions_full_rounded
-       O_SPLINE 6
+        EWALD_TYPE spme
+        ALPHA 0.5
+        GMAX cell_dimensions_scaled_rounded
+        O_SPLINE 6
       &END EWALD
     &END POISSON
   &END DFT  
@@ -83,8 +84,8 @@
     &POISSON
       &EWALD
         EWALD_TYPE spme
-        ALPHA 1
-        GMAX cell_dimensions_full_rounded
+        ALPHA 0.5
+        GMAX cell_dimensions_scaled_rounded
         O_SPLINE 6
       &END EWALD
     &END POISSON
@@ -115,8 +116,8 @@
       &POISSON
         &EWALD
           EWALD_TYPE spme
-          ALPHA 1.0
-          GMAX cell_dimensions_full_rounded
+          ALPHA 0.5
+          GMAX cell_dimensions_scaled_rounded
           O_SPLINE 6
         &END EWALD
       &END POISSON

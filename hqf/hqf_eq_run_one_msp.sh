@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
 # Usage infomation
-usage="Usage: hqf_opt_run_one_msp.sh <opt_index_range>
+usage="Usage: hqf_eq_run_one_msp.sh <eq_index_range>
 
-<opt_index_range> has to be either set to 'all', or to firstindex_lastindex. The index starts at 1.
+<eq_index_range> has to be either set to 'all', or to firstindex_lastindex. The index starts at 1.
 
 Has to be run in the simulation main folder."
 
@@ -112,62 +112,62 @@ if [ "${verbosity}" = "debug" ]; then
 fi
 
 # Printing some information
-echo -e "\n *** Running the geometry optimizations ${1}(hq_opt_run_one_msp.sh)"
+echo -e "\n *** Running the equilibrations ${1} (hq_eq_run_one_msp.sh)"
 
 # Variables
-opt_index_range="${1}"
+eq_index_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-fes_opt_parallel_max="$(grep -m 1 "^fes_opt_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-command_prefix_opt_run_one_opt="$(grep -m 1 "^command_prefix_opt_run_one_opt=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fes_eq_parallel_max="$(grep -m 1 "^fes_eq_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+command_prefix_eq_run_one_eq="$(grep -m 1 "^command_prefix_eq_run_one_eq=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 
 # Getting the MD folders
 if [ "${TD_cycle_type}" == "hq" ]; then
-    opt_folders="$(ls -vrd opt.*)"
+    eq_folders="$(ls -vrd eq.*)"
 elif [ "${TD_cycle_type}" == "lambda" ]; then
-    opt_folders="$(ls -vd opt.*)"
+    eq_folders="$(ls -vd eq.*)"
 fi
 
 # Setting the md indeces
-if [ "${opt_index_range}" == "all" ]; then
-    opt_index_first=1
-    opt_index_last=$(echo ${opt_folders[@]} | wc -w)
+if [ "${eq_index_range}" == "all" ]; then
+    eq_index_first=1
+    eq_index_last=$(echo ${eq_folders[@]} | wc -w)
 else
-    opt_index_first=${opt_index_range/_*}
-    opt_index_last=${opt_index_range/*_}
-    if ! [ "${opt_index_first}" -eq "${opt_index_first}" ]; then
+    eq_index_first=${eq_index_range/_*}
+    eq_index_last=${eq_index_range/*_}
+    if ! [ "${eq_index_first}" -eq "${eq_index_first}" ]; then
         echo " * Error: The variable md_index_first is not set correctly. Exiting..."
         exit 1
     fi
-    if ! [ "${opt_index_last}" -eq "${opt_index_last}" ]; then
+    if ! [ "${eq_index_last}" -eq "${eq_index_last}" ]; then
         echo " * Error: The variable md_index_last is not set correctly. Exiting..."
         exit 1
     fi
 fi
 
-# Running the geopts
+# Running the geeqs
 i=1
-for folder in ${opt_folders}; do
+for folder in ${eq_folders}; do
 
-    # Checking if this opt should be skipped
-    if [[ "${i}" -lt "${opt_index_first}" ]] ||  [[ "${i}" -gt "${opt_index_last}" ]]; then
+    # Checking if this eq should be skipped
+    if [[ "${i}" -lt "${eq_index_first}" ]] ||  [[ "${i}" -gt "${eq_index_last}" ]]; then
         echo -e " * Skipping the md simulation ${folder} because the md_index is not in the accepted range."
         i=$((i+1))
         continue
     fi
 
-    while [ "$(jobs | wc -l)" -ge "${fes_opt_parallel_max}" ]; do 
+    while [ "$(jobs | wc -l)" -ge "${fes_eq_parallel_max}" ]; do
         sleep 1; 
     done;
-    if [ "${opt_programs}" == "cp2k" ]; then
+    if [ "${eq_programs}" == "cp2k" ]; then
         cd ${folder}/cp2k
     fi
-    echo -e " * Starting the optimization ${folder}"
-    ${command_prefix_opt_run_one_opt} hqf_opt_run_one_opt.sh &
+    echo -e " * Starting the eqimization ${folder}"
+    ${command_prefix_eq_run_one_eq} hqf_eq_run_one_eq.sh &
     pids[i]=$!
-    echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
+    echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
     i=$((i+1))
     cd ../..
 done
@@ -177,4 +177,4 @@ for pid in ${pids[@]}; do        # just the number of arguments matters
     wait -n
 done
 
-echo -e " * All optimizations have been completed."
+echo -e " * All equilibrations have been completed."

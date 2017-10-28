@@ -14,19 +14,13 @@
     <latency>0.01</latency>
     <timeout>5000</timeout>
   </ffsocket>
-  <ffsocket mode='unix' name='iqi' pbc="true">
-    <address> address.iqi </address>
-    <latency>0.01</latency>
-    <timeout>5000</timeout>
-  </ffsocket>
   <system>
     <initialize nbeads='1'>
-      <file mode='pdb'> subsystem_folder/system.subconfiguration.opt.pdb</file>
+      <file mode='pdb'> subsystem_folder/system.subconfiguration.eq.pdb</file>
       <momenta mode="thermal" units="kelvin"> 300 </momenta>
     </initialize>
     <forces>
       <force forcefield='cp2k'/>
-      <force forcefield='iqi'/>
     </forces>
     <ensemble>
       <temperature units="kelvin"> 300 </temperature>

@@ -68,7 +68,7 @@ mcs_time=1
 
 
 *****************************************************************************************************************************************************************
-*************************************************************   Simulation Settings (OPT, MD, CE)  **************************************************************
+*************************************************************   Simulation Settings (OPT, EQ, MD, CE)  **************************************************************
 *****************************************************************************************************************************************************************
 
 **************************************************************************** General ****************************************************************************
@@ -85,6 +85,17 @@ opt_programs_RLS=cp2k
 opt_type_L=MM
 opt_type_LS=MM
 opt_type_RLS=MM
+# Possible values: MM, QM, QMMM
+# Currently obsolete
+
+eq_programs_L=cp2k
+eq_programs_LS=cp2k
+eq_programs_RLS=cp2k
+# possible: cp2k
+
+eq_type_L=MM
+eq_type_LS=MM
+eq_type_RLS=MM
 # Possible values: MM, QM, QMMM
 # Currently obsolete
 
@@ -117,14 +128,21 @@ ntdsteps=1
 
 nbeads=1
 # Minimum value: 1
-# for MD simulation only (doesn't make sense for opt)
+# Is only used for MD simulation and CE
 
 opt_timeout_L=100
 opt_timeout_LS=100
 opt_timeout_RLS=100
 # Unit: seconds
 # This value is used to detect whether the optimization is completed by checking if the file is still changing or not, 
-# because sometimes a program (in particular CP2K is done but the program doesn't terminate, or CP2K fails and ipi doesn't quit)
+# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
+
+eq_timeout_L=100
+eq_timeout_LS=100
+eq_timeout_RLS=100
+# Unit: seconds
+# This value is used to detect whether the equilibration is completed by checking if the file is still changing or not,
+# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
 
 md_timeout_L=100
 md_timeout_LS=500
@@ -166,39 +184,49 @@ cell_dimensions_scaling_factor_RLS=2
 
 ****************************************************************************** CP2K *****************************************************************************
 
-# At least one of the two CP2K input folders for each GEO_OPT, MD and CE has to contain the following files:
-# When used for MD simulations:
-# * main.ipi.lambda
-# * main.ipi.k_0
-# * main.ipi.k_1
+# At least one of the two CP2K input folders for each GEO_OPT, EQ, MD and CE has to contain the following files:
 # When used for GEO_OPT:
 # * main.opt.lambda
 # * main.opt.k_0
 # * main.opt.k_1
-# Optional for both GEO_OPT, MD, and CE are files of the form sub.*
+# When used for EQ:
+# * main.eq.lambda
+# * main.eq.k_0
+# * main.eq.k_1
+# When used for MD simulations:
+# * main.ipi.lambda
+# * main.ipi.k_0
+# * main.ipi.k_1
+# Optional for GEO_OPT, EQ, MD, and CE are files of the form sub.*
 # Possible variables in the cp2k input files: cell_dimensions_full_rounded, cell_dimensions_half_rounded, cell_dimensions_odd_rounded, subconfiguration, lambda_value
 
 # Ligand (L) input folder
 inputfolder_cp2k_opt_general_L=hqf.general.type1
+inputfolder_cp2k_eq_general_L=hqf.general.type1
 inputfolder_cp2k_md_general_L=hqf.general.type1
 inputfolder_cp2k_ce_general_L=hqf.general.type1
 inputfolder_cp2k_opt_specific_L=hqf.specific.MM
+inputfolder_cp2k_eq_specific_L=hqf.specific.MM
 inputfolder_cp2k_md_specific_L=hqf.specific.MM
 inputfolder_cp2k_ce_specific_L=hqf.specific.MM
 
 # Ligand, solvent (LS) input folder
 inputfolder_cp2k_opt_general_LS=hqf.general.type1
+inputfolder_cp2k_eq_general_LS=hqf.general.type1
 inputfolder_cp2k_md_general_LS=hqf.general.type1
 inputfolder_cp2k_ce_general_LS=hqf.general.type1
 inputfolder_cp2k_opt_specific_LS=hqf.specific.MM
+inputfolder_cp2k_eq_specific_LS=hqf.specific.MM
 inputfolder_cp2k_md_specific_LS=hqf.specific.MM
 inputfolder_cp2k_ce_specific_LS=hqf.specific.MM
 
 # Protein, ligand, solvent (RLS) input folder
 inputfolder_cp2k_opt_general_RLS=hqf.general.type1
+inputfolder_cp2k_eq_general_RLS=hqf.general.type1
 inputfolder_cp2k_md_general_RLS=hqf.general.type1
 inputfolder_cp2k_ce_general_RLS=hqf.general.type1
 inputfolder_cp2k_opt_specific_RLS=hqf.specific.MM
+inputfolder_cp2k_eq_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_md_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_ce_specific_RLS=hqf.specific.MM
 
@@ -277,6 +305,9 @@ delta_F_max=10000
 ncpus_cp2k_opt_L=1
 ncpus_cp2k_opt_LS=1
 ncpus_cp2k_opt_RLS=1
+ncpus_cp2k_eq_L=1
+ncpus_cp2k_eq_LS=1
+ncpus_cp2k_eq_RLS=1
 ncpus_cp2k_md_L=1
 ncpus_cp2k_md_LS=1
 ncpus_cp2k_md_RLS=1
@@ -287,6 +318,9 @@ ncpus_cp2k_ce_RLS=1
 fes_opt_parallel_max_L=10
 fes_opt_parallel_max_LS=10
 fes_opt_parallel_max_RLS=10
+fes_eq_parallel_max_L=10
+fes_eq_parallel_max_LS=10
+fes_eq_parallel_max_RLS=10
 fes_md_parallel_max_L=10
 fes_md_parallel_max_LS=10
 fes_md_parallel_max_RLS=10
@@ -295,6 +329,7 @@ fes_ce_parallel_max_LS=1
 fes_ce_parallel_max_RLS=1
 
 command_prefix_opt_run_one_opt=bash
+command_prefix_eq_run_one_eq=bash
 command_prefix_md_run_one_md=bash
 command_prefix_ce_run_one_snapshot=bash
 
@@ -302,6 +337,3 @@ command_prefix_ce_run_one_snapshot=bash
 
 batchsystem=lsf
 # Supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
-
-
-

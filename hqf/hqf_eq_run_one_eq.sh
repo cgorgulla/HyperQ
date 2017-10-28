@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage infomation
-usage="Usage: hqf_opt_run_one_opt.sh
+usage="Usage: hqf_eq_run_one_eq.sh
 
-Has to be run in the opt root folder of the system."
+Has to be run in the eq root folder of the system."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -100,26 +100,26 @@ fi
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
-opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
-opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
+eq_programs=$(grep -m 1 "^eq_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
+eq_timeout=$(grep -m 1 "^eq_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
 system_name="$(pwd | awk -F '/' '{print     $(NF-3)}')"
 sim_counter=0
 
-# Running the optimization
+# Running the equilibration
 # CP2K
-if [[ "${opt_programs}" == "cp2k" ]] ;then
+if [[ "${eq_programs}" == "cp2k" ]] ;then
     # Cleaning the folder
     rm cp2k.out* 1>/dev/null 2>&1 || true
     rm system*  1>/dev/null 2>&1 || true
-    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_eq="$(grep -m 1 "^ncpus_cp2k_eq_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     ${cp2k_command} -e cp2k.in.main 1> cp2k.out.config 2> cp2k.out.err
-    export OMP_NUM_THREADS=${ncpus_cp2k_opt}
+    export OMP_NUM_THREADS=${ncpus_cp2k_eq}
     ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
     pid_cp2k=$!
     pids[sim_counter]=$pid_cp2k
     sim_counter=$((sim_counter+1))
-    echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
+    echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
     #echo "CP2K PID PPID: $pid $(ps -o ppid $pid | grep -o "[0-9]*")"
     #echo "Shell PID PPID: $$ $(ps -o ppid $$ | grep -o "[0-9]*")"
 
@@ -135,17 +135,10 @@ fi
 while true; do
 
     # Checking the condition of the ouptput files of CP2k
-    if [ -f cp2k.out.trajectory.pdb ]; then
-        timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
-        if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            echo " * CP2K seems to have completed the optimization."
-            break
-        fi
-    fi
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
-        if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            echo " * CP2K seems to have completed the optimization."
+        if [ "${timeDiff}" -ge "${eq_timeout}" ]; then
+            echo " * CP2K seems to have completed the equilibration."
             break
         fi
     fi
@@ -154,7 +147,7 @@ while true; do
         #pseudo_error_count="$( { grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true; } | wc -l)"
         pseudo_error_count="$( { grep -E "invalid memory reference" cp2k.out.err || true; } | wc -l)"
         if [ "${pseudo_error_count}" -ge "1" ]; then
-            echo " * CP2K seems to have completed the optimization."
+            echo " * CP2K seems to have completed the equilibration."
             break
         fi
     fi

@@ -62,7 +62,8 @@
     &POISSON
       &EWALD
        EWALD_TYPE spme
-       GMAX cell_dimensions_full_rounded
+       GMAX cell_dimensions_scaled_rounded
+       ALPHA 0.5
        O_SPLINE 6
       &END EWALD
     &END POISSON

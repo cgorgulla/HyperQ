@@ -7,26 +7,29 @@ The script has to be run in the root folder.
 
 The pipeline can be composed of:
  Elementy elements:
-  _pro_: prepare the optimization
-  _rop_: run the optimization
-  _ppo_: postprocess the optimization
-  _prm_: prepare md simulation
-  _rmd_: run md simulation
-  _prc_: prepare the crossevaluation
-  _rce_: run the crossevaluation
-  _prf_: prepare the free energy calculation
-  _rfe_: run the free energy calculation
-  _ppf_: postprocess the free energy calculation
+  _pro_: preparing the optimizations
+  _rop_: running the optimizations
+  _ppo_: postprocessing the optimizations
+  _pre_: preparing the equilibrations
+  _req_: running the equilibrations
+  _ppe_: postprocessing the equilibrations
+  _prm_: preparing md simulation
+  _rmd_: postprocessing md simulation
+  _prc_: preparing the crossevaluation
+  _rce_: postprocessing the crossevaluation
+  _prf_: preparing the free energy calculation
+  _rfe_: postprocessing the free energy calculation
+  _ppf_: postprocessing the free energy calculation
 
  Combined elements:
   _allopt_: equals _pro_rop_ppo_
+  _alleq_: equals _pre_req_ppe_
   _allmd_ : equals _prd_rmd_
   _allce_ : equals _prc_rce_
   _allfec_: equals _prf_rfe_ppf_
-  _all_   : equals _allopt_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
+  _all_   : equals _allopt_alleq_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
 
-<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1.
-"
+<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -194,7 +197,7 @@ fi
 # Logging the output of this script
 exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
-# Optimizations
+# Preparting the optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp
     check_error_indicators 1
@@ -215,6 +218,31 @@ fi
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd opt/${msp_name}/${subsystem}
     hqf_opt_pp_one_msp.sh 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_pp_one_msp
+    cd ../../../
+    check_error_indicators 1
+fi
+
+# Preparting the equilibrations
+if [[ "${pipeline_type}" == *"_pre_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
+    hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_eq_prepare_one_msp
+    check_error_indicators 1
+fi
+
+# Running the equilibrations
+if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"*  ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
+    if [ -d runtime/pids/${msp_name}_${subsystem}/eq ]; then
+        rm -r runtime/pids/${msp_name}_${subsystem}/eq
+    fi
+    cd eq/${msp_name}/${subsystem}
+    hqf_eq_run_one_msp.sh ${sim_index_range} 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_run_one_msp
+    cd ../../../
+    check_error_indicators 1
+fi
+
+# Postprocessing the equilibrations
+if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
+    cd eq/${msp_name}/${subsystem}
+    hqf_eq_pp_one_msp.sh 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_pp_one_msp
     cd ../../../
     check_error_indicators 1
 fi
