@@ -1,9 +1,14 @@
 hqf/__init__.py
 hqf/hqf_fec_run_bar.py
+hqf/hqf_fec_run_bar_DeltaU.py
+hqf/hqf_fec_run_bar_DeltaU_rfa.py
 hqf/hqf_fec_run_bar_ip.py
 hqf/hqf_fec_run_bar_ip_alt.py
+hqf/hqf_fec_run_bar_reweighting.py
+hqf/hqf_fec_run_bar_rfa.py
 hqf/hqf_fec_run_fep.py
 hyperq/__init__.py
+hyperq/bar (revere's conflicted copy 2017-09-30).py
 hyperq/bar.py
 hyperq/cp2k_dummies.py
 hyperq/fep.py
@@ -16,6 +21,8 @@ hyperq.egg-info/dependency_links.txt
 hyperq.egg-info/not-zip-safe
 hyperq.egg-info/top_level.txt
 tools/__init__.py
+tools/hqh_fec_plot_hist.py
+tools/hqh_fec_plot_two_hist.py
 tools/hqh_fec_prepare_cvalues.py
 tools/hqh_fes_prepare_cp2k_dummies.py
 tools/hqh_fes_prepare_cp2k_psf_dummy.py
