@@ -191,9 +191,10 @@ mkdir -p runtime
 mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Making sure the script is run in its own process group
-if [ "$$" != "$(pgid_from_pid $$)" ]; then
-    exec setsid "$(readlink -f "$0")" "$@"
-fi
+# Deactivated because the condition is true on the HLRN but the code causes an error: execvp: No such file or directory)
+#if [ "$$" != "$(pgid_from_pid $$)" ]; then
+#    exec setsid "$(readlink -f "$0")" "$@"
+#fi
 
 # Logging the output of this script
 exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})

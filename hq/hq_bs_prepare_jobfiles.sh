@@ -200,5 +200,9 @@ while IFS='' read -r command_task; do
     fi
 done < "${task_list}"
 
+# Setting the permissions
+chmod u+x batchsystem/job-files/main/*
+chmod u+x batchsystem/job-files/sub/*
+
 # Final information
 echo -e "\n * All job-files have been prepared.\n\n"
