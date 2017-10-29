@@ -2,6 +2,9 @@
   STRESS_TENSOR analytical
   METHOD fist
   &MM
+    &NEIGHBOR_LISTS
+      GEO_CHECK false
+    &END NEIGHBOR_LISTS
     &FORCEFIELD
       PARM_FILE_NAME subsystem_folder/system1.prm
       PARMTYPE chm
