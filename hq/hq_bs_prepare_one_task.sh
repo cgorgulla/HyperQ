@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hq_bs_prepare_one_task.sh <task_id> <command> <output filename>
+usage="Usage: hq_bs_prepare_one_task.sh <command> <output filename>
 
 Has to be run in the root folder.
-The output file (a task list) will be stored in batch-system/task-lists."
+
+<output file>: The task will be appended to the specified file. If this file does not exist yet, it will be created."
 
 # Cheking the input paras
 if [ "${1}" == "-h" ]; then
@@ -14,11 +15,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "3" ]; then
+if [ "$#" -ne "2" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 3"
+    echo "Number of expected arguments: 2"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -68,9 +69,8 @@ trap 'error_response_nonstd $LINENO' ERR
 set -o pipefail
 
 # Variables
-task_id="${1}"
-command="${2}"
-output_filename="${3}"
+command="${1}"
+output_filename="${2}"
 
 # Adding the task to the output file
-printf "%5s %s %s\n" "${task_id}" "${command}" >> batchsystem/task-lists/${output_filename}
+printf "%s\n" "${command}" >> ${output_filename}

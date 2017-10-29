@@ -169,6 +169,7 @@ pipeline_type="${3}"
 system1="${msp_name/_*}"
 system2="${msp_name/*_}"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
+command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '=' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 export HQF_STARTDATE
@@ -199,7 +200,7 @@ exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh
 
 # Preparting the optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp
     check_error_indicators 1
 fi
 
@@ -209,7 +210,7 @@ if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* 
         rm -r runtime/pids/${msp_name}_${subsystem}/opt
     fi
     cd opt/${msp_name}/${subsystem}
-    hqf_opt_run_one_msp.sh ${sim_index_range} 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi 
@@ -217,14 +218,14 @@ fi
 # Postprocessing the optimizations
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd opt/${msp_name}/${subsystem}
-    hqf_opt_pp_one_msp.sh 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_pp_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_pp_one_msp
     cd ../../../
     check_error_indicators 1
 fi
 
 # Preparting the equilibrations
 if [[ "${pipeline_type}" == *"_pre_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_eq_prepare_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem}  2>&1  | tee log-files/${date}/${msp_name}_${subsystem}/hqf_eq_prepare_one_msp
     check_error_indicators 1
 fi
 
@@ -234,7 +235,7 @@ if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"*  
         rm -r runtime/pids/${msp_name}_${subsystem}/eq
     fi
     cd eq/${msp_name}/${subsystem}
-    hqf_eq_run_one_msp.sh ${sim_index_range} 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi
@@ -242,7 +243,7 @@ fi
 # Postprocessing the equilibrations
 if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd eq/${msp_name}/${subsystem}
-    hqf_eq_pp_one_msp.sh 2>&1  | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_pp_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_pp_one_msp
     cd ../../../
     check_error_indicators 1
 fi
@@ -252,21 +253,21 @@ if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]
     if [ -d runtime/pids/${msp_name}_${subsystem}/md ]; then
         rm -r runtime/pids/${msp_name}_${subsystem}/md
     fi
-    hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp
     check_error_indicators 1
 fi
 
 # Running the md simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd md/${msp_name}/${subsystem}
-    hqf_md_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_md_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_md_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_md_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh
+    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh
     check_error_indicators 1
 fi
 
@@ -276,21 +277,21 @@ if [[ ${pipeline_type} == *"_rce_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]
         rm -r runtime/pids/${msp_name}_${subsystem}/ce
     fi
     cd ce/${msp_name}/${subsystem}
-    hqf_ce_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_ce_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_ce_run_one_msp
     cd ../../../
     check_error_indicators 1
 fi
 
 # Preparing the fec
 if [[ ${pipeline_type} == *"_prf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
-    hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_fec_prepare_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_fec_prepare_one_msp
     check_error_indicators 1
 fi
 
 # Running the fec
 if [[ ${pipeline_type} == *"_rfe_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_run_one_msp
     cd ../../../../
     check_error_indicators 1
 fi
@@ -298,7 +299,7 @@ fi
 # Running the fec
 if [[ ${pipeline_type} == *"_ppf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    hqf_fec_pp_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_pp_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_pp_one_msp
     cd ../../../../
     check_error_indicators 1
 fi

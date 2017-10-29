@@ -1,26 +1,22 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
-#
-# Description: LSF job file. 
-#
-# Revision history:
-# 2017-03-15  Created (version 8.1), based on the LSF tmplate
-# ---------------------------------------------------------------------------
 
-
-# LSF Settings
+# Slurm Settings
 ###############################################################################
 
-#BSUB -J runtimeletter-job_id_placeholder
-#BSUB -W 150:00
-#BSUB -R "rusage[mem=1000]"
-#BSUB -R "select[scratch2]"
-##BSUB -R "span[ptile=8]"
-#BSUB -n 20
-#BSUB -q mpi
-#BSUB -oo batchsystem/output-files/task-job_id_placeholder.job-%J.out           # File to which standard out will be written
-#BSUB -wt '5'
-#BSUB -wa 'USR1' 
+#SBATCH --job-name=runtimeletter-mainjob_id_placeholder
+#SBATCH --mail-user=cgorgulla@crystal.harvard.edu
+#SBATCH --mail-type=fail
+#SBATCH --time=00-01:00:00
+#SBATCH --mem-per-cpu=600
+#SBATCH --nodes=1
+#SBATCH --cpus-per-task=1
+#SBATCH --partition=main
+#SBATCH --output=batchsystem/output-files/job-mainjob_id_placeholder.main.%j.out           # File to which standard out will be written
+#SBATCH --error=batchsystem/output-files/job-mainjob_id_placeholder.main.%j.out            # File to which standard err will be written
+#SBATCH --signal=10@300 
+##SBATCH --constraint="scratch2"
+
 
 # Job Information
 ##################################################################################
@@ -33,9 +29,11 @@ echo "------------------------"
 env
 echo
 echo
-echo "Job infos by bjobs"
+echo
+echo "Job infos by scontrol"
 echo "------------------------"
-bjobs $LSB_JOBID
+scontrol show job $SLURM_JOB_ID
+
 
 # Running the Job - Screening of the Ligands
 ######################################################################
@@ -81,8 +79,11 @@ print_job_infos_end() {
 }
 
 # Work to be done by the job
-module load dev/openmpi-1.8.6
-command_placeholder
+
+#main_code_placeholder
+
+wait
+
 
 # Printing final information
 print_job_infos_end

@@ -1,22 +1,20 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------------------
 #
-# SGE Settings
+# PBS/Moab Settings
 ###############################################################################
-#
-#$ -S /bin/bash
-#$ -cwd
-#$ -N runtimeletter-job_id_placeholder
-#$ -o batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
-#$ -e batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
-#$ -l h_rt=12:00:00
-#$ -l mem_free=600M
-#$ -q wagnerlab
-#$ -m a
-#$ -M cgorgulla@crystal.harvard.edu
-#$ -notify
-#
-#
+#PBS -N runtimeletter-mainjob_id_placeholder
+#PBS -l nodes=1:ppn=24
+#PBS -l naccesspolicy=singlejob
+#PBS -o batchsystem/output-files/job-mainjob_id_placeholder.main-${PBS_JOBID}.out
+#PBS -e batchsystem/output-files/job-mainjob_id_placeholder.main-${PBS_JOBID}.out
+#PBS -l walltime=00:12:00
+##PBS -A bec00123
+#PBS -q mpp2testq
+#PBS -m a
+#PBS -M silmaril@zedat.fu-berlin.de
+#PBS -l signal=10@300 
+
 # Job Information
 ##################################################################################
 
@@ -29,10 +27,10 @@ echo "------------------------"
 env
 echo
 echo
-echo "*** Job Infos by qstat"
+echo "*** Job Infos by checkjob and qstat -f"
 echo "--------------------------------------------------"
-qstat -j $JOB_ID
-
+checkjob $PBS_JOBID
+qstat -f $PBS_JOBID
 
 # Running the Job - Screening of the Ligands
 ######################################################################
@@ -78,7 +76,12 @@ print_job_infos_end() {
 }
 
 # Work to be done by the job
-command_placeholder
+module load bash # required for the HLRN because their default bash version is too old
+
+#main_code_placeholder
+
+wait
+
 
 # Printing final information
 print_job_infos_end

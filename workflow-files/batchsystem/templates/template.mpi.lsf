@@ -11,15 +11,14 @@
 # LSF Settings
 ###############################################################################
 
-#BSUB -J runtimeletter-job_id_placeholder
+#BSUB -J runtimeletter-mainjob_id_placeholder
 #BSUB -W 150:00
 #BSUB -R "rusage[mem=1000]"
-##BSUB -R "select[scratch2]"
-##BSUB -R "span[ptile=4]"
-#BSUB -R "rusage[ngpus=0.5]"
-#BSUB -n 2
-##BSUB -q gpu
-#BSUB -oo batchsystem/output-files/task-job_id_placeholder.job-%J.out           # File to which standard out will be written
+#BSUB -R "select[scratch2]"
+##BSUB -R "span[ptile=8]"
+#BSUB -n 20
+#BSUB -q mpi
+#BSUB -oo batchsystem/output-files/job-mainjob_id_placeholder.main-%J.out
 #BSUB -wt '5'
 #BSUB -wa 'USR1' 
 
@@ -82,9 +81,13 @@ print_job_infos_end() {
 }
 
 # Work to be done by the job
-source /opt/gpu.sh
-export CUDA_VISIBLE_DEVICES
-command_placeholder
+
+module load dev/openmpi-1.8.6
+
+#main_code_placeholder
+
+wait
+
 
 # Printing final information
 print_job_infos_end

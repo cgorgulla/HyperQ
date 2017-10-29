@@ -332,6 +332,10 @@ command_prefix_opt_run_one_opt=bash
 command_prefix_eq_run_one_eq=bash
 command_prefix_md_run_one_md=bash
 command_prefix_ce_run_one_snapshot=bash
+command_prefix_gen_run_one_pipe_sub=bash
+command_prefix_bs_subjob=bash
+command_prefix_bs_task=bash
+
 
 ************************************************************************** Batchsystem **************************************************************************
 

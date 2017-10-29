@@ -40,7 +40,6 @@ if [ ${bash_version} -lt 43 ]; then
     exit 1
 fi
 
-
 # Standard error response 
 error_response_std() {
     # Printing some information
