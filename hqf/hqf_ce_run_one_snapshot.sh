@@ -74,7 +74,7 @@ cleanup_exit() {
         pkill -P $$ || true
         sleep 1
         pkill -9 -P $$ || true
-    " || true
+    " &> /dev/null || true
 }
 trap "cleanup_exit" EXIT
 

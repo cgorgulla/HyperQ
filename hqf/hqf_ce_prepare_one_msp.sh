@@ -319,7 +319,7 @@ fi
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${ce_type} ${md_programs}
 
 # Copying the equilibration coordinate files (just for CP2K as some initial coordinate files which are not really used by CP2K)
-cp ../../../md/${msp_name}/${subsystem}/system.*.eq.pdb ./
+cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 
 # Creating the list of intermediate states
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states

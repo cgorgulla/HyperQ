@@ -106,7 +106,7 @@ clean_exit() {
         pkill -P $$ || true
         sleep 1
         pkill -9 -P $$ || true
-    " || true
+    " &> /dev/null || true
 }
 trap 'clean_exit' EXIT
 
