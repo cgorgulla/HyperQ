@@ -28,19 +28,19 @@ def main(psfFilenameIn, psfFilenameOut):
                             print "    " + line
                             print "Exiting."
                             exit(1)
-                        line = '    {:>7} {:>3} {:>8} {:>8} {:>8} {:>8} {:>10} {:>8} {:>5}\n'.format(*lineSplit)
+                        line = '   {:>7} {:>3} {:>9} {:>8} {:>8} {:>8} {:>10} {:>8} {:>5}\n'.format(*lineSplit)
 
                 pdbFileOut.write(line)
 
 
 def help():
     print "\nUsage: hqh_fes_prepare_cp2k_psf_dummy.py <psf filename in> <psf filename out>\n\n"
-    
 
-# Checking if this file is run as the main program 
+
+# Checking if this file is run as the main program
 if __name__ == '__main__':
 
-    # Checking the number of arguments 
+    # Checking the number of arguments
     if (len(sys.argv) != 3):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
         print "Required are 2 parameters. Exiting..."
