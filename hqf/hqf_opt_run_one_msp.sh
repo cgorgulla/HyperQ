@@ -28,19 +28,6 @@ if [ "$#" -ne "1" ]; then
     exit 1
 fi
 
-# Checking the version of BASH, we need at least 4.3 (wait -n)
-bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
-if [ ${bash_version} -lt 43 ]; then
-    # Printing some information
-    echo
-    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
-    echo "Exiting..."
-    echo
-    echo
-    exit 1
-fi
-
-
 # Standard error response 
 error_response_std() {
     # Printing some information
@@ -109,6 +96,18 @@ verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=
 export verbosity
 if [ "${verbosity}" = "debug" ]; then
     set -x
+fi
+
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
 fi
 
 # Printing some information
