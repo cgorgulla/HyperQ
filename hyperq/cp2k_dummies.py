@@ -71,7 +71,7 @@ class molecularSystem:
         self.atomNameToType = {}
         
         # All atom indices, names, types
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not atoms"
             for line in psf_file:
                 lineSplit = line.split()
@@ -96,7 +96,7 @@ class molecularSystem:
             self.atomNameToType[atomName] = atomType
         
         # All bonds
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not bonds"
             for line in psf_file:
                 lineSplit = line.split()
@@ -113,7 +113,7 @@ class molecularSystem:
                             for bond in zip(*[iter(lineSplit)] * 2):
                                 self.bonds.append(map(int,bond))
         # All angles
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not angles"
             for line in psf_file:
                 lineSplit = line.split()
@@ -130,7 +130,7 @@ class molecularSystem:
                             for angle in zip(*[iter(lineSplit)] * 3):
                                 self.angles.append(map(int,angle))
         # All dihedrals
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not dihedrals"
             for line in psf_file:
                 lineSplit = line.split()

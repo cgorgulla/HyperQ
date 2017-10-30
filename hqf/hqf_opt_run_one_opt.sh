@@ -61,29 +61,30 @@ cleanup_exit() {
 
     echo
     echo " * Cleaning up..."
+
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Terminating the child processes of the main processes
-    for pid in ${pids[*]}; do
-        pkill -P "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in ${pids[*]}; do
-        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
-    done
-    # Terminating the main processes
-    for pid in ${pids[*]}; do
-        kill "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in ${pids[*]}; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-    done
-    sleep 1
-    # Terminating everything else which is still running and which was started by this script
-    pkill -P $$ || true
-    sleep 3
-    pkill -9 -P $$ || true
+    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid nohup bash -c "
+
+        # Trapping signals
+        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+        # Terminating the main processes
+        kill ${pids[*]} 1>/dev/null 2>&1 || true
+        sleep 5 || true
+        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
+
+        # Terminating the child processes of the main processes
+        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
+        sleep 1 || true
+        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
+
+        # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
+        pkill -P $$ || true
+        sleep 1
+        pkill -9 -P $$ || true
+    " &> /dev/null || true
 }
 trap "cleanup_exit" EXIT
 
@@ -134,14 +135,32 @@ fi
 # Checking if the simulation is completed
 while true; do
 
-    # Checking the condition of the ouptput files of CP2k
-    if [ -f cp2k.out.trajectory.pdb ]; then
-        timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.trajectory.pdb)))
-        if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
-            echo " * CP2K seems to have completed the optimization."
-            break
+    # Checking for errors
+    if [[ -s cp2k.out.err ]] ; then
+        if [ -f cp2k.out.trajectory.pdb ]; then
+
+            # Checking the number of frames. During geometry optimizations CP2K stores only new conformations in the trajectory output file, thus the first step is Step 1 in the trajectory output file, and we require only one step
+            frame_count=$(grep -c Step cp2k.out.trajectory.pdb)
+            if [ "${frame_count}" -ge "1" ]; then
+                echo " * Warning: CP2K seems to have completed with errors, but has produced the desired trajectories file which contains ${frame_count} coordinate frames. Continuing..."
+                break
+            else
+                echo " * Error: CP2K seems to have completed with errors, and the trajectory outpuf file seems not to contain any coordinate frames. Exiting..."
+                exit 1
+            fi
+        else
+            echo " * Error: CP2K seems to have completed with errors, and has not produced trajectory output file. Exiting..."
+            exit 1
         fi
     fi
+
+    # Checking if CP2K has terminated (hopefully without error after the previous error checks)
+    if [ ! -e /proc/${pid_cp2k} ]; then
+        echo " * CP2K seems to have terminated without errors."
+        break
+    fi
+
+    # Checking the condition of the ouptput major log file of CP2k
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
         if [ "${timeDiff}" -ge "${opt_timeout}" ]; then
@@ -149,39 +168,8 @@ while true; do
             break
         fi
     fi
-    # Checking for memory error - happens often at the end of runs it seems, thus we treat it as a successful run
-    if [ -f cp2k.out.err ]; then
-        #pseudo_error_count="$( { grep -E "invalid memory reference|SIGABRT" cp2k.out.err || true; } | wc -l)"
-        pseudo_error_count="$( { grep -E "invalid memory reference|corrupted double-linked|Caught|invalid size" cp2k.out.err || true; } | wc -l)"
-        if [ "${pseudo_error_count}" -ge "1" ]; then
-            echo " * CP2K seems to have completed the optimization."
-            break
-        fi
-    fi
-    if [ -f cp2k.out.err ]; then
-        error_count="$( { grep -i error cp2k.out.err || true; } | wc -l)"
-        if [ ${error_count} -ge "1" ]; then
-            set +o pipefail
-            backtrace_length="$(grep -A 100 Backtrace cp2k.out.err | grep -v Backtrace | wc -l)"
-            set -o pipefail
-            if [ "${backtrace_length}" -ge "1" ]; then
-                echo -e "Error detected in the file cp2k.out.err"
-                echo -e "Contents of the file cp2k.out.err:"
-                cat cp2k.out.err | awk '{print "cp2k.out.err: " $0}'
-                echo
-                exit 1
-            else
-                break
-            fi
-        fi
-    fi
-
-    # Checking if CP2K has terminated (hopefully wihtout error after the previous error checks)
-    if [ ! -e /proc/${pid_cp2k} ]; then
-        echo " * CP2K seems to have terminated without errors."
-        break
-    fi
 
     # Sleeping shortly before next round
-    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
+    sleep 1 || true             # true because the script might be terminated while sleeping, which would result in an error
+
 done

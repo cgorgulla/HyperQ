@@ -69,36 +69,37 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
-clean_exit() {
+# Exit cleanup
+cleanup_exit() {
 
     echo
     echo " * Cleaning up..."
 
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Terminating the child processes of the main processes
-    for pid in ${pids[*]}; do
-        pkill -P "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in ${pids[*]}; do
-        pkill -9 -P "${pid}"  1>/dev/null 2>&1 || true
-    done
-    # Terminating the main processes
-    for pid in ${pids[*]}; do
-        kill "${pid}" 1>/dev/null 2>&1 || true
-    done
-    sleep 3
-    for pid in ${pids[*]}; do
-        kill -9 "${pid}"  1>/dev/null 2>&1 || true
-    done
-    sleep 1
-    # Terminating everything else which is still running and which was started by this script
-    pkill -P $$ || true
-    sleep 3
-    pkill -9 -P $$ || true
+    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+    setsid nohup bash -c "
+
+        # Trapping signals
+        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+        # Terminating the main processes
+        kill ${pids[*]} 1>/dev/null 2>&1 || true
+        sleep 6 || true
+        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
+
+        # Terminating the child processes of the main processes
+        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
+        sleep 1 || true
+        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
+
+        # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
+        pkill -P $$ || true
+        sleep 1
+        pkill -9 -P $$ || true
+    " &> /dev/null || true
 }
-trap 'clean_exit' EXIT
+trap "cleanup_exit" EXIT
 
 # Bash options
 set -o pipefail

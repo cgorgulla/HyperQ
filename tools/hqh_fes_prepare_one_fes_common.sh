@@ -92,12 +92,18 @@ hqh_fes_prepare_human_mapping.py system1.pdb system2.pdb system.mcs.mapping
 # Preparing the files for the dummy atoms
 echo -e " * Preparing the cp2k dummy files"
 hqh_fes_prepare_cp2k_dummies.py system1 system2
+# Preparing the cp2k psf file for system 1
+echo -e " * Preparing the cp2k psf file for system 1"
+hqh_fes_prepare_cp2k_psf.py system1.vmd.psf system1.cp2k.psf
+# Preparing the cp2k psf file for system 2
+echo -e " * Preparing the cp2k psf file for system 2"
+hqh_fes_prepare_cp2k_psf.py system2.vmd.psf system2.cp2k.psf
 # Preparing the cp2k psf file for the dummy atoms of system 1
 echo -e " * Preparing the cp2k psf file for the dummy atoms of system 1"
-hqh_fes_prepare_cp2k_psf_dummy.py system1.psf system1.dummy.psf
+hqh_fes_prepare_cp2k_psf_dummy.py system1.vmd.psf system1.dummy.psf
 # Preparing the cp2k psf file for the dummy atoms of system 2
 echo -e " * Preparing the cp2k psf file for the dummy atoms of system 2"
-hqh_fes_prepare_cp2k_psf_dummy.py system2.psf system2.dummy.psf
+hqh_fes_prepare_cp2k_psf_dummy.py system2.vmd.psf system2.dummy.psf
 
 
 # System 1

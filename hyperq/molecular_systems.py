@@ -74,7 +74,7 @@ class MolecularSystem2:
         self.atomNameToType = {}
 
         # All atom indices, names, types
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not atoms"
             for line in psf_file:
                 lineSplit = line.split()
@@ -105,7 +105,7 @@ class MolecularSystem2:
                         raise Exception("Wrong or missing element type in pdbx file. Exiting")
 
                         # All bonds
-        with open(systemName + ".psf", "r") as psf_file:
+        with open(systemName + ".vmd.psf", "r") as psf_file:
             currentSection = "not bonds"
             for line in psf_file:
                 lineSplit = line.split()

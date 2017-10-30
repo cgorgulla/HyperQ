@@ -8,6 +8,10 @@ def main(psfFilenameIn, psfFilenameOut):
             currentSection = "not atoms"
             for line in pdbFileIn:
                 lineSplit = line.split()
+                # Modifying the first line
+                if line[0:3] == "PSF":
+                    line = "PSF"
+
                 # Checking the current section
                 if len(lineSplit) <= 1:
                     currentSection = "not atoms"
@@ -17,17 +21,6 @@ def main(psfFilenameIn, psfFilenameOut):
                     elif currentSection == "atoms" and ("END" in line or "!" in line):
                         currentSection = "not atoms"
                     elif currentSection == "atoms" and len(lineSplit) == 9 and lineSplit[0].isdigit():
-                        # Setting the charge to zero
-                        lineSplit[6] = "0.000000"
-
-                        # Setting the atom type to the atom name
-                        if len(lineSplit[4]) <= 4: 
-                            lineSplit[5] = lineSplit[4]
-                        else:
-                            print "Error: The atom name (field 5) of the following line of the psf file contains more than four characters, which is the maximum supported."
-                            print "    " + line
-                            print "Exiting."
-                            exit(1)
                         line = '   {:>7} {:>3} {:>9} {:>8} {:>8} {:>8} {:>13} {:>8} {:>5}\n'.format(*lineSplit)
 
                 pdbFileOut.write(line)

@@ -24,7 +24,7 @@ def run_cp2k_dummies(system1_basename, system2_basename):
 def help():
     print "\nUsage: hqh_fes_prepare_cp2k_dummies.py <system1_basename> <system2_basename>"
     print "Indices used internally are the ones of the psf files. -> atom order"
-    print "For each system pdb/psf/prm/.dummy.indices files are required."
+    print "For each system pdb/vmd.psf/prm/.dummy.indices files are required."
     print "The output files are required input files for CP2K.\n\n"
 
 # Checking if this file is run as the main program

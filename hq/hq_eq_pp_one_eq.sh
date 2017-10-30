@@ -98,7 +98,7 @@ if [[ "${eq_programs}" == "cp2k" ]]; then
     echo -e " * Extraction of the last snapshot from the trajectory file"
     tac ${trajectory_filename} | grep -m 1 REMARK -B 1000000 | tac | grep -E "^(ATOM|HETATM)" > ${output_filename}.tmp || true
 elif [[ "${eq_programs}" == "namd" ]]; then
-    cc_vmd_dcd2pdb_lastframe.sh ${psf_filename} ${trajectory_filename} ${output_filename}.tmp2
+    hqh_gen_dcd2pdb_lastframe.sh ${psf_filename} ${trajectory_filename} ${output_filename}.tmp2
     grep -E "^(ATOM|HETATM)" ${output_filename}.tmp2 > ${output_filename}.tmp
     rm ${output_filename}.tmp2
 fi

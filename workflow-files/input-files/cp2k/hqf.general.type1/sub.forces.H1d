@@ -24,7 +24,7 @@
       COORDINATE pdb
       COORD_FILE_NAME subsystem_folder/system1.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.dummy.psf      
+      CONN_FILE_NAME subsystem_folder/system1.dummy.psf
       &GENERATE 
         BONDLENGTH_MAX 100
       &END GENERATE

@@ -80,7 +80,7 @@ for folder in eq.*; do
     #bead_count2=${bead_configuration/*_}
     #nbeads=$((bead_count1 + bead_count2))
     original_pdb_filename="system.a1c1.pdb"
-    original_psf_filename="system1.psf"
+    original_psf_filename="system1.vmd.psf"
     output_filename="system.${subconfiguration}.eq.pdb"
     eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
