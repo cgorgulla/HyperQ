@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
 # Usage infomation
-usage="Usage: hqf_gen_run_one_pipe.sh <msp_name> <subsystem> <pipeline_type> [<sim_index_range>]
+usage="Usage: hqf_gen_run_one_pipe.sh <MSP> <subsystem> <pipeline_type> [<sim_index_range>]
 
-The script has to be run in the root folder.
+<subsystem>: Possible values: L, LS, RLS
+
+<MSP>: The molecular system pair (MSP) in form of system1_system2
 
 The pipeline can be composed of:
- Elementy elements:
+ Elementary components:
   _pro_: preparing the optimizations
   _rop_: running the optimizations
   _ppo_: postprocessing the optimizations
@@ -21,15 +23,17 @@ The pipeline can be composed of:
   _rfe_: postprocessing the free energy calculation
   _ppf_: postprocessing the free energy calculation
 
- Combined elements:
+ Macro components:
   _allopt_: equals _pro_rop_ppo_
   _alleq_: equals _pre_req_ppe_
   _allmd_ : equals _prd_rmd_
   _allce_ : equals _prc_rce_
   _allfec_: equals _prf_rfe_ppf_
-  _all_   : equals _allopt_alleq_allmd_allce_allfec_ =  _pro_rop_ppo_prd_rmd_prc_rce_prf_rfe_ppf_
+  _all_   : equals _allopt_alleq_allmd_allce_allfec_
 
-<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1."
+<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1.
+
+The script has to be run in the root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -171,8 +175,10 @@ system2="${msp_name/*_}"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '=' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
-HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-export HQF_STARTDATE
+if [ -z "${HQF_STARTDATE}" ]; then
+    HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+    export HQF_STARTDATE
+fi
 if [ -z "${4}" ]; then
     sim_index_range="all"
 else
@@ -191,7 +197,7 @@ mkdir -p runtime
 mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Making sure the script is run in its own process group
-# Deactivated because the condition is true on the HLRN but the code causes an error: execvp: No such file or directory)
+# Deactivated for now because the condition is true on the HLRN but the code causes an error: execvp: No such file or directory)
 #if [ "$$" != "$(pgid_from_pid $$)" ]; then
 #    exec setsid "$(readlink -f "$0")" "$@"
 #fi

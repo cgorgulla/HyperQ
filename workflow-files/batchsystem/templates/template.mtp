@@ -76,10 +76,21 @@ print_job_infos_end() {
 }
 
 # Work to be done by the job
-module load bash # required for the HLRN because their default bash version is too old
 
+# Variables
+HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQF_STARTDATE
+
+# Loading a newer version of BASH, which is required for the HLRN because their default bash version is too old for HyperQ
+module load bash
+
+# Preparing folders
+mkdir -p batchsystem/output-files
+
+# Running the subjobs
 #main_code_placeholder
 
+# Waiting for the subjobs to finish
 wait
 
 

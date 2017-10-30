@@ -82,10 +82,20 @@ print_job_infos_end() {
 
 # Work to be done by the job
 
+# Variables
+HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQF_STARTDATE
+
+# Loading modules
 module load dev/openmpi-1.8.6
 
+# Preparing folders
+mkdir -p batchsystem/output-files
+
+# Running the subjobs
 #main_code_placeholder
 
+# Waiting for the subjobs to finish
 wait
 
 

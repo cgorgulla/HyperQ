@@ -107,7 +107,7 @@ while IFS='' read -r command_task; do
     # Variables
     job_file_main="batchsystem/job-files/main/${job_ID}.${batchsystem}"
     job_file_sub="batchsystem/job-files/sub/${job_ID}.${subjob_ID}.sh"
-
+    command_task="${command_task} &> batchsystem/output-files/job-${job_ID}.${subjob_ID}.task-${task_ID}.out"
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
         command_task="${command_task} &"
