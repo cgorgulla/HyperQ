@@ -9,7 +9,7 @@
     ENSEMBLE NPT_I
     STEPS 1000000
     TIMESTEP [fs] 1.0
-    TEMPERATURE [K] 300
+    TEMPERATURE [K] 298
     &BAROSTAT
       PRESSURE [bar] 1.0
       TIMECON [fs] 200.0

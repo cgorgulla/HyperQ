@@ -21,7 +21,7 @@
     <forces>
       <force forcefield='cp2k'/></forces>
     <ensemble>
-      <temperature units="kelvin"> 300 </temperature>
+      <temperature units="kelvin"> 298 </temperature>
       <pressure units='bar'> 1.0 </pressure>
     </ensemble>
     <motion mode="dynamics">
