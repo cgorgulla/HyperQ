@@ -174,7 +174,7 @@ system1="${msp_name/_*}"
 system2="${msp_name/*_}"
 runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '=' '{print $2}')"
-date="$(date --rfc-3339=seconds | tr ": " "_")"
+date="$(date --rfc-3339=seconds | tr -s ": " "_")"
 if [ -z "${HQF_STARTDATE}" ]; then
     HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
     export HQF_STARTDATE

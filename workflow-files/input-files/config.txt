@@ -156,12 +156,26 @@ ce_timeout_RLS=100
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
+opt_continue=true
+# Possible values (case insensitive): true, false
+# If true, then during _pro_ non-existent opt-folders will be newly created, and existing ones which contain already restart files will be prepared for the next run (without deleting the previous runs)
+# If false, then the opt/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
+# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
+# This setting has mainly effects on _pro_, only very few on _rop_
+
+eq_continue=true
+# Possible values (case insensitive): true, false
+# If true, then during _pre_ non-existent eq-folders will be newly created, and existing ones which contain already restart files will be prepared for the next run (without deleting the previous runs)
+# If false, then the eq/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
+# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
+# This setting has mainly effects on _pre_, only very few on _req_
+
 md_continue=true
 # Possible values (case insensitive): true, false 
 # If true, then during _prm_ non-existent md-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
-# If false, then the md/msp_name/subsystem will be wiped and newly prepared (and the md/msp_name/subsystem fodler will be wiped if already existent)
+# If false, then the md/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
 # If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
-# This setting has no effect on _rmd_, only on _prm_
+# This setting has mainly effects on _prm_, only very few on _rmd_
 
 ce_continue=true
 # Possible values (case insensitive): true, false 

@@ -104,26 +104,38 @@ fi
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
 eq_programs=$(grep -m 1 "^eq_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
 eq_timeout=$(grep -m 1 "^eq_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
+eq_continue=$(grep -m 1 "^eq_continue=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
 system_name="$(pwd | awk -F '/' '{print     $(NF-3)}')"
 sim_counter=0
 
 # Running the equilibration
 # CP2K
 if [[ "${eq_programs}" == "cp2k" ]] ;then
+
     # Cleaning the folder
-    rm cp2k.out* 1>/dev/null 2>&1 || true
-    rm system*  1>/dev/null 2>&1 || true
+    if [ ${eq_continue^^} == "FALSE" ]; then
+        rm cp2k.out* > /dev/null 2>&1 || true
+    elif [ -f cp2k.out.err ]; then
+        # Renaming previous error files
+        mv cp2k.out.err cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
+    fi
+
+    # Variables
     ncpus_cp2k_eq="$(grep -m 1 "^ncpus_cp2k_eq_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    ${cp2k_command} -e cp2k.in.main 1> cp2k.out.config 2> cp2k.out.err
     export OMP_NUM_THREADS=${ncpus_cp2k_eq}
+
+    # Checking the input file
+    ${cp2k_command} -e cp2k.in.main 1> cp2k.out.config 2> cp2k.out.err
+
+    # Starting CP2K
     ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
     pid_cp2k=$!
+
+    # Updating variables
     pids[sim_counter]=$pid_cp2k
     sim_counter=$((sim_counter+1))
-    echo "${pid}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
-    #echo "CP2K PID PPID: $pid $(ps -o ppid $pid | grep -o "[0-9]*")"
-    #echo "Shell PID PPID: $$ $(ps -o ppid $$ | grep -o "[0-9]*")"
+    echo "${pid_cp2k}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
 
     # Checking if the file system-r-1.out does already exist.
     while [ ! -f cp2k.out.general ]; do
@@ -134,7 +146,11 @@ if [[ "${eq_programs}" == "cp2k" ]] ;then
 fi
 
 # Checking if the simulation is completed
+# Givint the output files some time to appear
+sleep 5
+# Checking within a continuous loop
 while true; do
+
     # Checking for errors
     if [[ -s cp2k.out.err ]] ; then
         if [ -f cp2k.out.trajectory.pdb ]; then
@@ -163,7 +179,8 @@ while true; do
     # Checking the condition of the ouptput major log file of CP2k
     if [ -f cp2k.out.general ]; then
         timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
-        if [ "${timeDiff}" -ge "${eq_timeout}" ]; then
+        # Checking the time difference with upper bound because very few times it seems that something goes wrong and the timeDiff is extremely large
+        if [[ "${timeDiff}" -ge "${eq_timeout}" ]] && [ "${timeDiff}" -le "$((${eq_timeout} + 10))" ]; then
             echo " * CP2K seems to have completed the equilibration."
             break
         fi

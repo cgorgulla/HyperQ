@@ -78,6 +78,7 @@ inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsy
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 eq_type="$(grep -m 1 "^eq_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+eq_continue="$(grep -m 1 "^eq_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
 ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -127,10 +128,14 @@ if  [ ! "${lambdavalue_count}" -ge "1" ]; then
 fi
 echo "OK"
 
-# Creating required folders
+# Preparing the main folder
 echo -e " * Preparing the main folder"
-if [ -d "eq/${msp_name}/${subsystem}" ]; then
-    rm -r eq/${msp_name}/${subsystem}
+if [[ "${eq_continue^^}" == "FALSE" ]]; then
+
+    # Creating required folders
+    if [ -d "eq/${msp_name}/${subsystem}" ]; then
+        rm -r eq/${msp_name}/${subsystem}
+    fi
 fi
 mkdir -p eq/${msp_name}/${subsystem}
 cd eq/${msp_name}/${subsystem}
@@ -181,8 +186,39 @@ if [ "${TD_cycle_type}" == "hq" ]; then
         bead_count2="$(( (i-1)*beadStepSize))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        eq_folder=eq.${bead_configuration}
 
         echo -e " * Preparing the files and directories for the equilibration with bead-configuration ${bead_configuration}"
+
+        # Checking if the MD folder already exists
+        if [[ "${eq_continue^^}" == "TRUE" ]]; then
+            if [ -d "${eq_folder}" ]; then
+                echo " * The folder ${eq_folder} already exists. Checking its contents..."
+                cd ${eq_folder}
+                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
+
+                    echo " * The folder ${eq_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+
+                    # Editing the cp2k major input file
+                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
+                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
+                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
+
+                    # Removing previous error files
+                    if [ -f cp2k/cp2k.out.err ]; then
+                        mv cp2k/cp2k.out.err cptk/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
+                    fi
+
+                    # Finalization
+                    cd ..
+                    continue
+                else
+                    echo " * The folder ${eq_folder} seems to not contain files from a previous run. Preparing it newly..."
+                    cd ..
+                    rm -r ${eq_folder}
+                fi
+            fi
+        fi
 
         # Copying the coordinate input files from the geo_opt
         cp ../../../opt/${msp_name}/${subsystem}/system.${bead_configuration}.opt.pdb ./
@@ -253,8 +289,39 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         # Variables
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
+        eq_folder=eq.${lambda_configuration}
 
         echo -e " * Preparing the files and directories for the equilibration for lambda=${lambda_current}"
+
+        # Checking if the MD folder already exists
+        if [[ "${eq_continue^^}" == "TRUE" ]]; then
+            if [ -d "${eq_folder}" ]; then
+                echo " * The folder ${eq_folder} already exists. Checking its contents..."
+                cd ${eq_folder}
+                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
+
+                    echo " * The folder ${eq_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+
+                    # Editing the cp2k major input file
+                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
+                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
+                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
+
+                    # Removing previous error files
+                    if [ -f cp2k/cp2k.out.err ]; then
+                        mv cp2k/cp2k.out.err cp2k/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
+                    fi
+
+                    # Finalization
+                    cd ..
+                    continue
+                else
+                    echo " * The folder ${eq_folder} seems to not contain files from a previous run. Preparing it newly..."
+                    cd ..
+                    rm -r ${eq_folder}
+                fi
+            fi
+        fi
 
         # Copying the coordinate input files from the geo_opt
         cp ../../../opt/${msp_name}/${subsystem}/system.${lambda_configuration}.opt.pdb ./

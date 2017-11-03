@@ -163,7 +163,6 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                     rm cp2k.out* > /dev/null 2>&1 || true
                 fi
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
-                rm system* > /dev/null 2>&1 || true
                 sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.}|g" cp2k.in.main
 
                 # Starting CP2k

@@ -81,6 +81,7 @@ opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F 
 TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
 ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
+opt_continue="$(grep -m 1 "^opt_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
 nsim="$((ntdsteps + 1))"
 
 # Printing information
@@ -127,10 +128,14 @@ if  [ ! "${lambdavalue_count}" -ge "1" ]; then
 fi
 echo "OK"
 
-# Creating required folders
+# Preparing the main folder
 echo -e " * Preparing the main folder"
-if [ -d "opt/${msp_name}/${subsystem}" ]; then
-    rm -r opt/${msp_name}/${subsystem}
+if [[ "${opt_continue^^}" == "FALSE" ]]; then
+
+    # Creating required folders
+    if [ -d "opt/${msp_name}/${subsystem}" ]; then
+        rm -r opt/${msp_name}/${subsystem}
+    fi
 fi
 mkdir -p opt/${msp_name}/${subsystem}
 cd opt/${msp_name}/${subsystem}
@@ -181,8 +186,39 @@ if [ "${TD_cycle_type}" == "hq" ]; then
         bead_count2="$(( (i-1)*beadStepSize))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        opt_folder=opt.${bead_configuration}
 
         echo -e " * Preparing the files and directories for the optimization with bead-configuration ${bead_configuration}"
+
+        # Checking if the MD folder already exists
+        if [[ "${opt_continue^^}" == "TRUE" ]]; then
+            if [ -d "${opt_folder}" ]; then
+                echo " * The folder ${opt_folder} already exists. Checking its contents..."
+                cd ${opt_folder}
+                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
+
+                    echo " * The folder ${opt_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+
+                    # Editing the cp2k major input file
+                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
+                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
+                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
+
+                    # Removing previous error files
+                    if [ -f cp2k/cp2k.out.err ]; then
+                        mv cp2k/cp2k.out.err cp2k/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
+                    fi
+
+                    # Finalization
+                    cd ..
+                    continue
+                else
+                    echo " * The folder ${opt_folder} seems to not contain files from a previous run. Preparing it newly..."
+                    cd ..
+                    rm -r ${opt_folder}
+                fi
+            fi
+        fi
 
         # Preparation of the cp2k files
         if [[ "${opt_programs}" == *"cp2k"* ]]; then
@@ -249,8 +285,39 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
         # Variables
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
+        opt_folder=opt.${lambda_configuration}
 
         echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_current}"
+
+        # Checking if the MD folder already exists
+        if [[ "${opt_continue^^}" == "TRUE" ]]; then
+            if [ -d "${opt_folder}" ]; then
+                echo " * The folder ${opt_folder} already exists. Checking its contents..."
+                cd ${opt_folder}
+                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
+
+                    echo " * The folder ${opt_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+
+                    # Editing the cp2k major input file
+                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
+                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
+                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
+
+                    # Removing previous error files
+                    if [ -f cp2k/cp2k.out.err ]; then
+                        mv cp2k/cp2k.out.err cp2k/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
+                    fi
+
+                    # Finalization
+                    cd ..
+                    continue
+                else
+                    echo " * The folder ${opt_folder} seems to not contain files from a previous run. Preparing it newly..."
+                    cd ..
+                    rm -r ${opt_folder}
+                fi
+            fi
+        fi
 
         # Preparation of the cp2k files
         if [[ "${opt_programs}" == *"cp2k"* ]]; then

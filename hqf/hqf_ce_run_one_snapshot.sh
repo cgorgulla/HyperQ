@@ -154,7 +154,6 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 # Preparing files and folder
                 cd cp2k/${bead_folder}/
                 rm cp2k.out* > /dev/null 2>&1 || true
-                rm system* > /dev/null 2>&1 || true
                 sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}|g" cp2k.in.main
 
                 # Checking the input file

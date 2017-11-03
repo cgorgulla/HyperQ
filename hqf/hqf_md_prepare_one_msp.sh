@@ -98,7 +98,7 @@ if [ "${stride_ipi_properties}" -ne "${stride_ipi_trajectory}" ]; then
     exit 1
 fi
 
-# Folder preparation
+# Preparing the main folder
 echo -e " * Preparing the main folder"
 if [[ "${md_continue^^}" == "FALSE" ]]; then
 

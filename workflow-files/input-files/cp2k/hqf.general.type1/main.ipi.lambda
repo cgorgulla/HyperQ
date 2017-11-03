@@ -1,5 +1,5 @@
 &GLOBAL
-  PROJECT system
+  PROJECT cp2k.out
   RUN_TYPE driver
   PRINT_LEVEL medium
 &END global
