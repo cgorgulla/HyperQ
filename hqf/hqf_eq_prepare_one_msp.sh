@@ -1,11 +1,15 @@
 #!/usr/bin/env bash 
 
 # Usage infomation
-usage="Usage: hqf_eq_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem>
+usage="Usage: hqf_eq_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem> <eq_index_range>
 
-Has to be run in the root folder.
+<subsystem>: Possible values: L, LS, RLS
 
-Possible subsystems are: L, LS, RLS."
+<eq_index_range>: Possible values:
+                      * all : Will cover all simulations of the MSP
+                      * startindex:endindex : The index starts at 1 (w.r.t. the absolute simulation number)
+
+Has to be run in the root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -15,11 +19,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "3" ]; then
+if [ "$#" -ne "4" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 5"
+    echo "Number of expected arguments: 4"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -72,6 +76,7 @@ fi
 system_1_basename="${1}"
 system_2_basename="${2}"
 subsystem=${3}
+eq_index_range=${4}
 msp_name=${system_1_basename}_${system_2_basename}
 inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -86,6 +91,23 @@ nsim="$((ntdsteps + 1))"
 
 # Printing information
 echo -e "\n *** Preparing the equilibration folder for fes ${msp_name} (hq_eq_prepare_one_fes) *** "
+
+# Setting the range indices
+if [ "${eq_index_range}" == "all" ]; then
+    eq_index_first=1
+    eq_index_last=${nsim}
+else
+    eq_index_first=${eq_index_range/:*}
+    eq_index_last=${eq_index_range/*:}
+    if ! [ "${eq_index_first}" -eq "${eq_index_first}" ]; then
+        echo " * Error: The input variable eq_index_range was not specified correctly. Exiting..."
+        exit 1
+    fi
+    if ! [ "${eq_index_last}" -eq "${eq_index_last}" ]; then
+        echo " * Error: The input variable eq_index_range was not specified correctly. Exiting..."
+        exit 1
+    fi
+fi
 
 # Checking if nbeads and ntdsteps are compatible
 if [ "${TD_cycle_type}" == "hq" ]; then
@@ -179,11 +201,11 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 
     # Loop for each intermediate state
     beadStepSize=$(expr $nbeads / $ntdsteps)
-    for i in $(eval echo "{1..${nsim}}"); do
+    for i in $(seq ${eq_index_first} ${eq_index_last}); do
 
         # Variables
-        bead_count1="$(( nbeads - (i-1)*beadStepSize))"
-        bead_count2="$(( (i-1)*beadStepSize))"
+        bead_count1="$(( nbeads - (i-1)*beadStepSize ))"
+        bead_count2="$(( (i-1)*beadStepSize ))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         eq_folder=eq.${bead_configuration}
@@ -284,7 +306,7 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
     # Loop for each intermediate state
-    for i in $(eval echo "{1..${nsim}}"); do
+    for i in $(seq ${eq_index_first} ${eq_index_last}); do
 
         # Variables
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )

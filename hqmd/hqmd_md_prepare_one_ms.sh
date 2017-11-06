@@ -73,7 +73,7 @@ runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '='
 md_folder="md"
 
 # Printing information
-echo -e "\n *** Preparing the md simulation ${system_basename} (hqmd_md_prepare_one_ms.sh) "
+echo -e "\n *** Preparing the MD simulation ${system_basename} (hqmd_md_prepare_one_ms.sh) "
 
 # Creating required folders
 echo -e " * Preparing the main folder"

@@ -109,7 +109,7 @@ while read line; do
     # Variables
     md_folder_1="$(echo -n ${line} | awk '{print $1}')"
     md_folder_2="$(echo -n ${line} | awk '{print $2}')"
-    crosseval_folder_fw="${md_folder_1}-${md_folder_2}"     # md folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
+    crosseval_folder_fw="${md_folder_1}-${md_folder_2}"     # MD folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${md_folder_2}-${md_folder_1}"     # Opposite of fw
     stride_ipi_properties=$(grep "potential" ${md_folder}/${md_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
     stride_ipi_trajectory=$(grep "<checkpoint" ${md_folder}/${md_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')

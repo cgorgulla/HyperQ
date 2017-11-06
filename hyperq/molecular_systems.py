@@ -67,7 +67,7 @@ class MolecularSystem2:
         self.systemName = systemName
         self.atomIndeces = set()
         self.atomIndexToName = {}
-        self.atomIndexToPSFType = {} # But it will contain also as keys the atom indeces
+        self.atomIndexToPSFType = {} # But it will contain also as keys the atom indices
         self.atomIndexToMQType = {}             # Q or M
         self.bonds = []
         self.atomNames = set()

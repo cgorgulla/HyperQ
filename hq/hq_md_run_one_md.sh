@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hq_md_run_one_md.sh
 
-Has to be run in the md main folder."
+Has to be run in the MD main folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -63,7 +63,27 @@ cleanup_exit() {
     echo " * Cleaning up..."
 
     # Terminating all processes
-    echo " * Terminating remaining processes..."
+    if [ "${HQ_VERBOSITY}" = "debug" ]; then
+        echo " * The following jobs processes will be terminated:"
+        echo
+        ps
+        echo
+        ps -aux
+        echo
+        pgrep ${pids[*]} | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep ${pids[*]} | xargs pwdx
+        echo
+        pgrep -P ${pids[*]} | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep -P ${pids[*]} | xargs pwdx
+        echo
+        pgrep -P $$ | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep -P $$ | xargs pwdx
+        echo
+    fi
+
     # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
     setsid nohup bash -c "
 

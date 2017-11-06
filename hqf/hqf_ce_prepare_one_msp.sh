@@ -373,7 +373,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     fi
 
     # Variables
-    crosseval_folder_fw="${md_folder_initialstate}-${md_folder_endstate}"     # md folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
+    crosseval_folder_fw="${md_folder_initialstate}-${md_folder_endstate}"     # MD folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${md_folder_endstate}-${md_folder_initialstate}"     # Opposite of fw
 
     echo "${md_folder_initialstate} ${md_folder_endstate}" >> TD_windows.list           # Does not include the stationary evaluations naturally
@@ -391,7 +391,7 @@ for window_no in $(seq 1 $((nsim-1)) ); do
     rm ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/*all_runs* || true
     rm ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/*all_runs* || true
 
-    # Determining the number of restart files of the two md simulations
+    # Determining the number of restart files of the two MD simulations
     restartFileCountMD1=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_initialstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
     restartFileCountMD2=$(ls ../../../md/${msp_name}/${subsystem}/${md_folder_endstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
 

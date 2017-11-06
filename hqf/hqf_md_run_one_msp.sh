@@ -5,7 +5,7 @@ usage="Usage: hqf_md_run_one_msp.sh <md_index_range>
 
 <md_index_range>: Possible values:
                       * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1
+                      * startindex:endindex : The index starts at 1 (w.r.t. to the MD folders present)
 
 Has to be run in the simulation main folder."
 
@@ -123,7 +123,7 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
 fi
 
 # Printing some information
-echo -e "\n *** Starting the md simulations (hqf_md_run_one_msp.sh)"
+echo -e "\n *** Starting the MD simulations (hqf_md_run_one_msp.sh)"
 
 # Variables
 md_index_range="${1}"
@@ -141,7 +141,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     md_folders="$(ls -vd md*)"
 fi
 
-# Setting the md indeces
+# Setting the MD indices
 if [ "${md_index_range}" == "all" ]; then
     md_index_first=1
     md_index_last=$(echo ${md_folders[@]} | wc -w)
@@ -162,9 +162,9 @@ fi
 i=1
 for folder in ${md_folders}; do
 
-    # Checking if this md simulation should be skipped
+    # Checking if this MD simulation should be skipped
     if [[ "${i}" -lt "${md_index_first}" ]] ||  [[ "${i}" -gt "${md_index_last}" ]]; then
-        echo -e " * Skipping the md simulation ${folder} because the md_index is not in the accepted range."
+        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
         i=$((i+1))
         continue
     fi
@@ -173,7 +173,7 @@ for folder in ${md_folders}; do
         sleep 0.$RANDOM
     done;
     cd ${folder}/
-    echo -e " * Starting the md simulation ${folder}"
+    echo -e " * Starting the MD simulation ${folder}"
     ${command_prefix_md_run_one_md} hq_md_run_one_md.sh &
     pid=$!
     pids[i]=$pid

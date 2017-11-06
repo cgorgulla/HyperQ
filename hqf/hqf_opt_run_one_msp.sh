@@ -5,7 +5,7 @@ usage="Usage: hqf_opt_run_one_msp.sh <opt_index_range>
 
 <opt_index_range>: Possible values:
                       * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1
+                      * startindex:endindex : The index starts at 1 (w.r.t. to the eq folders present)
 
 Has to be run in the simulation main folder."
 
@@ -20,7 +20,7 @@ if [ "$#" -ne "1" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 0"
+    echo "Number of expected arguments: 1"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -133,7 +133,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     opt_folders="$(ls -vd opt.*)"
 fi
 
-# Setting the md indeces
+# Setting the range indices
 if [ "${opt_index_range}" == "all" ]; then
     opt_index_first=1
     opt_index_last=$(echo ${opt_folders[@]} | wc -w)
@@ -141,11 +141,11 @@ else
     opt_index_first=${opt_index_range/:*}
     opt_index_last=${opt_index_range/*:}
     if ! [ "${opt_index_first}" -eq "${opt_index_first}" ]; then
-        echo " * Error: The variable md_index_first is not set correctly. Exiting..."
+        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
         exit 1
     fi
     if ! [ "${opt_index_last}" -eq "${opt_index_last}" ]; then
-        echo " * Error: The variable md_index_last is not set correctly. Exiting..."
+        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
         exit 1
     fi
 fi
@@ -156,7 +156,7 @@ for folder in ${opt_folders}; do
 
     # Checking if this opt should be skipped
     if [[ "${i}" -lt "${opt_index_first}" ]] ||  [[ "${i}" -gt "${opt_index_last}" ]]; then
-        echo -e " * Skipping the md simulation ${folder} because the md_index is not in the accepted range."
+        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
         i=$((i+1))
         continue
     fi

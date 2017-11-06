@@ -56,7 +56,7 @@ class FEP:
 
         # Checking if the number of values provided are the same for each pair
         if len(self.values[self.U1_U1_filename]) == len(self.values[self.U1_U2_filename]):
-            n_1 = len(self.values[self.U1_U1_filename])  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
+            n_1 = len(self.values[self.U1_U1_filename])  # The number of snapshots from the sampling w.r.t. to U1 -> coordinates of U1 MD
         else:
             errorMessage="Error: The files " + self.U1_U1_filename + " and " + self.U1_U2_filename + " contain an unequal number of values."
             raise TypeError(errorMessage)

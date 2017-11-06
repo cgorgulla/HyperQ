@@ -1,11 +1,15 @@
 #!/usr/bin/env bash 
 
 # Usage infomation
-usage="Usage: hqf_md_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem type>
+usage="Usage: hqf_md_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem type> <md_index_range>
 
-Has to be run in the root folder.
+<subsystem>: Possible values: L, LS, RLS
 
-Possible subsystems are: L, LS, RLS."
+<md_index_range>: Possible values:
+                      * all : Will cover all simulations of the MSP
+                      * startindex:endindex : The index starts at 1 (w.r.t. the absolute simulation number)
+
+Has to be run in the root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -15,11 +19,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "3" ]; then
+if [ "$#" -ne "4" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 5"
+    echo "Number of expected arguments: 4"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -72,6 +76,7 @@ fi
 system1_basename="${1}"
 system2_basename="${2}"
 subsystem=${3}
+md_index_range=${4}
 msp_name=${system1_basename}_${system2_basename}
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
@@ -89,8 +94,24 @@ stride_ipi_trajectory="$(grep "<checkpoint" input-files/ipi/${inputfile_ipi_md} 
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Printing information
-echo -e "\n *** Preparing the md simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
+echo -e "\n *** Preparing the MD simulation ${msp_name} (hq_md_prepare_one_fes.sh) "
 
+# Setting the range indices
+if [ "${md_index_range}" == "all" ]; then
+    md_index_first=1
+    md_index_last=${nsim}
+else
+    md_index_first=${md_index_range/:*}
+    md_index_last=${md_index_range/*:}
+    if ! [ "${md_index_first}" -eq "${md_index_first}" ]; then
+        echo " * Error: The input variable md_index_range was not specified correctly. Exiting..."
+        exit 1
+    fi
+    if ! [ "${md_index_last}" -eq "${md_index_last}" ]; then
+        echo " * Error: The input variable md_index_range was not specified correctly. Exiting..."
+        exit 1
+    fi
+fi
 
 # Checking if the checkpoint and potential in the ipi input file are equal
 if [ "${stride_ipi_properties}" -ne "${stride_ipi_trajectory}" ]; then
@@ -126,14 +147,14 @@ cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
 
-# Preparing the individual md folders for each thermodynamic state
+# Preparing the individual MD folders for each thermodynamic state
 if [ "${TD_cycle_type}" == "hq" ]; then
 
     # Bead step size
     beadStepSize=$(expr ${ntdsteps} / ${nbeads})
 
     # Loop for each TD window
-    for i in $(eval echo "{1..${nsim}}"); do
+    for i in $(seq ${md_index_first} ${md_index_last}); do
         bead_count1="$(( nbeads - (i-1)*beadStepSize))"
         bead_count2="$(( (i-1)*beadStepSize))"
         bead_configuration="k_${bead_count1}_${bead_count2}"
@@ -308,7 +329,7 @@ if [ "${TD_cycle_type}" == "hq" ]; then
 elif [ "${TD_cycle_type}" == "lambda" ]; then
 
     # Checking if the CP2K eq input file contains a lambda variable
-    echo -n " * Checking if the lambda_value variable is present in the CP2K md input file... "
+    echo -n " * Checking if the lambda_value variable is present in the CP2K MD input file... "
     if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ]; then
         lambdavalue_count="$(grep -c lambda_value ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda )"
     elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ]; then
@@ -329,11 +350,12 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     lambda_stepsize=$(echo "print(1/${ntdsteps})" | python3)
 
     # Loop for each TD window
-    for i in $(eval echo "{1..${nsim}}"); do
+    for i in $(seq ${md_index_first} ${md_index_last}); do
 
         lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
         lambda_configuration=lambda_${lambda_current}
         md_folder="md.lambda_${lambda_current}"
+
         echo -e "\n * Preparing the files and directories for the fes with lambda-configuration ${lambda_configuration}"
 
         # Getting the cell size in the cp2k input files

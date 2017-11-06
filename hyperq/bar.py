@@ -57,13 +57,13 @@ class BAR_DeltaU:
     def compute_bar(self):
 
         # First BAR equation
-        self.n_1 = len(self.U1_U2_minus_U1_U1_values)  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
-        self.n_2 = len(self.U2_U1_minus_U2_U2_values)  # The number of snapshots from the sampling wrt to U2 -> coordinates of U2 MD
+        self.n_1 = len(self.U1_U2_minus_U1_U1_values)  # The number of snapshots from the sampling w.r.t. to U1 -> coordinates of U1 MD
+        self.n_2 = len(self.U2_U1_minus_U2_U2_values)  # The number of snapshots from the sampling w.r.t. to U2 -> coordinates of U2 MD
 
         # Checking the length of reweighting input data
         if self.reweighting == True:
-            n_1_bias = len(self.U1_U1biased_minus_U1_U1_values)  # The number of snapshots from the sampling wrt to U1 -> coordinates of U1 MD
-            n_2_bias = len(self.U2_U2biased_minus_U2_U2_values)  # The number of snapshots from the sampling wrt to U2 -> coordinates of U2 MD
+            n_1_bias = len(self.U1_U1biased_minus_U1_U1_values)  # The number of snapshots from the sampling w.r.t. to U1 -> coordinates of U1 MD
+            n_2_bias = len(self.U2_U2biased_minus_U2_U2_values)  # The number of snapshots from the sampling w.r.t. to U2 -> coordinates of U2 MD
             if (self.n_1 != n_1_bias) or (self.n_2 != n_2_bias):
                 raise ValueError("The length of the reweighting input data does not match the length of the non-reweighted input data.")
 

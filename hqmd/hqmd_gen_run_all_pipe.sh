@@ -7,8 +7,8 @@ Elementy elements:
    _pro_: prepare the optimization
    _rop_: run the optimization
    _ppo_: postprocess the optimization
-   _prm_: prepare md simulation
-   _rmd_: run md simulation
+   _prm_: prepare MD simulation
+   _rmd_: run MD simulation
 
 Combined elements:
    _allopt_: equals _pro_rop_ppo_

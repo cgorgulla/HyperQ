@@ -7,8 +7,8 @@ Elementy elements:
    _pro_: prepare the optimization
    _rop_: run the optimization
    _ppo_: postprocess the optimization
-   _prm_: prepare md simulation
-   _rmd_: run md simulation
+   _prm_: prepare MD simulation
+   _rmd_: run MD simulation
 
 Combined elements:
    _allopt_: equals _pro_rop_ppo_
@@ -108,19 +108,19 @@ if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* 
     cd ../../../
 fi
 
-# Preparing the md simulations
+# Preparing the MD simulations
 if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     hqmd_md_prepare_one_ms.sh ${system} ${subsystem}
 fi
 
-# Running the md simulations
+# Running the MD simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd md/${system}/${subsystem}
     hqmd_md_run_one_ms.sh
     cd ../../../
 fi
 
-# Postprocessing the md simulations
+# Postprocessing the MD simulations
 if [[ ${pipeline_type} == *"_ppm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"*  ]]; then
     cd md/${system}/${subsystem}
     hqmd_md_pp_one_ms.sh

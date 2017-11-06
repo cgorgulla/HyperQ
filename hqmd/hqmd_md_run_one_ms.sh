@@ -68,12 +68,12 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
 fi
 
 # Printing some information
-echo -e "\n *** Starting the md simulations (hqmd_md_run_one_ms.sh)"
+echo -e "\n *** Starting the MD simulations (hqmd_md_run_one_ms.sh)"
 
-# Running the md simulations
+# Running the MD simulations
 folder=md
 cd ${folder}/
-echo -e " * Starting the md simulation"
+echo -e " * Starting the MD simulation"
 hq_md_run_one_md.sh &
 pid=$!
 cd ../

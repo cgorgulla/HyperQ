@@ -55,7 +55,7 @@ receptor_FFparameter_source=MATCH
 ***************************************************************************** LOMAP *****************************************************************************
 
 lomap_mol2_folder=mol2-Li
-# For lomap, relative path name wrt to input-files/ligands
+# For lomap, relative path name w.r.t. to input-files/ligands
 
 draw_pairwise_mcs=false
 # Possible values: false or true (case insensitive)
@@ -114,7 +114,7 @@ md_type_RLS=MM
 ce_type_L=MM
 ce_type_LS=MM
 ce_type_RLS=MM
-# If umbrella_sampling=false, then this setting should be the same as md_type (since the md files are copied)
+# If umbrella_sampling=false, then this setting should be the same as md_type (since the MD files are copied)
 # Possible values: QMMM, MM, QM
 # Currently obsolete
 
@@ -172,7 +172,7 @@ eq_continue=true
 
 md_continue=true
 # Possible values (case insensitive): true, false 
-# If true, then during _prm_ non-existent md-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
+# If true, then during _prm_ non-existent MD-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
 # If false, then the md/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
 # If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
 # This setting has mainly effects on _prm_, only very few on _rmd_

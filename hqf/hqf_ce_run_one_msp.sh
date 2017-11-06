@@ -108,7 +108,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
 fi
 crosseval_folder=${crosseval_folder//\/}
 
-# Running the md simulations
+# Running the MD simulations
 i=0
 for crosseval_folder in ${crosseval_folder}; do
 

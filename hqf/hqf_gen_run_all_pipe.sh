@@ -16,8 +16,8 @@ The pipeline can be composed of:
   _pre_: preparing the equilibrations
   _req_: running the equilibrations
   _ppe_: postprocessing the equilibrations
-  _prm_: preparing md simulation
-  _rmd_: postprocessing md simulation
+  _prm_: preparing MD simulation
+  _rmd_: postprocessing MD simulation
   _prc_: preparing the crossevaluation
   _rce_: postprocessing the crossevaluation
   _prf_: preparing the free energy calculation

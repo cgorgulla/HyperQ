@@ -63,7 +63,7 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
 fi
 
 # Printing information
-echo -e "\n *** Postprocessing the md simulations (hqmd_md_pp_one_ms.sh)"
+echo -e "\n *** Postprocessing the MD simulations (hqmd_md_pp_one_ms.sh)"
 
 # Variables
 subsystem="$1"

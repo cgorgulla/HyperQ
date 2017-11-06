@@ -5,7 +5,7 @@ usage="Usage: hqf_eq_run_one_msp.sh <eq_index_range>
 
 <eq_index_range>: Possible values:
                       * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1
+                      * startindex:endindex : The index starts at 1 (w.r.t. to the eq folders present)
 
 Has to be run in the simulation main folder."
 
@@ -20,7 +20,7 @@ if [ "$#" -ne "1" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 0"
+    echo "Number of expected arguments: 1"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -132,7 +132,7 @@ elif [ "${TD_cycle_type}" == "lambda" ]; then
     eq_folders="$(ls -vd eq.*)"
 fi
 
-# Setting the md indeces
+# Setting the MD indices
 if [ "${eq_index_range}" == "all" ]; then
     eq_index_first=1
     eq_index_last=$(echo ${eq_folders[@]} | wc -w)
@@ -149,13 +149,13 @@ else
     fi
 fi
 
-# Running the geeqs
+# Running the equilibrations
 i=1
 for folder in ${eq_folders}; do
 
     # Checking if this eq should be skipped
     if [[ "${i}" -lt "${eq_index_first}" ]] ||  [[ "${i}" -gt "${eq_index_last}" ]]; then
-        echo -e " * Skipping the md simulation ${folder} because the md_index is not in the accepted range."
+        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
         i=$((i+1))
         continue
     fi
@@ -166,12 +166,13 @@ for folder in ${eq_folders}; do
     if [ "${eq_programs}" == "cp2k" ]; then
         cd ${folder}/cp2k
     fi
-    echo -e " * Starting the eqimization ${folder}"
+    echo -e " * Starting the equilibrations ${folder}"
     ${command_prefix_eq_run_one_eq} hqf_eq_run_one_eq.sh &
     pids[i]=$!
     echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
     i=$((i+1))
     cd ../..
+    sleep 1
 done
 
 # Waiting for the processes
