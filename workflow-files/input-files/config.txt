@@ -253,15 +253,15 @@ cp2k_command=cp2k.ssmp
 ****************************************************************************** i-PI *****************************************************************************
 
 # Ligand (L) input files
-inputfile_ipi_md_L=ipi.in.md.fast.xml
+inputfile_ipi_md_L=ipi.in.md.nvt.fast.xml
 inputfile_ipi_ce_L=ipi.in.ce.cp2k.xml
 
 # Ligand, solvent (LS) input files
-inputfile_ipi_md_LS=ipi.in.md.medium.xml
+inputfile_ipi_md_LS=ipi.in.md.nvt.medium.xml
 inputfile_ipi_ce_LS=ipi.in.ce.cp2k.xml
 
 # Protein, ligand, solvent (RLS) input files
-inputfile_ipi_md_RLS=ipi.in.md.slow.xml
+inputfile_ipi_md_RLS=ipi.in.md.nvt.slow.xml
 inputfile_ipi_ce_RLS=ipi.in.ce.cp2k.xml
 
 ipi_set_randomseed=true
@@ -274,7 +274,7 @@ ipi_set_randomseed=true
 # Ligand (L) input files
 inputfile_iqi_md_L=
 inputfile_iqi_constraints_L=
-# Usually not used because iqi is usually not used foro L only simulations
+# Normally not needed because iqi is usually not used for L only simulations
 
 # Ligand, solvent (LS) input files
 inputfile_iqi_md_LS=iqi.in.LS.xml
