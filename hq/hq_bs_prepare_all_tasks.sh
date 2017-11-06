@@ -7,9 +7,13 @@ Has to be run in the root folder.
 
 <MSP list file>: Text file containing a list of molecular system pairs (MSP), one pair per line, in form of system1_system2.
                  For each MSP in the file <MSP list file> a task defined by <command> will be created.
+
 <command>: This argument needs to be enclosed in quotes (single or double) if the command contain spaces.
-           In the command the expression ' MSP ' has to be used as a placeholder for the specific MSPs in the list.
-           The command primarily intended to be used is hqf_gen_run_one_pipe.sh
+           In the command the expression ' MSP ' has to be used as a placeholder for the specific MSPs in the list. (The embedding whitespaces are required.)
+           In addition the variable 'TDW' (thermodynamic window) can be used. If present, the command will be spread out over all TD windows for each MSP,
+           i.e. the variable 'TDW' is replaced by 'i:i', where i runs over all TDWs.
+           The command is primarily intended to be used in combination with hqf_gen_run_one_pipe.sh.
+
 <output file>: The tasks will be appended to the specified file. If this file does not exist yet, it will be created."
 
 # Checking the input arguments
@@ -39,8 +43,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -67,9 +71,11 @@ trap 'error_response_nonstd $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
+nsim="$((ntdsteps+1))"
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
@@ -92,10 +98,20 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         msp="${line}"
     fi
 
-    # Preparing the corresponding task for this MSP
-    echo -e " * Preparing the task for the MSP ${msp}"
-    command_specific="${command_general/ MSP / ${msp} }"
-    hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
+    # Preparing the corresponding tasks for this MSP
+    echo -e " * Preparing the tasks for the MSP ${msp}"
+    if [[ "${command_general}" == *"TDW"* ]]; then
+        echo " * The variable TDW was specified in the general command. Spreading the command over each TD window."
+        for i in $(seq 1 ${nsim}); do
+            echo "    * Preparing the task for TDW ${i}/${nsim}"
+            command_specific="${command_general// MSP / ${msp} }"
+            command_specific="${command_specific//TDW/${i}:${i}}"
+            hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
+        done
+    else
+        command_specific="${command_general// MSP / ${msp} }"
+        hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
+    fi
 
 done < ${msp_list_file}
 

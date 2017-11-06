@@ -35,7 +35,7 @@ line=$(grep -m 1 "^batchsystem=" input-files/config.txt)
 batchsystem="${line/batchsystem=}"
 
 # Verbosity
-if [ "${verbosity}" = "debug" ]; then
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 

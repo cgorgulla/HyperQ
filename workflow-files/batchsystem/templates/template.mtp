@@ -1,98 +1,67 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#
-# PBS/Moab Settings
-###############################################################################
-#PBS -N runtimeletter-mainjob_id_placeholder
-#PBS -l nodes=1:ppn=24
-#PBS -l naccesspolicy=singlejob
-#PBS -o batchsystem/output-files/job-mainjob_id_placeholder.main-${PBS_JOBID}.out
-#PBS -e batchsystem/output-files/job-mainjob_id_placeholder.main-${PBS_JOBID}.out
+
+#                                                                          PBS Settings
+####################################################################################################################################################################
+
+#PBS -N runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#PBS -l feature=mpp1:test
+##PBS -q specialm1weekq
 #PBS -l walltime=00:12:00
-##PBS -A bec00123
-#PBS -q mpp2testq
+#PBS -l nodes=1:ppn=24
+#PBS -l signal=10@300
+#PBS -l naccesspolicy=singlejob
+#PBS -o batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -e batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
 #PBS -m a
 #PBS -M silmaril@zedat.fu-berlin.de
-#PBS -l signal=10@300 
+##PBS -A bec00150
+##PBS -A bec00123
 
-# Job Information
-##################################################################################
 
+#                                                                         HyperQ Variables
+####################################################################################################################################################################
+
+# Definition
+HQ_JOBNAME=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+HQ_RUNTIMELETTER=runtimeletter_placeholder
+HQ_JID=jid_placeholder
+HQ_JSN=jsn_placeholder
+
+# Exportation
+export HQ_JOBNAME
+export HQ_RUNTIMELETTER
+export HQ_JID
+export HQ_JSN
+
+
+#                                                                  Printing Basic Job Information
+####################################################################################################################################################################
 echo
-echo "                    *** Job Information ***                    "
-echo "==============================================================="
-echo 
+echo "                                                  *** Job Information ***                                                        "
+echo "*********************************************************************************************************************************"
+echo
 echo "Environment variables"
 echo "------------------------"
 env
 echo
 echo
-echo "*** Job Infos by checkjob and qstat -f"
-echo "--------------------------------------------------"
+echo "Job infos by checkjob"
+echo "------------------------"
 checkjob $PBS_JOBID
+echo
+echo
+echo "Job infos by qstat -f"
+echo "------------------------"
 qstat -f $PBS_JOBID
-
-# Running the Job - Screening of the Ligands
-######################################################################
 echo
-echo "                    *** Job Output ***                    "
-echo "==========================================================="
 echo
 
-# Functions
-# Standard error response 
-error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $0" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Environment variables" 1>&2 
-    echo "----------------------------------" 1>&2
-    env 1>&2
-}
-trap 'error_response_std $LINENO' ERR
 
-# Handling signals
-time_near_limit() {
-    echo "The script ${BASH_SOURCE[0]} caught a time limit signal. Trying to start a new job."
-}
-trap 'time_near_limit' 10
+#                                                                          Main Job Work
+####################################################################################################################################################################
 
-termination_signal() {
-    echo "The script ${BASH_SOURCE[0]} caught a termination signal. Stopping job."
-    exit 1
-}
-trap 'termination_signal' 1 2 3 9 12 15
-
-# Printing final job information
-print_job_infos_end() {
-    # Job information
-    echo
-    echo "                     *** Final Job Information ***                    "
-    echo "======================================================================"
-    echo
-    echo "Starting time:" $STARTINGTIME
-    echo "Ending time:  " $(date)
-    echo
-}
-
-# Work to be done by the job
-
-# Variables
-HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-export HQF_STARTDATE
-
-# Loading a newer version of BASH, which is required for the HLRN because their default bash version is too old for HyperQ
+# Cluster/Batchsystem specific preparations (e.g. module loading)
 module load bash
 
-# Preparing folders
-mkdir -p batchsystem/output-files
-
-# Running the subjobs
-#main_code_placeholder
-
-# Waiting for the subjobs to finish
-wait
-
-
-# Printing final information
-print_job_infos_end
+# Sourcing the common main section of the job files
+source batchsystem/job-files/common/main.sh

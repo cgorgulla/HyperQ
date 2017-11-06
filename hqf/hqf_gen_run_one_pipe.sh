@@ -31,7 +31,9 @@ The pipeline can be composed of:
   _allfec_: equals _prf_rfe_ppf_
   _all_   : equals _allopt_alleq_allmd_allce_allfec_
 
-<sim_index_range>: Can be all (default if not set), or startiindex_endindex. The index starts at 1.
+<sim_index_range>: Possible values:
+                      * all : Will cover all simulations (default)
+                      * startindex:endindex : The index starts at 1
 
 The script has to be run in the root folder."
 
@@ -62,8 +64,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -160,9 +162,9 @@ if [ ! -d input-files ]; then
 fi
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" == "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" == "debug" ]; then
     set -x
 fi
 

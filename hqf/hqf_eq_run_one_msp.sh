@@ -3,7 +3,9 @@
 # Usage infomation
 usage="Usage: hqf_eq_run_one_msp.sh <eq_index_range>
 
-<eq_index_range> has to be either set to 'all', or to firstindex_lastindex. The index starts at 1.
+<eq_index_range>: Possible values:
+                      * all : Will cover all simulations of the MSP
+                      * startindex:endindex : The index starts at 1
 
 Has to be run in the simulation main folder."
 
@@ -45,8 +47,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -105,9 +107,9 @@ trap "cleanup_exit" EXIT
 set -o pipefail
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
@@ -135,8 +137,8 @@ if [ "${eq_index_range}" == "all" ]; then
     eq_index_first=1
     eq_index_last=$(echo ${eq_folders[@]} | wc -w)
 else
-    eq_index_first=${eq_index_range/_*}
-    eq_index_last=${eq_index_range/*_}
+    eq_index_first=${eq_index_range/:*}
+    eq_index_last=${eq_index_range/*:}
     if ! [ "${eq_index_first}" -eq "${eq_index_first}" ]; then
         echo " * Error: The variable md_index_first is not set correctly. Exiting..."
         exit 1

@@ -3,7 +3,9 @@
 # Usage infomation
 usage="Usage: hqf_md_run_one_msp.sh <md_index_range>
 
-<md_index_range> has to be either set to 'all', or to firstindex_lastindex. The index starts at 1.
+<md_index_range>: Possible values:
+                      * all : Will cover all simulations of the MSP
+                      * startindex:endindex : The index starts at 1
 
 Has to be run in the simulation main folder."
 
@@ -45,8 +47,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -114,9 +116,9 @@ trap 'clean_exit' EXIT
 set -o pipefail
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
@@ -144,8 +146,8 @@ if [ "${md_index_range}" == "all" ]; then
     md_index_first=1
     md_index_last=$(echo ${md_folders[@]} | wc -w)
 else
-    md_index_first=${md_index_range/_*}
-    md_index_last=${md_index_range/*_}
+    md_index_first=${md_index_range/:*}
+    md_index_last=${md_index_range/*:}
     if ! [ "${md_index_first}" -eq "${md_index_first}" ]; then
         echo " * Error: The variable md_index_first is not set correctly. Exiting..."
         exit 1

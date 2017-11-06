@@ -30,8 +30,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -55,9 +55,9 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 

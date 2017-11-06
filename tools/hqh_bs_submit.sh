@@ -31,7 +31,7 @@ fi
 set -o pipefail
 
 # Verbosity
-if [ "${verbosity}" = "debug" ]; then
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
@@ -40,8 +40,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -65,10 +65,8 @@ error_response_std() {
 trap 'error_response_nonstd $LINENO' ERR
 
 # Variables
-# Getting the batchsystem type
-line=$(grep -m 1 "^batchsystem=" input-files/config.txt)
-batchsystem="${line/batchsystem=}"
 jobfile=${1}
+batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
 
 # Submitting the job
 if [ "${batchsystem}" == "slurm" ]; then

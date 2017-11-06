@@ -1,21 +1,19 @@
 #!/usr/bin/env bash
 
-#                                                                         SLURM Settings
+#                                                                          LSF Settings
 ####################################################################################################################################################################
 
-#SBATCH --job-name=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
-#SBATCH --partition=main
-#SBATCH --time=00-01:00:00
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=600
-#SBATCH --signal=10@300
-##SBATCH --constraint="scratch2"
-##SBATCH --constraint="holyib"
-#SBATCH --output=batchsystem/output-files/jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
-#SBATCH --error=batchsystem/output-files/jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
-#SBATCH --mail-user=cgorgulla@crystal.harvard.edu
-#SBATCH --mail-type=fail
+#BSUB -J runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#BSUB -q mpi
+#BSUB -W 150:00
+#BSUB -n 1
+#BSUB -R "rusage[mem=1000]"
+#BSUB -R "select[scratch2]"
+##BSUB -R "span[ptile=8]"
+##BSUB -R "rusage[ngpus=0.5]"               # Orchestra
+#BSUB -oo batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
+#BSUB -wt '5'
+#BSUB -wa 'USR1'
 
 
 #                                                                         HyperQ Variables
@@ -46,9 +44,9 @@ env
 echo
 echo
 echo
-echo "Job infos by scontrol"
+echo "Job infos by bjobs"
 echo "------------------------"
-scontrol show job $SLURM_JOB_ID
+bjobs $LSB_JOBID
 echo
 echo
 
@@ -56,7 +54,14 @@ echo
 #                                                                          Main Job Work
 ####################################################################################################################################################################
 
-# Cluster/Batchsystem specific preparations (e.g. module loading)
+### Cluster/Batchsystem specific preparations (e.g. module loading) ###
+
+# For Orchestra and MPI
+#module load dev/openmpi-1.8.6
+
+# For Orchestra and GPUs
+#source /opt/gpu.sh
+#export CUDA_VISIBLE_DEVICES
 
 # Sourcing the common main section of the job files
 source batchsystem/job-files/common/main.sh

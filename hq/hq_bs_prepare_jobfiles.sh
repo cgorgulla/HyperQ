@@ -37,8 +37,8 @@ error_response_std() {
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
-    echo "The error occured in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occured on line $1" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..."
     echo
     echo
@@ -65,9 +65,9 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-verbosity="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export verbosity
-if [ "${verbosity}" = "debug" ]; then
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
@@ -77,7 +77,7 @@ echo -e "\n ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
 # Variables
 task_list=$1
 job_template=$2
-first_job_ID=$3
+first_jid=$3
 subjobs_per_job=$4
 tasks_per_subjob=$5
 parallelize_subjobs=$6
@@ -88,26 +88,37 @@ command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/co
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '=' '{print $2}')
 no_of_tasks="$(wc -l ${task_list} | awk '{print $1}')"
 
-# Loop for each task
-job_ID=$first_job_ID
-subjob_ID=1
-task_ID=1           # Counting within subjobs only
-task_counter=1
+# Checking if the batchsystem types match
+if [[ "${batchsystem}" != "${job_template/*.}" ]]; then
+    echo -e "\n * Error: The batchsystem type specified in the file input-files/config.txt does not match the ending of the batchsysetm template file. Exiting...\n\n"
+    exit 1
+fi 
 
 # Preparing required folders
 mkdir -p batchsystem/job-files/main/
-mkdir -p batchsystem/job-files/sub/
+mkdir -p batchsystem/job-files/subjobs/
+mkdir -p batchsystem/job-files/tasks/
+mkdir -p batchsystem/job-files/common/
 mkdir -p batchsystem/output-files/
 
+# Copying the common main job file
+cp batchsystem/templates/jobfiles.common.main.sh batchsystem/job-files/common/main.sh
+
+# Loop for each task
+jid=$first_jid
+sjid=1                                                                      # Subjob ID
+task_ID=1
+task_counter=1                                                              # Counting within subjobs
 while IFS='' read -r command_task; do
 
     # Printing some information
-    echo -e " * Preparing task ${task_ID} of job ${job_ID}, subjob ${subjob_ID}"
+    echo -e " * Preparing task ${task_ID} of job ${jid}, subjob ${sjid}"
 
     # Variables
-    job_file_main="batchsystem/job-files/main/${job_ID}.${batchsystem}"
-    job_file_sub="batchsystem/job-files/sub/${job_ID}.${subjob_ID}.sh"
-    command_task="${command_task} &> batchsystem/output-files/job-${job_ID}.${subjob_ID}.task-${task_ID}.out"
+    job_file="batchsystem/job-files/main/jid-${jid}.${batchsystem}"
+    subjob_file="batchsystem/job-files/subjobs/jid-${jid}.sh"
+    task_file="batchsystem/job-files/tasks/jid-${jid}.sjid-${sjid}.sh"
+    command_task="${command_task} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.out"
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
         command_task="${command_task} &"
@@ -117,92 +128,82 @@ while IFS='' read -r command_task; do
     if [ "${task_ID}" -eq "1" ]; then
 
         # Checking if a new job file has to be created
-        if [ "${subjob_ID}" -eq "1" ]; then
+        if [ "${sjid}" -eq "1" ]; then
 
             # Copying the job file
-            cp ${job_template} ${job_file_main}
+            cp ${job_template} ${job_file}
 
             # Adjusting the job file
-            sed -i "s/runtimeletter/${runtimeletter}/g" ${job_file_main}
-            sed -i "s/mainjob_id_placeholder/${job_ID}/g" ${job_file_main}
+            sed -i "s/runtimeletter_placeholder/${runtimeletter}/g" ${job_file}
+            sed -i "s/jid_placeholder/${jid}/g" ${job_file}
+            sed -i "s/jsn_placeholder/1/g" ${job_file}
         fi
 
-        # Preparing the initial sub job file
-        echo -e "#!/usr/bin/env bash" > ${job_file_sub}
-        echo >> ${job_file_sub}
-        echo >> ${job_file_sub}
-        echo "# Body" >> ${job_file_sub}
+        # Preparing the initial subjob file
+        echo -e "#!/usr/bin/env bash" > ${task_file}
+        echo >> ${task_file}
+        echo >> ${task_file}
+        echo "# Body" >> ${task_file}
 
-        # Preparing the command of the subjob for the jobfile
+        # Preparing the subjob command for the subjob file
         if [ ${batchsystem^^} == "SLURM" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${job_file_sub} \&> batchsystem/output-files/job-${job_ID}.${subjob_ID}.%j.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
         elif [ ${batchsystem^^} == "MTP" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${job_file_sub} \&> batchsystem/output-files/job-${job_ID}.${subjob_ID}.\${PBS_JOBID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
         elif [ ${batchsystem^^} == "LSF" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${job_file_sub} \&> batchsystem/output-files/job-${job_ID}.${subjob_ID}.%J.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
         elif [ ${batchsystem^^} == "SGE" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${job_file_sub} \&> batchsystem/output-files/job-${job_ID}.${subjob_ID}.\${JOB_ID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
         else
             echo -e "\n * Error: The specified batchsystem (${batchsystem}) is not supported. Exiting...\n\n"
             exit 1
         fi
 
-        # Adding the parallization flag if specified
+        # Adding the parallelization flag if specified
         if [ "${parallelize_subjobs}" == "true" ]; then
-            command_subjob="${command_subjob} \&"
+            command_subjob="${command_subjob} &"
         fi
 
-        # Adding the sub job to the job file
-        sed -i "s|#main_code_placeholder|${command_subjob}\n#main_code_placeholder|g" ${job_file_main}
+        # Adding the subjob to the subjob file
+        echo "${command_subjob}" >> ${subjob_file}
     fi
 
-    # Adding the task to the sub job file
-    echo "${command_prefix_bs_task} ${command_task}" >> ${job_file_sub}
+    # Adding the task to the task file
+    echo "${command_prefix_bs_task} ${command_task}" >> ${task_file}
 
-    # Checking if this task is the last task of all
-    if [[ "${task_counter}" -eq "${no_of_tasks}" ]] ; then
-        # Finalizing the subjob file
-        echo -e "\nwait" >> "${job_file_sub}"
-
-        # Finalizing the main job file
-        sed -i "/#main_code_placeholder/d" ${job_file_main}
-
+    # Checking if this task is not the last one of this subjob
+    if [ "${task_ID}" -lt "${tasks_per_subjob}" ]; then
+        task_ID="$((task_ID+1))"
     else
-        # Checking if this task was not the last one of this subjob
-        if [ "${task_ID}" -lt "${tasks_per_subjob}" ]; then
-            task_ID="$((task_ID+1))"
+        # Resetting the task ID
+        task_ID=1
+
+        # Finalizing the task file
+        echo -e "\nwait" >> "${task_file}"
+
+        # Checking if this subjob was not the last subjob of this job
+        if [ "${sjid}" -lt "${subjobs_per_job}" ]; then
+
+            # Increasing the subjob ID
+            sjid="$((sjid+1))"
         else
-            # Resetting the task ID
-            task_ID=1
 
-            # Finalizing the subjob file
-            echo -e "\nwait" >> "${job_file_sub}"
+            # Resetting the subjob ID
+            sjid=1
 
-            # Checking if this subjob was not the last subjob of this job
-            if [ "${subjob_ID}" -lt "${subjobs_per_job}" ]; then
-                # Increasing the subjob ID
-                subjob_ID="$((subjob_ID+1))"
-
-            else
-                # Finalizing the main job file
-                sed -i "/#main_code_placeholder/d" ${job_file_main}
-
-                # Resetting the subjob ID
-                subjob_ID=1
-
-                # Increasing the job ID
-                job_ID="$((job_ID+1))"
-            fi
+            # Increasing the job ID
+            jid="$((jid+1))"
         fi
-
-        # Updating the task counter
-        task_counter=$((task_counter+1))
     fi
+
+    # Updating the task counter
+    task_counter=$((task_counter+1))
+
 done < "${task_list}"
 
 # Setting the permissions
 chmod u+x batchsystem/job-files/main/*
-chmod u+x batchsystem/job-files/sub/*
+chmod u+x batchsystem/job-files/subjobs/*
 
-# Final information
+# Printing final information
 echo -e "\n * All job-files have been prepared.\n\n"

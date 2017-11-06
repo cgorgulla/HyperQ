@@ -1,97 +1,60 @@
 #!/usr/bin/env bash
-# ---------------------------------------------------------------------------
-#
-# SGE Settings
-###############################################################################
-#
-#$ -S /bin/bash
+
+#                                                                         SLURM Settings
+####################################################################################################################################################################
+
+#$ -S /usr/bin/env bash
 #$ -cwd
-#$ -N runtimeletter-mainjob_id_placeholder
-#$ -o batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
-#$ -e batchsystem/output-files/task-job_id_placeholder.job-$JOB_ID.out
+#$ -q wagnerlab
 #$ -l h_rt=12:00:00
 #$ -l mem_free=600M
-#$ -q wagnerlab
+#$ -N runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#$ -o batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-$JOB_ID.out
+#$ -e batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-$JOB_ID.out
 #$ -m a
 #$ -M cgorgulla@crystal.harvard.edu
 #$ -notify
-#
-#
-# Job Information
-##################################################################################
 
+
+#                                                                         HyperQ Variables
+####################################################################################################################################################################
+
+# Definition
+HQ_JOBNAME=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+HQ_RUNTIMELETTER=runtimeletter_placeholder
+HQ_JID=jid_placeholder
+HQ_JSN=jsn_placeholder
+
+# Exportation
+export HQ_JOBNAME
+export HQ_RUNTIMELETTER
+export HQ_JID
+export HQ_JSN
+
+
+#                                                                  Printing Basic Job Information
+####################################################################################################################################################################
 echo
-echo "                    *** Job Information ***                    "
-echo "==============================================================="
-echo 
+echo "                                                  *** Job Information ***                                                        "
+echo "*********************************************************************************************************************************"
+echo
 echo "Environment variables"
 echo "------------------------"
 env
 echo
 echo
-echo "*** Job Infos by qstat"
-echo "--------------------------------------------------"
+echo
+echo "Job infos by qstat -j"
+echo "------------------------"
 qstat -j $JOB_ID
-
-
-# Running the Job - Screening of the Ligands
-######################################################################
 echo
-echo "                    *** Job Output ***                    "
-echo "==========================================================="
 echo
 
-# Functions
-# Standard error response 
-error_response_std() {
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $0" 1>&2
-    echo "Error on line $1" 1>&2
-    echo "Environment variables" 1>&2 
-    echo "----------------------------------" 1>&2
-    env 1>&2
-}
-trap 'error_response_std $LINENO' ERR
 
-# Handling signals
-time_near_limit() {
-    echo "The script ${BASH_SOURCE[0]} caught a time limit signal. Trying to start a new job."
-}
-trap 'time_near_limit' 10
+#                                                                          Main Job Work
+####################################################################################################################################################################
 
-termination_signal() {
-    echo "The script ${BASH_SOURCE[0]} caught a termination signal. Stopping job."
-    exit 1
-}
-trap 'termination_signal' 1 2 3 9 12 15
+# Cluster/Batchsystem specific preparations (e.g. module loading)
 
-# Printing final job information
-print_job_infos_end() {
-    # Job information
-    echo
-    echo "                     *** Final Job Information ***                    "
-    echo "======================================================================"
-    echo
-    echo "Starting time:" $STARTINGTIME
-    echo "Ending time:  " $(date)
-    echo
-}
-
-# Work to be done by the job
-
-# Variables
-HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-export HQF_STARTDATE
-
-# Preparing folders
-mkdir -p batchsystem/output-files
-
-# Running the subjobs
-#main_code_placeholder
-
-# Waiting for the subjobs to finish
-wait
-
-
-# Printing final information
-print_job_infos_end
+# Sourcing the common main section of the job files
+source batchsystem/job-files/common/main.sh

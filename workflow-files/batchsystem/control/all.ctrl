@@ -1,0 +1,40 @@
+*****************************************************************************************************************************************************************
+**********************************************************************   Job Termination   **********************************************************************
+*****************************************************************************************************************************************************************
+
+prevent_new_job_submissions=false
+# Possible values: true, false
+# This option takes precedence over other options which specify if new jobs should be started at the end of a job
+# Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
+# Can be changed during runtime
+
+
+job_success_actions=prepare_new_job
+# Possible values: prepare_new_job, start_new_job
+# Can be unset (i.e. having no values)
+# Multiple values can be specified by using colons: value1:value2:...
+# Can be changed during runtime
+
+*****************************************************************************************************************************************************************
+*****************************************************************   Signal and Error Handling   *****************************************************************
+*****************************************************************************************************************************************************************
+
+signals_type1=10
+signals_type2=1:2:3:9:12:15:18
+signals_type3=
+# Multiple signals can be specified by using colons as a delimiter: signal1:signal2:...
+# The signal can be anything which BASH can trap, i.e.
+#       * Signal numbers
+#       * Signal names
+# See kill -l for a complete list of signal numbers and names
+# Changes during the runtime have no effect
+
+internal_error_response=prepare_new_job
+signals_type1_response=prepare_new_job:start_new_job
+signals_type2_response=prepare_new_job
+signals_type3_response=
+# Possible values: ignore, prepare_new_job, start_new_job
+# Can be unset (i.e. having no values)
+# Multiple values can be specified by using colons as delimiters
+# If the 'ignore' option is set, all other values will be ignored
+# Can be changed during runtime
