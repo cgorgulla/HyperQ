@@ -52,6 +52,7 @@ receptor_FFparameter_source=MATCH
 #   * receptorname.prm
 # The prm files need to have a proper END statement at the end of the file
 
+
 ***************************************************************************** LOMAP *****************************************************************************
 
 lomap_mol2_folder=mol2-Li

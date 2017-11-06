@@ -10,8 +10,8 @@ Has to be run in the root folder.
 
 <command>: This argument needs to be enclosed in quotes (single or double) if the command contain spaces.
            In the command the expression ' MSP ' has to be used as a placeholder for the specific MSPs in the list. (The embedding whitespaces are required.)
-           In addition the variable 'TDW' (thermodynamic window) can be used. If present, the command will be spread out over all TD windows for each MSP,
-           i.e. the variable 'TDW' is replaced by 'i:i', where i runs over all TDWs.
+           In addition the variable 'TDS' (thermodynamic state) can be used. If present, the command will be spread out over all TD states (end states and alchemical intermediate states) for each MSP,
+           i.e. the variable 'TDS' is replaced by 'i:i', where i runs over all TDSs.
            The command is primarily intended to be used in combination with hqf_gen_run_one_pipe.sh.
 
 <output file>: The tasks will be appended to the specified file. If this file does not exist yet, it will be created."
@@ -100,12 +100,12 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
     # Preparing the corresponding tasks for this MSP
     echo -e " * Preparing the tasks for the MSP ${msp}"
-    if [[ "${command_general}" == *"TDW"* ]]; then
-        echo " * The variable TDW was specified in the general command. Spreading the command over each TD window."
+    if [[ "${command_general}" == *"TDS"* ]]; then
+        echo " * The variable TDS was specified in the general command. Spreading the command over each TD window."
         for i in $(seq 1 ${nsim}); do
-            echo "    * Preparing the task for TDW ${i}/${nsim}"
+            echo "    * Preparing the task for TDS ${i}/${nsim}"
             command_specific="${command_general// MSP / ${msp} }"
-            command_specific="${command_specific//TDW/${i}:${i}}"
+            command_specific="${command_specific//TDS/${i}:${i}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
         done
     else
