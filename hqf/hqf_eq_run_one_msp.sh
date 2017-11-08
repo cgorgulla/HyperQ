@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-# Usage infomation
-usage="Usage: hqf_eq_run_one_msp.sh <eq_index_range>
+# Usage information
+usage="Usage: hqf_eq_run_one_msp.sh <tds_range>
 
-<eq_index_range>: Possible values:
-                      * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1 (w.r.t. to the eq folders present)
+Arguments:
+    <tds_range>: Range of the thermodynamic states
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
 
-Has to be run in the simulation main folder."
+Has to be run in the subsystem folder."
 
 if [ "${1}" == "-h" ]; then
     echo
@@ -30,19 +32,7 @@ if [ "$#" -ne "1" ]; then
     exit 1
 fi
 
-# Checking the version of BASH, we need at least 4.3 (wait -n)
-bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
-if [ ${bash_version} -lt 43 ]; then
-    # Printing some information
-    echo
-    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
-    echo "Exiting..."
-    echo
-    echo
-    exit 1
-fi
-
-# Standard error response 
+# Standard error response
 error_response_std() {
     # Printing some information
     echo
@@ -103,6 +93,7 @@ cleanup_exit() {
 }
 trap "cleanup_exit" EXIT
 
+
 # Bash options
 set -o pipefail
 
@@ -113,71 +104,94 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
+fi
+
 # Printing some information
-echo -e "\n *** Running the equilibrations ${1} (hq_eq_run_one_msp.sh)"
+echo -e "\n *** Running the geometry equilibrations ${1}(hq_eq_run_one_msp.sh)"
 
 # Variables
-eq_index_range="${1}"
+tds_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 fes_eq_parallel_max="$(grep -m 1 "^fes_eq_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_eq_run_one_eq="$(grep -m 1 "^command_prefix_eq_run_one_eq=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
+tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count + 1))"
 
-# Getting the MD folders
-if [ "${TD_cycle_type}" == "hq" ]; then
-    eq_folders="$(ls -vrd eq.*)"
-elif [ "${TD_cycle_type}" == "lambda" ]; then
-    eq_folders="$(ls -vd eq.*)"
-fi
 
-# Setting the MD indices
-if [ "${eq_index_range}" == "all" ]; then
-    eq_index_first=1
-    eq_index_last=$(echo ${eq_folders[@]} | wc -w)
-else
-    eq_index_first=${eq_index_range/:*}
-    eq_index_last=${eq_index_range/*:}
-    if ! [ "${eq_index_first}" -eq "${eq_index_first}" ]; then
-        echo " * Error: The variable md_index_first is not set correctly. Exiting..."
+# Checking if the variables nbeads and tdw_count are compatible
+if [ "${tdcycle_type}" == "hq" ]; then
+    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible... "
+    trap '' ERR
+    mod="$(expr ${nbeads} % ${tdw_count})"
+    trap 'error_response_std $LINENO' ERR
+    if [ "${mod}" != "0" ]; then
+        echo "Check failed"
+        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
         exit 1
     fi
-    if ! [ "${eq_index_last}" -eq "${eq_index_last}" ]; then
-        echo " * Error: The variable md_index_last is not set correctly. Exiting..."
-        exit 1
-    fi
+    echo " OK"
 fi
 
-# Running the equilibrations
-i=1
-for folder in ${eq_folders}; do
+# Setting the range indices
+tds_index_first=${tds_range/:*}
+tds_index_last=${tds_range/*:}
+if [ "${tds_index_last}" == "K" ]; then
+    tds_index_last=${tds_count}
+fi
 
-    # Checking if this eq should be skipped
-    if [[ "${i}" -lt "${eq_index_first}" ]] ||  [[ "${i}" -gt "${eq_index_last}" ]]; then
-        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
-        i=$((i+1))
-        continue
+# Loop for each equilibration in the specified tds range
+for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
+
+    # Determining the eq folder
+    if [ "${tdcycle_type}" == "hq" ]; then
+
+        # Variables
+        bead_step_size=$(expr $nbeads / $tdw_count)
+        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
+        bead_count2="$(( (tds_index-1)*bead_step_size))"
+        bead_configuration="k_${bead_count1}_${bead_count2}"
+        tds_folder=tds.${bead_configuration}
+
+    elif [ "${tdcycle_type}" == "lambda" ]; then
+
+        # Variables
+        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        lambda_configuration=lambda_${lambda_current}
+        tds_folder=tds.${lambda_configuration}
     fi
 
+    # Loop for allowing only the specified number of parallel runs
     while [ "$(jobs | wc -l)" -ge "${fes_eq_parallel_max}" ]; do
-        sleep 1; 
+        sleep 1;
     done;
-    if [ "${eq_programs}" == "cp2k" ]; then
-        cd ${folder}/cp2k
-    fi
-    echo -e " * Starting the equilibrations ${folder}"
-    ${command_prefix_eq_run_one_eq} hqf_eq_run_one_eq.sh &
+
+    # Starting the equilibration
+    cd ${tds_folder}
+    echo -e " * Starting the equilibration ${tds_folder}"
+    ${command_prefix_eq_run_one_eq} hqf_eq_run_one_tds.sh &
     pids[i]=$!
-    echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
-    i=$((i+1))
-    cd ../..
-    sleep 1
+    tds_index=$((tds_index+1))
+    cd ..
 done
 
 # Waiting for the processes
-for pid in ${pids[@]}; do        # just the number of arguments matters
+for pid in ${pids[@]}; do        # just the size of the array matters, not its content
     wait -n
 done
 
-echo -e " * All equilibrations have been completed."
+# Printing script completion information
+echo -e "\n * The equilibration runs of all the specified TDSs (${tds_range}) of this MSP (${msp_name}) have been completed.\n\n"

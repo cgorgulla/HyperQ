@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_opt_pp_one_opt.sh <original pdb filename> <psf filename> <trajectory filename> <output filename>
+usage="Usage: hq_opt_pp_one_tds.sh <original pdb filename> <psf filename> <trajectory filename> <output filename>
 
-Has to be run in the specific system root folder."
+Has to be run in the subsystem folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -25,13 +25,6 @@ if [ "$#" -ne "4" ]; then
     echo
     echo
     exit 1
-fi
-
-# Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
-    set -x
 fi
 
 # Standard error response 
@@ -66,6 +59,13 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Verbosity
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
+    set -x
+fi
+
 # Variables
 original_pdb_filename=${1}
 psf_filename=${2}  # only needed for vmd
@@ -73,6 +73,13 @@ trajectory_filename=${3}
 output_filename=${4}
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+opt_continue="$(grep -m 1 "^opt_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
+# Checking if the optimization is in continuation mode
+if [[ "${opt_continue^^}" == "TRUE" ]] && [[ -f ${output_filename} ]]; then
+    echo -e "\n * The output file already exists and the optimization is in continuation mode. Nothing to do...\n\n"
+    exit 0
+fi
 
 # Extracting the last snapshot
 echo -e "\n * Preparing the extraction of the last snapshot from the trajectory file"
@@ -112,4 +119,5 @@ paste -d "" <(while read line; do printf "%-85s\n" "$line" | grep "^ATOM"; done 
 echo "END" >> ${output_filename}
 rm ${output_filename}.tmp
 
-echo -e " * The final pdb file of the optimization has been prepared"
+# Printing program completion information
+echo -e "\n * The postprocessing of the specified TDS has been successfully completed\n\n"

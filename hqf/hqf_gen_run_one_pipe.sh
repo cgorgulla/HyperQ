@@ -1,39 +1,43 @@
 #!/usr/bin/env bash
 
-# Usage infomation
-usage="Usage: hqf_gen_run_one_pipe.sh <MSP> <subsystem> <pipeline_type> [<sim_index_range>]
+# Usage information
+usage="Usage: hqf_gen_run_one_pipe.sh <msp> <subsystem> <pipeline_type> [<tds_range>]
 
-<subsystem>: Possible values: L, LS, RLS
+Arguments:
+    <subsystem>: Possible values: L, LS, RLS
 
-<MSP>: The molecular system pair (MSP) in form of system1_system2
+    <MSP>: The molecular system pair (MSP) in form of system1_system2
 
-The pipeline can be composed of:
- Elementary components:
-  _pro_: preparing the optimizations
-  _rop_: running the optimizations
-  _ppo_: postprocessing the optimizations
-  _pre_: preparing the equilibrations
-  _req_: running the equilibrations
-  _ppe_: postprocessing the equilibrations
-  _prm_: preparing MD simulation
-  _rmd_: postprocessing MD simulation
-  _prc_: preparing the crossevaluation
-  _rce_: postprocessing the crossevaluation
-  _prf_: preparing the free energy calculation
-  _rfe_: postprocessing the free energy calculation
-  _ppf_: postprocessing the free energy calculation
+    The pipeline can be composed of:
+     Elementary components:
+      _pro_: preparing the optimizations
+      _rop_: running the optimizations
+      _ppo_: postprocessing the optimizations
+      _pre_: preparing the equilibrations
+      _req_: running the equilibrations
+      _ppe_: postprocessing the equilibrations
+      _prm_: preparing MD simulation
+      _rmd_: postprocessing MD simulation
+      _prc_: preparing the crossevaluation
+      _rce_: postprocessing the crossevaluation
+      _prf_: preparing the free energy calculation
+      _rfe_: postprocessing the free energy calculation
+      _ppf_: postprocessing the free energy calculation
 
- Macro components:
-  _allopt_: equals _pro_rop_ppo_
-  _alleq_: equals _pre_req_ppe_
-  _allmd_ : equals _prd_rmd_
-  _allce_ : equals _prc_rce_
-  _allfec_: equals _prf_rfe_ppf_
-  _all_   : equals _allopt_alleq_allmd_allce_allfec_
+     Macro components:
+      _allopt_: equals _pro_rop_ppo_
+      _alleq_: equals _pre_req_ppe_
+      _allmd_ : equals _prd_rmd_
+      _allce_ : equals _prc_rce_
+      _allfec_: equals _prf_rfe_ppf_
+      _all_   : equals _allopt_alleq_allmd_allce_allfec_
 
-<sim_index_range>: Possible values:
-                      * all : Will cover all simulations (default)
-                      * startindex:endindex : The index starts at 1
+    <tds_range>:
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
+      * Currently only relevant for opt, eq, md
+      * If unset, 1:K will be used for the commands which need a range argument
 
 The script has to be run in the root folder."
 
@@ -49,7 +53,7 @@ if [[ "$#" -ne "3" ]] && [[ "$#" -ne "4" ]]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 3"
+    echo "Number of expected arguments: 3-4"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -105,7 +109,7 @@ cleanup_exit() {
     done
 
     # Removing remaining socket files
-    rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.* 2>&1 > /dev/null
+    rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.* 2>&1 > /dev/null
 
     # Terminating all remaining processes
     # Get our process group id
@@ -168,35 +172,38 @@ if [ "${HQ_VERBOSITY}" == "debug" ]; then
     set -x
 fi
 
+# Internal start startdate_hr
+if [ -z "${HQF_STARTDATE}" ]; then
+    HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+    export HQF_STARTDATE
+fi
+
 # Variables
 msp_name="${1}"
 subsystem="${2}"
 pipeline_type="${3}"
 system1="${msp_name/_*}"
 system2="${msp_name/*_}"
-runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '=' '{print $2}')"
-date="$(date --rfc-3339=seconds | tr -s ": " "_")"
-if [ -z "${HQF_STARTDATE}" ]; then
-    HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-    export HQF_STARTDATE
-fi
-if [ -z "${4}" ]; then
-    sim_index_range="all"
-else
-    sim_index_range="${4}"
-fi
-
+startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"                          # human readable format
+logfile_folder_root="log-files/${startdate_hr}/${msp_name}_${subsystem}"
 
 # Removing old file
 if [ -f runtime/error ]; then
     rm runtime/error
 fi
 
+# TDS Range
+if [ "${#}" == "4" ]; then
+    tds_range="${4}"
+else
+    tds_range=1:K
+fi
+
 # Folders
-mkdir -p log-files/${date}/${msp_name}_${subsystem}
+mkdir -p ${logfile_folder_root}
 mkdir -p runtime
-mkdir -p runtime/pids/${msp_name}_${subsystem}/
 
 # Making sure the script is run in its own process group
 # Deactivated for now because the condition is true on the HLRN but the code causes an error: execvp: No such file or directory)
@@ -205,110 +212,85 @@ mkdir -p runtime/pids/${msp_name}_${subsystem}/
 #fi
 
 # Logging the output of this script
-exec &> >(tee log-files/${date}/${msp_name}_${subsystem}/hqf_gen_run_one_pipe.sh_${pipeline_type})
+exec &> >(tee ${logfile_folder_root}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
 # Preparing the optimizations
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${sim_index_range} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_opt_prepare_one_msp_${sim_index_range}
-    check_error_indicators 1
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_opt_prepare_one_msp_${tds_range}
 fi
 
 # Running the optimizations
 if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    if [ -d runtime/pids/${msp_name}_${subsystem}/opt ]; then
-        rm -r runtime/pids/${msp_name}_${subsystem}/opt
-    fi
     cd opt/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_run_one_msp_${sim_index_range}
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_opt_run_one_msp_${tds_range}
     cd ../../../
-    check_error_indicators 1
-fi 
+fi
 
 # Postprocessing the optimizations
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     cd opt/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_pp_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_opt_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_opt_pp_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_opt_pp_one_msp_${tds_range}
     cd ../../../
-    check_error_indicators 1
 fi
 
 # Preparing the equilibrations
 if [[ "${pipeline_type}" == *"_pre_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${sim_index_range} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_eq_prepare_one_msp_${sim_index_range}
-    check_error_indicators 1
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_eq_prepare_one_msp_${tds_range}
 fi
 
 # Running the equilibrations
 if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    if [ -d runtime/pids/${msp_name}_${subsystem}/eq ]; then
-        rm -r runtime/pids/${msp_name}_${subsystem}/eq
-    fi
     cd eq/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_run_one_msp_${sim_index_range}
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_run_one_msp_${tds_range}
     cd ../../../
-    check_error_indicators 1
 fi
 
 # Postprocessing the equilibrations
 if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     cd eq/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_pp_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_eq_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_eq_pp_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_pp_one_msp_${tds_range}
     cd ../../../
-    check_error_indicators 1
 fi
 
 # Preparing the MD simulations
 if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    if [ -d runtime/pids/${msp_name}_${subsystem}/md ]; then
-        rm -r runtime/pids/${msp_name}_${subsystem}/md
-    fi
-    ${command_prefix_gen_run_one_pipe_sub} hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${sim_index_range} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_md_prepare_one_msp_${sim_index_range}
-    check_error_indicators 1
+    ${command_prefix_gen_run_one_pipe_sub} hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_md_prepare_one_msp_${tds_range}
 fi
 
 # Running the MD simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     cd md/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_md_run_one_msp.sh ${sim_index_range} 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_md_run_one_msp_${sim_index_range}
+    ${command_prefix_gen_run_one_pipe_sub} hqf_md_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_md_run_one_msp_${tds_range}
     cd ../../../
-    check_error_indicators 1
 fi
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_ce_prepare_one_msp.sh
-    check_error_indicators 1
+    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee ${logfile_folder_root}/hqf_ce_prepare_one_msp
 fi
 
 # Running the crossevaluations
 if [[ ${pipeline_type} == *"_rce_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    if [ -d runtime/pids/${msp_name}_${subsystem}/ce ]; then
-        rm -r runtime/pids/${msp_name}_${subsystem}/ce
-    fi
     cd ce/${msp_name}/${subsystem}
-    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_run_one_msp.sh 2>&1 | tee ../../../log-files/${date}/${msp_name}_${subsystem}/hqf_ce_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_ce_run_one_msp.sh 2>&1 | tee ../../../${logfile_folder_root}/hqf_ce_run_one_msp
     cd ../../../
-    check_error_indicators 1
 fi
 
 # Preparing the fec
 if [[ ${pipeline_type} == *"_prf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
-    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee log-files/${date}/${msp_name}_${subsystem}/hqf_fec_prepare_one_msp
-    check_error_indicators 1
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee ${logfile_folder_root}/hqf_fec_prepare_one_msp
 fi
 
 # Running the fec
 if [[ ${pipeline_type} == *"_rfe_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_run_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../${logfile_folder_root}/hqf_fec_run_one_msp
     cd ../../../../
-    check_error_indicators 1
 fi
 
-# Running the fec
+# Postprocessing the fec
 if [[ ${pipeline_type} == *"_ppf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     cd fec/AFE/${msp_name}/${subsystem}/
-    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_pp_one_msp.sh 2>&1 | tee ../../../../log-files/${date}/${msp_name}_${subsystem}/hqf_fec_pp_one_msp
+    ${command_prefix_gen_run_one_pipe_sub} hqf_fec_pp_one_msp.sh 2>&1 | tee ../../../../${logfile_folder_root}/hqf_fec_pp_one_msp
     cd ../../../../
-    check_error_indicators 1
 fi

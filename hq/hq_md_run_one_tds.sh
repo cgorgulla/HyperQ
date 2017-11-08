@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_md_run_one_md.sh
+usage="Usage: hq_md_run_one_tds.sh
 
-Has to be run in the MD main folder."
+Has to be run in the TDS root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -96,7 +96,7 @@ cleanup_exit() {
         kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -104,7 +104,7 @@ cleanup_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.*.${md_name//md.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -114,7 +114,8 @@ cleanup_exit() {
 }
 trap "cleanup_exit" EXIT
 
-
+# Bash options
+set -o pipefail
 
 # Verbosity
 HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
@@ -123,17 +124,14 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
-# Bash options
-set -o pipefail
-
 # Variables
 system_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
-md_name="$(pwd | awk -F '/' '{print $(NF)}')"
+tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
 
@@ -148,8 +146,13 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     fi
     rm ipi.out.run${run}* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
-    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.} </address>|g" ipi.in.main.xml
-    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${md_name//md.} </address>|g" ipi.in.main.xml
+
+    # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQF_STARTDATE}.md.iqi.${tds_folder//tds.} </address>|g" ipi.in.*
+    sed -i "s|<address>.*cp2k.*|<address> ${workflow_id}.${HQF_STARTDATE}.md.cp2k.${tds_folder//tds.} </address>|g" ipi.in.*
+
+    # Removing the socket files if still existent from previous runs
+    rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
     # Starting ipi
     echo " * Starting ipi"
@@ -158,7 +161,6 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
 
     # Updating variables
     pids[${sim_counter}]=$pid_ipi
-    echo "${pid_ipi} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
     sim_counter=$((sim_counter+1))
     cd ..
 fi
@@ -174,7 +176,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Loop for waiting until the socket file exists
     while true; do
-        if [ -e /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.} ]; then
+        if [ -e /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.cp2k.${tds_folder//tds.} ]; then
             for bead_folder in $(ls -v cp2k/); do
 
                 # Preparing files and folder
@@ -183,17 +185,20 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                     rm cp2k.out* > /dev/null 2>&1 || true
                 fi
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
-                sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.md.cp2k.${md_name//md.}|g" cp2k.in.main
+
+                # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQF_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
+
+                # Checking the input file
+                ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
 
                 # Starting CP2k
                 echo " * Starting cp2k (${bead_folder})"
-                ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
                 OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
                 pid=$!
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
-                echo "${pid} " >> ../../../../../../runtime/pids/${system_name}_${subsystem}/md
                 sim_counter=$((sim_counter+1))
                 cd ../../
                 i=$((i+1))
@@ -225,7 +230,9 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
         rm iqi.out.* > /dev/null 2>&1 || true
     fi
     rm iqi.out.run${run}* > /dev/null 2>&1 || true
-    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.md.iqi.${md_name//md.} </address>|g" iqi.in.main.xml
+
+    # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQF_STARTDATE}.md.iqi.${tds_folder//tds.} </address>|g" iqi.in.*
 
     # Starting i-QI
     echo " * Starting iqi"
@@ -234,7 +241,6 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
 
     # Updating variables
     pids[${sim_counter}]=$pid
-    echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
     sim_counter=$((sim_counter+1))
     cd ../
 fi
@@ -247,7 +253,6 @@ if [[ "${md_programs}" == "namd" ]]; then
     ${namd_command} namd.in.md > namd.out.run${run}.screen 2>namd.out.run${run}.err & # removed +idlepoll +p${ncpus_namd_md}
     pid=$!
     pids[${sim_counter}]=$pid
-    echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/md
     sim_counter=$((sim_counter+1))
     cd ..
 fi
@@ -256,10 +261,15 @@ fi
 stop_flag="false"
 while true; do
 
+    # Printing some information
+    if [ "${HQ_VERBOSITY}" == "debug" ]; then
+        echo " * Checking if the simulation running in folder ${PWD} has completed."
+    fi
+
     # Checking the condition of the output files
     if [ -f ipi/ipi.out.run${run}.screen ]; then
-        timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
-        if [ "${timeDiff}" -ge "${md_timeout}" ]; then
+        time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+        if [ "${time_diff}" -ge "${md_timeout}" ]; then
             echo " * i-PI seems to have completed the MD simulation."
             break
         fi
@@ -303,7 +313,7 @@ while true; do
         fi
     done
 
-    # Checking if ipi has terminated (hopefully wihtout error after the previous error checks)
+    # Checking if ipi has terminated (hopefully without error after the previous error checks)
     if [ ! -e /proc/${pid_ipi} ]; then
 
         # Checking the condition of the output files
@@ -316,8 +326,8 @@ while true; do
                 exit 1
             fi
         else
-            timeDiff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
-            if [ "${timeDiff}" -ge "${md_timeout}" ]; then
+            time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+            if [ "${time_diff}" -ge "${md_timeout}" ]; then
                 echo " * i-PI seems to have completed the MD simulation."
                 break 2
             fi

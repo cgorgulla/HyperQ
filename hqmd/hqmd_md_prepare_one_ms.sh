@@ -69,8 +69,8 @@ system_basename="${1}"
 subsystem="${2}"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_folder="md"
+workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')"
+tds_folder="md"
 
 # Printing information
 echo -e "\n *** Preparing the MD simulation ${system_basename} (hqmd_md_prepare_one_ms.sh) "
@@ -79,7 +79,7 @@ echo -e "\n *** Preparing the MD simulation ${system_basename} (hqmd_md_prepare_
 echo -e " * Preparing the main folder"
 mkdir -p md/${system_basename}/${subsystem}
 cd md/${system_basename}/${subsystem}
-mkdir -p ${md_folder}
+mkdir -p ${tds_folder}
 
 # Copying the system files
 echo -e " * Copying general simulation files"
@@ -92,10 +92,10 @@ cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.
 
 # Getting the cell size in the cp2k input files
 line=$(grep CRYST1 system1.pdb)
-IFS=' ' read -r -a lineArray <<< "$line"
-A=${lineArray[1]}
-B=${lineArray[2]}
-C=${lineArray[3]}  
+IFS=' ' read -r -a line_array <<< "$line"
+A=${line_array[1]}
+B=${line_array[2]}
+C=${line_array[3]}
 
 # Copying the geo-opt coordinate file
 cp ../../../opt/${system_basename}/${subsystem}/system1.opt.out.pdb ./
@@ -109,19 +109,19 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Folders
     echo -e " * Preparing the files and directories which are cp2k specific"
-    if [ -d "${md_folder}/cp2k" ]; then
-        rm -r ${md_folder}/cp2k
+    if [ -d "${tds_folder}/cp2k" ]; then
+        rm -r ${tds_folder}/cp2k
     fi
-    mkdir ${md_folder}/cp2k
+    mkdir ${tds_folder}/cp2k
     for bead in $(seq 1 ${nbeads}); do
-        mkdir ${md_folder}/cp2k/bead-${bead}
+        mkdir ${tds_folder}/cp2k/bead-${bead}
     done
     # Preparing the bead folders
     for bead in $(seq 1 ${nbeads}); do
-        cp ../../../input-files/cp2k/${inputfolder_cp2k_md} ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
-        sed -i "s/system_basename/${system_basename}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
-        sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${md_folder}/cp2k/bead-${bead}/cp2k.in.main
+        cp ../../../input-files/cp2k/${inputfolder_cp2k_md} ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/system_basename/${system_basename}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/workflow_id/${workflow_id}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
     done
 
     # Copying the kind files
@@ -144,13 +144,13 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
 
     # Folders ans files
     echo -e " * Preparing the files and directories which are i-PI specific"
-    if [ -d "${md_folder}/ipi" ]; then
-        rm -r ${md_folder}/ipi
+    if [ -d "${tds_folder}/ipi" ]; then
+        rm -r ${tds_folder}/ipi
     fi
-    mkdir ${md_folder}/ipi
-    cp ../../../input-files/ipi/${inputfile_ipi_md} ${md_folder}/ipi/ipi.in.main.xml
-    sed -i "s/system_basename/${system_basename}/g" ${md_folder}/ipi/ipi.in.main.xml
-    sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/ipi/ipi.in.main.xml
+    mkdir ${tds_folder}/ipi
+    cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s/system_basename/${system_basename}/g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s/workflow_id/${workflow_id}/g" ${tds_folder}/ipi/ipi.in.main.xml
 fi
 
 # Preparation of the iqi files
@@ -161,15 +161,15 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
 
     # Folders and files
     echo -e " * Preparing the files and directories which are i-QI specific"
-    if [ -d "${md_folder}/iqi" ]; then
-        rm -r ${md_folder}/iqi
+    if [ -d "${tds_folder}/iqi" ]; then
+        rm -r ${tds_folder}/iqi
     fi
 
-    mkdir ${md_folder}/iqi
-    cp ../../../input-files/iqi/${inputfile_iqi_md} ${md_folder}/iqi/iqi.in.xml
-    sed -i "s/system_basename/${system_basename}/g" ${md_folder}/iqi/iqi.in.xml
-    sed -i "s/runtimeletter/${runtimeletter}/g" ${md_folder}/iqi/iqi.in.xml
-    cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${md_folder}/iqi/
+    mkdir ${tds_folder}/iqi
+    cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.xml
+    sed -i "s/system_basename/${system_basename}/g" ${tds_folder}/iqi/iqi.in.xml
+    sed -i "s/workflow_id/${workflow_id}/g" ${tds_folder}/iqi/iqi.in.xml
+    cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
 fi
 
 # Preparation of the NAMD files
@@ -179,14 +179,14 @@ if [[ "${md_programs}" == *"namd"* ]]; then
 
     # Folders and files
     echo -e " * Preparing the files and directories which are NAMD specific"
-    if [ -d "${md_folder}/namd" ]; then
-        rm -r ${md_folder}/namd
+    if [ -d "${tds_folder}/namd" ]; then
+        rm -r ${tds_folder}/namd
     fi
-    mkdir ${md_folder}/namd
-    cp ../../../input-files/namd/${inputfile_namd_md} ${md_folder}/namd/namd.in.md
-    sed -i "s/cellBasisVector1 .*/cellBasisVector1 ${A} 0 0/g" ${md_folder}/namd/namd.in.md
-    sed -i "s/cellBasisVector2 .*/cellBasisVector2 0 ${B} 0/g" ${md_folder}/namd/namd.in.md
-    sed -i "s/cellBasisVector3 .*/cellBasisVector3 0 0 ${C}/g" ${md_folder}/namd/namd.in.md
+    mkdir ${tds_folder}/namd
+    cp ../../../input-files/namd/${inputfile_namd_md} ${tds_folder}/namd/namd.in.md
+    sed -i "s/cellBasisVector1 .*/cellBasisVector1 ${A} 0 0/g" ${tds_folder}/namd/namd.in.md
+    sed -i "s/cellBasisVector2 .*/cellBasisVector2 0 ${B} 0/g" ${tds_folder}/namd/namd.in.md
+    sed -i "s/cellBasisVector3 .*/cellBasisVector3 0 0 ${C}/g" ${tds_folder}/namd/namd.in.md
 fi
 
 cd ../../../

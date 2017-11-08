@@ -74,7 +74,7 @@ echo -e "\n *** Starting the MD simulations (hqmd_md_run_one_ms.sh)"
 folder=md
 cd ${folder}/
 echo -e " * Starting the MD simulation"
-hq_md_run_one_md.sh &
+hq_md_run_one_tds.sh &
 pid=$!
 cd ../
 

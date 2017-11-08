@@ -1,9 +1,15 @@
-#!/usr/bin/env bash 
+#!/usr/bin/env bash
 
-# Usage infomation
-usage="Usage: hqf_eq_pp_one_msp.sh
+# Usage information
+usage="Usage: hqf_eq_pp_one_msp.sh <tds_range>
 
-Has to be run in the specific simulation root folder."
+Arguments:
+    <tds_range>: Range of the thermodynamic states
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
+
+Has to be run in the subsystem folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -13,11 +19,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "0" ]; then
+if [ "$#" -ne "1" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 0"
+    echo "Number of expected arguments: 1"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -27,7 +33,7 @@ if [ "$#" -ne "0" ]; then
     exit 1
 fi
 
-# Standard error response 
+# Standard error response
 error_response_std() {
     # Printing some information
     echo
@@ -70,22 +76,53 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
 fi
 
 # Variables
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
+msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count + 1))"
 
-# For each equilibration folder (each state) prepare a pdb coordinate file
-for folder in eq.*; do
-    subconfiguration=${folder/eq.}
-    #bead_count1=${bead_configuration/_*}
-    #bead_count2=${bead_configuration/*_}
-    #nbeads=$((bead_count1 + bead_count2))
+# Setting the range indices
+tds_index_first=${tds_range/:*}
+tds_index_last=${tds_range/*:}
+if [ "${tds_index_last}" == "K" ]; then
+    tds_index_last=${tds_count}
+fi
+
+# Loop for each equilibration in the specified tds range
+for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
+
+    # Determining the eq folder
+    if [ "${tdcycle_type}" == "hq" ]; then
+
+        # Variables
+        bead_step_size=$(expr $nbeads / $tdw_count)
+        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
+        bead_count2="$(( (tds_index-1)*bead_step_size))"
+        subconfiguration="k_${bead_count1}_${bead_count2}"
+
+    elif [ "${tdcycle_type}" == "lambda" ]; then
+
+        # Variables
+        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        subconfiguration=lambda_${lambda_current}
+    fi
+
+    # Variables
+    tds_folder=tds.${subconfiguration}
     original_pdb_filename="system.a1c1.pdb"
-    original_psf_filename="system1.vmd.psf"
+    original_psf_filename="system1.psf"
     output_filename="system.${subconfiguration}.eq.pdb"
-    eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
-    echo -e " * Postprocessing folder ${folder}"
+    # Postprocessing the equilibration
+    echo -e " * Postprocessing folder ${tds_folder}"
     if [ "${eq_programs}" == "cp2k" ]; then
-        hq_eq_pp_one_eq.sh ${original_pdb_filename} ${original_psf_filename} ${folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
+        hq_eq_pp_one_tds.sh ${original_pdb_filename} ${original_psf_filename} ${tds_folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
     fi
 done
+
+# Printing program completion information
+echo -e "\n * The postprocessing of the specified TDSs (${tds_range}) of the current MSP (${msp_name}) has been successfully completed.\n\n"

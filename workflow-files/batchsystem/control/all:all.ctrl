@@ -8,12 +8,17 @@ prevent_new_job_submissions=false
 # Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
 # Can be changed during runtime
 
-
-job_success_actions=prepare_new_job
-# Possible values: prepare_new_job, start_new_job
+job_success_actions=submit_new_job
+# Possible values: prepare_new_job, submit_new_job
 # Can be unset (i.e. having no values)
 # Multiple values can be specified by using colons: value1:value2:...
 # Can be changed during runtime
+
+job_success_new_job_jtl=next
+# Possible values: same, next, [a-j]
+# When set to 'same' the current jtl will be retained
+# When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.
+
 
 *****************************************************************************************************************************************************************
 *****************************************************************   Signal and Error Handling   *****************************************************************
@@ -30,11 +35,19 @@ signals_type3=
 # Changes during the runtime have no effect
 
 internal_error_response=prepare_new_job
-signals_type1_response=prepare_new_job:start_new_job
+signals_type1_response=prepare_new_job:submit_new_job
 signals_type2_response=prepare_new_job
 signals_type3_response=
-# Possible values: ignore, prepare_new_job, start_new_job
+# Possible values: ignore, prepare_new_job, submit_new_job
 # Can be unset (i.e. having no values)
 # Multiple values can be specified by using colons as delimiters
 # If the 'ignore' option is set, all other values will be ignored
 # Can be changed during runtime
+
+internal_error_new_job_jtl=same
+signals_type1_new_job_jtl=same
+signals_type2_new_job_jtl=same
+signals_type3_new_job_jtl=same
+# Possible values: same, next, [a-j]
+# When set to 'same' the current jtl will be retained
+# When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.

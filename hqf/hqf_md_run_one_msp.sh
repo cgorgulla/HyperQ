@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
-usage="Usage: hqf_md_run_one_msp.sh <md_index_range>
+# Usage information
+usage="Usage: hqf_md_run_one_msp.sh <tds_range>
 
-<md_index_range>: Possible values:
+<tds_range>: Possible values:
                       * all : Will cover all simulations of the MSP
                       * startindex:endindex : The index starts at 1 (w.r.t. to the MD folders present)
 
@@ -85,7 +85,7 @@ clean_exit() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -93,7 +93,7 @@ clean_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating the main processes
         kill ${pids[*]} 1>/dev/null 2>&1 || true
@@ -102,7 +102,7 @@ clean_exit() {
 
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -126,58 +126,62 @@ fi
 echo -e "\n *** Starting the MD simulations (hqf_md_run_one_msp.sh)"
 
 # Variables
-md_index_range="${1}"
-TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_range="${1}"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_md_run_one_md="$(grep -m 1 "^command_prefix_md_run_one_md=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count + 1))"
 
-# Getting the MD folders
-if [ "${TD_cycle_type}" == "hq" ]; then
-    md_folders="$(ls -vrd md*)"
-elif [ "${TD_cycle_type}" == "lambda" ]; then
-    md_folders="$(ls -vd md*)"
+# Setting the range indices
+tds_index_first=${tds_range/:*}
+tds_index_last=${tds_range/*:}
+if [ "${tds_index_last}" == "K" ]; then
+    tds_index_last=${tds_count}
 fi
 
-# Setting the MD indices
-if [ "${md_index_range}" == "all" ]; then
-    md_index_first=1
-    md_index_last=$(echo ${md_folders[@]} | wc -w)
-else
-    md_index_first=${md_index_range/:*}
-    md_index_last=${md_index_range/*:}
-    if ! [ "${md_index_first}" -eq "${md_index_first}" ]; then
-        echo " * Error: The variable md_index_first is not set correctly. Exiting..."
-        exit 1
-    fi
-    if ! [ "${md_index_last}" -eq "${md_index_last}" ]; then
-        echo " * Error: The variable md_index_last is not set correctly. Exiting..."
-        exit 1
-    fi
+# Checking if the range indices have valid values
+if ! [ "${tds_index_first}" -le "${tds_index_first}" ]; then
+    echo " * Error: The input variable tds_range was not specified correctly. Exiting..."
+    exit 1
 fi
 
-# Running the MDs
-i=1
-for folder in ${md_folders}; do
+# Loop for each TDS in the specified tds range
+for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
 
-    # Checking if this MD simulation should be skipped
-    if [[ "${i}" -lt "${md_index_first}" ]] ||  [[ "${i}" -gt "${md_index_last}" ]]; then
-        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
-        i=$((i+1))
-        continue
+    # Determining the eq folder
+    if [ "${tdcycle_type}" == "hq" ]; then
+
+        # Variables
+        bead_step_size=$(expr $nbeads / $tdw_count)
+        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
+        bead_count2="$(( (tds_index-1)*bead_step_size))"
+        bead_configuration="k_${bead_count1}_${bead_count2}"
+        tds_folder=tds.${bead_configuration}
+
+    elif [ "${tdcycle_type}" == "lambda" ]; then
+
+        # Variables
+        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        lambda_configuration=lambda_${lambda_current}
+        tds_folder=tds.${lambda_configuration}
     fi
 
+    # Loop for allowing only the specified number of parallel run
     while [ "$(jobs | { grep -v Done || true; } | wc -l)" -ge "${fes_md_parallel_max}" ]; do
         sleep 0.$RANDOM
     done;
-    cd ${folder}/
-    echo -e " * Starting the MD simulation ${folder}"
-    ${command_prefix_md_run_one_md} hq_md_run_one_md.sh &
+
+    # Starting the simulation
+    cd ${tds_folder}/
+    echo -e " * Starting the MD simulation ${tds_folder}"
+    ${command_prefix_md_run_one_md} hq_md_run_one_tds.sh &
     pid=$!
     pids[i]=$pid
-    echo "${pid} " >> ../../../../runtime/pids/${system_name}_${subsystem}/md
     cd ../
     i=$((i+1))
 done

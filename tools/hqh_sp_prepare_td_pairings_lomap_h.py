@@ -77,7 +77,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
                 mappingFile.write(str(item[0] + 1) + " " + str(item[1] + 1) + "\n")  # Lomaps indices start at 0, we need a start at 1 (used by prepare_cp2k_mapping) # cg
 
 
-# Checking the outpuf file
+# Checking the output file
 def help():
     print "\nUsage: hqh_sp_prepare_td_pairings_lomap_h.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 

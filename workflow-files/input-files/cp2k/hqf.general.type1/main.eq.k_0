@@ -11,7 +11,8 @@
 &MOTION
   &MD
     ENSEMBLE NPT_I
-    STEPS 1000000
+    STEPS 100000
+    !HQ_STEPS_TOTAL 100000             ! should be equal to the value of STEPS. HyperQ uses this value to adjust the STEPS when preparing restart files
     TIMESTEP [fs] 1.0
     TEMPERATURE [K] 298
     &BAROSTAT

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
+# Usage information
 usage="Usage: hqf_ce_run_one_snapshot.sh
 
 Has to be run in the simulation main folder."
@@ -60,7 +60,7 @@ cleanup_exit() {
         kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -68,7 +68,7 @@ cleanup_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.*.${crosseval_folder//md.}.r-${snapshotID} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -91,10 +91,10 @@ crosseval_folder="$(pwd | awk -F '/' '{print $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-3)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
-snapshotID=${snapshot_name/*-}
+snapshot_id=${snapshot_name/*-}
 ce_type="$(grep -m 1 "^md_type_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 snapshot_time_start=$(date +%s)
@@ -105,7 +105,7 @@ if [ "${ce_continue^^}" == "TRUE" ]; then
     if [ -f ipi/ipi.out.properties ]; then
         propertylines_word_count=$(grep "^ *[0-9]" ipi/ipi.out.properties | wc -w )
         if [ "${propertylines_word_count}" -ge "3" ]; then
-             echo " * The snapshot ${snapshotID} has been computed already, skipping."
+             echo " * The snapshot ${snapshot_id} has been computed already, skipping."
              exit 0
         fi
     fi
@@ -119,15 +119,19 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     echo -e " * Starting ipi"
     rm ipi.out.* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
-    sed -i "s|<address>.*cp2k.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID} </address>|g" ipi.in.main.xml
-    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce..iqi.${crosseval_folder//md.}.r-${snapshotID} </address>|g" ipi.in.main.xml
+
+    # Removing the socket files if still existent from previous runs
+    rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+
+    # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+    sed -i "s|<address>.*cp2k.*|<address> ${workflow_id}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id} </address>|g" ipi.in.*
+    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQF_STARTDATE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id} </address>|g" ipi.in.*
 
     # Starting ipi
     stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
     pid_ipi=$!
 
     # Updating variables
-    echo "${pid_ipi} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     pids[${sim_counter}]=${pid_ipi}
     sim_counter=$((sim_counter+1))
     cd ..
@@ -145,8 +149,8 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
 
     # Loop for waiting until the socket file exists
     while true; do
-        if [ -e "/tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}" ]; then # -e for any fail, -f is only for regular files
-            echo " * The socket file for snapshot ${snapshotID} has been detected. Starting CP2K..."
+        if [ -e "/tmp/ipi_${workflow_id}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}" ]; then # -e for any fail, -f is only for regular files
+            echo " * The socket file for snapshot ${snapshot_id} has been detected. Starting CP2K..."
 
             # Loop for each bead
             for bead_folder in $(ls -v cp2k/); do
@@ -154,7 +158,9 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 # Preparing files and folder
                 cd cp2k/${bead_folder}/
                 rm cp2k.out* > /dev/null 2>&1 || true
-                sed -i "s|HOST.*cp2k.*|HOST ${runtimeletter}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//md.}.r-${snapshotID}|g" cp2k.in.main
+
+                # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQF_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
@@ -166,7 +172,6 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
-                echo "${pid} " >> ../../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
                 sim_counter=$((sim_counter+1))
                 cd ../../
                 sleep 1
@@ -174,12 +179,12 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
             break
         else
             if [ "$iteration_no" -lt "$max_it" ]; then
-                echo " * The socket file for snapshot ${snapshotID} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+                echo " * The socket file for snapshot ${snapshot_id} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
                 sleep 1
                 iteration_no=$((iteration_no+1))
             else
-                echo " * The socket file for snapshot ${snapshotID} does not yet exist."
-                echo " * The maxium number of iterations ($max_it) for snapshot ${snapshotID} has been reached. Skipping this snapshot..."
+                echo " * The socket file for snapshot ${snapshot_id} does not yet exist."
+                echo " * The maxium number of iterations ($max_it) for snapshot ${snapshot_id} has been reached. Skipping this snapshot..."
                 exit 1
             fi
         fi
@@ -191,7 +196,9 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
 
     # Preparing files and folder
     cd iqi
-    sed -i "s|<address>.*iqi.*|<address> ${runtimeletter}.${HQF_STARTDATE}.ce.iqi.${crosseval_folder//md.}.r-${snapshotID} </address>|g" iqi.in.main.xml
+
+    # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
+    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQF_STARTDATE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id} </address>|g" iqi.in.*
 
     # Starting iqi
     echo -e " * Starting iqi"
@@ -201,7 +208,6 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
 
     # Updating variables
     pids[${sim_counter}]=$pid
-    echo "${pids[${sim_counter}]} " >> ../../../../../../runtime/pids/${msp_name}_${subsystem}/ce
     sim_counter=$((sim_counter+1))
     cd ../
 fi
@@ -210,18 +216,23 @@ fi
 waiting_time_start=$(date +%s)
 while true; do
 
+    # Printing some information
+    if [ "${HQ_VERBOSITY}" == "debug" ]; then
+        echo " * Checking if the computation running in folder ${PWD} has completed."
+    fi
+
     # Checking the condition of the output files
     if [ -f ipi/ipi.out.properties ]; then
         propertylines_word_count="$(grep "^ *[0-9]" ipi/ipi.out.properties | wc -w)"
         if [ "${propertylines_word_count}" -ge "3" ]; then
              snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
-             echo " * Snapshot ${snapshotID} completed after ${snapshot_time_total} seconds."
+             echo " * Snapshot ${snapshot_id} completed after ${snapshot_time_total} seconds."
              break
         fi
     fi
     waiting_time_diff=$(($(date +%s) - ${waiting_time_start}))
     if [ "${waiting_time_diff}" -ge "${ce_timeout}" ]; then
-        echo " * CE-Timeout for snapshot ${snapshotID} reached. Skipping this snapshot..."
+        echo " * CE-Timeout for snapshot ${snapshot_id} reached. Skipping this snapshot..."
         exit 1
     fi
 #    # Checking for cp2k errors

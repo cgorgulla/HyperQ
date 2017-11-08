@@ -2,6 +2,11 @@
 **************************************************************************   General   **************************************************************************
 *****************************************************************************************************************************************************************
 
+workflow_id=A
+# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q.
+# In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
+# Should be an upper case letter (to be more easy to distinguish from the job type letter (JTL) used in the HQ job files)
+
 verbosity=debug
 # Possible values: normal, debug
 # This option mainly effects the screen output and the logfiles
@@ -19,7 +24,7 @@ input_file_format=smi
 # The format should be in lowercase letters
 # If the subsystem is RLS, then the coordinates of the ligands have to be provided in the input files to suit the coordinates of the receptor.
 # Ligand names should not contain the underscore "_" letter
-# Resanme doesn't matter for the ligand, it will be changed to LIG, as well as the chain which will be set to L
+# Resname doesn't matter for the ligand, it will be changed to LIG, as well as the chain which will be set to L
 
 receptor_mode=common
 # Possible values: individual, common
@@ -74,10 +79,6 @@ mcs_time=1
 
 **************************************************************************** General ****************************************************************************
 
-runtimeletter=a
-# Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q.
-# In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
-
 opt_programs_L=cp2k
 opt_programs_LS=cp2k
 opt_programs_RLS=cp2k
@@ -119,17 +120,18 @@ ce_type_RLS=MM
 # Possible values: QMMM, MM, QM
 # Currently obsolete
 
-TD_cycle_type=lambda
+tdcycle_type=lambda
 # Possible options: hq, lambda
 # If using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the k_0 and k_1 files
 
-ntdsteps=1
-# The number TD windows
+tdw_count=1
+# The total number of thermodynamic windows
 # Minimal value: 1
 
 nbeads=1
+# Total number of path integral beads per particle
 # Minimum value: 1
-# Is only used for MD simulation and CE
+# Is only relevant for MD simulations and CE
 
 opt_timeout_L=100
 opt_timeout_LS=100
@@ -159,17 +161,23 @@ ce_timeout_RLS=100
 
 opt_continue=true
 # Possible values (case insensitive): true, false
-# If true, then during _pro_ non-existent opt-folders will be newly created, and existing ones which contain already restart files will be prepared for the next run (without deleting the previous runs)
-# If false, then the opt/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
+# If true, then
+#   * during _pro_
+#       * non-existent TDS-folders will be newly created
+#       * and existing TDS-folders which contain already restart files will be prepared for the next run provided the there are no opt-pp-files for this TDS yet, in which case it will be skipped
+#       * the general MSP folder will only be newly prepared if at least one of the files system.a1c1.[uc]_atoms is present
+#   * during _rop_
+#       * the simulation will only be started if there are no opt-pp-files yet for this TDS
+#   * during _ppo_
+#       * the pp  will only be carried out if there are no opt-pp-files yet for this TDS
+# If false, then
+#   * during _pro_
+#       * the opt/msp_name/subsystem general folder will be newly prepared
+#       * each TDS folder will be newly prepared (and wiped if existent)
 # If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
-# This setting has mainly effects on _pro_, only very few on _rop_
 
 eq_continue=true
-# Possible values (case insensitive): true, false
-# If true, then during _pre_ non-existent eq-folders will be newly created, and existing ones which contain already restart files will be prepared for the next run (without deleting the previous runs)
-# If false, then the eq/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
-# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
-# This setting has mainly effects on _pre_, only very few on _req_
+# Details: Same as for opt_continue
 
 md_continue=true
 # Possible values (case insensitive): true, false 
@@ -294,7 +302,7 @@ ce_first_restart_ID_RLS=1
 ce_stride_L=1
 ce_stride_LS=1
 ce_stride_RLS=1
-# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is isued
+# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is issued
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
 
@@ -307,7 +315,7 @@ fec_stride_L=1
 fec_stride_LS=1
 fec_stride_RLS=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
-# The snaphot folder in the cross evaluation folders are indexed starting by 1
+# The snapshot folder in the cross evaluation folders are indexed starting by 1
 
 temperature=300
 C_absolute_tolerance=1
@@ -350,6 +358,9 @@ command_prefix_opt_run_one_opt=bash
 command_prefix_eq_run_one_eq=bash
 command_prefix_md_run_one_md=bash
 command_prefix_ce_run_one_snapshot=bash
+# Can contain spaces, e.g. options to the prefix command
+# Common prefixes are: aprun, setsid
+# Should not be empty. Use bash if no other prefix is needed for a bash script.
 
 
 ************************************************************************** Batchsystem **************************************************************************

@@ -1,12 +1,24 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_bs_prepare_jobfiles.sh <task-list> <job-template> <first job ID> <subjobs per job> <tasks per subjob> <parallelize subjobs> <parallelize tasks>
+usage="Usage: hq_bs_prepare_jobfiles.sh <task-list> <job-template> <job-type-letter> <first job ID> <subjobs per job> <tasks per subjob> <parallelize subjobs> <parallelize tasks>
 
-<task list>: One task per line, one task is represented by one command. No empty lines should be present.
-<first job ID>: Positive integer. The first job ID of the jobs which are created.
-<parallelize subjobs>: Can be true or false. If true, the subjobs in the main jobs will be carried out in parallel.
-<parallelize tasks>: Can be true or false. If true, the tasks in the subjobs will be carried out in parallel.
+Arguments:
+    <task list>: One task per line, one task is represented by one command. No empty lines should be present.
+
+    <job-template>: A batchsystem jobfile template which needs to have a file ending matching the batchsystem type specified in the input-files/config.txt file
+
+    <job-type-letter>: Any lowercase letter between a and j.
+
+    <first job ID>: Positive integer. The first job ID of the jobs which are created.
+
+    <subjobs per job>: Positive integer
+
+    <tasks per subjob>: Positive integer
+
+    <parallelize subjobs>: Can be true or false. If true, the subjobs in the main jobs will be carried out in parallel.
+
+    <parallelize tasks>: Can be true or false. If true, the tasks in the subjobs will be carried out in parallel.
 
 Has to be run in the root folder."
 
@@ -18,11 +30,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "7" ]; then
+if [ "$#" -ne "8" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments were provided when calling the script."
-    echo "Number of expected arguments: 7"
+    echo "Number of expected arguments: 8"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -71,28 +83,75 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
+fi
+
 # Printing some information
 echo -e "\n ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
 
 # Variables
 task_list=$1
 job_template=$2
-first_jid=$3
-subjobs_per_job=$4
-tasks_per_subjob=$5
-parallelize_subjobs=$6
-parallelize_tasks=$7
+jtl=$3
+first_jid=$4
+subjobs_per_job=$5
+tasks_per_subjob=$6
+parallelize_subjobs=$7
+parallelize_tasks=$8
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print $2}')
-runtimeletter=$(grep -m 1 "^runtimeletter=" input-files/config.txt | awk -F '=' '{print $2}')
+workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '=' '{print $2}')
 no_of_tasks="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
 if [[ "${batchsystem}" != "${job_template/*.}" ]]; then
-    echo -e "\n * Error: The batchsystem type specified in the file input-files/config.txt does not match the ending of the batchsysetm template file. Exiting...\n\n"
+
+    # Printing an error message before exiting
+    echo -e "\n * Error: The batchsystem type specified in the file input-files/config.txt does not match the ending of the batchsystem template file. Exiting...\n\n"
     exit 1
 fi 
+
+# Checking if the job type letter is valid
+if ! [[ "${jtl}" =~ ^[abcdefghij]$ ]]; then
+
+    # Printing an error message before exiting
+    echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n"
+    exit 1
+fi
+
+# Checking if the variable first_jid is a positive integer
+if ! [[ "${first_jid}" -ge "1" ]]; then
+
+    # Printing an error message before exiting
+    echo -e "\n * Error: The input argument 'first_jid' has an unsupported value. Exiting...\n\n"
+    exit 1
+fi
+
+# Checking if the variable subjobs_per_job is a positive integer
+if ! [[ "${subjobs_per_job}" -ge "1" ]]; then
+
+    # Printing an error message before exiting
+    echo -e "\n * Error: The input argument 'subjobs_per_job' has an unsupported value. Exiting...\n\n"
+    exit 1
+fi
+
+# Checking if the variable tasks_per_subjob is a positive integer
+if ! [[ "${tasks_per_subjob}" -ge "1" ]]; then
+
+    # Printing an error message before exiting
+    echo -e "\n * Error: The input argument 'tasks_per_subjob' has an unsupported value. Exiting...\n\n"
+    exit 1
+fi
 
 # Preparing required folders
 mkdir -p batchsystem/job-files/main/
@@ -115,10 +174,11 @@ while IFS='' read -r command_task; do
     echo -e " * Preparing task ${task_ID} of job ${jid}, subjob ${sjid}"
 
     # Variables
-    job_file="batchsystem/job-files/main/jid-${jid}.${batchsystem}"
-    subjob_file="batchsystem/job-files/subjobs/jid-${jid}.sh"
-    task_file="batchsystem/job-files/tasks/jid-${jid}.sjid-${sjid}.sh"
-    command_task="${command_task} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.out"
+    job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"
+    subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sh"
+    task_file="batchsystem/job-files/tasks/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
+    command_task="${command_task} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
+
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
         command_task="${command_task} &"
@@ -134,7 +194,8 @@ while IFS='' read -r command_task; do
             cp ${job_template} ${job_file}
 
             # Adjusting the job file
-            sed -i "s/runtimeletter_placeholder/${runtimeletter}/g" ${job_file}
+            sed -i "s/workflow_id_placeholder/${workflow_id}/g" ${job_file}
+            sed -i "s/jtl_placeholder/${jtl}/g" ${job_file}
             sed -i "s/jid_placeholder/${jid}/g" ${job_file}
             sed -i "s/jsn_placeholder/1/g" ${job_file}
         fi
@@ -147,13 +208,13 @@ while IFS='' read -r command_task; do
 
         # Preparing the subjob command for the subjob file
         if [ ${batchsystem^^} == "SLURM" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "MTP" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "LSF" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "SGE" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &> batchsystem/output-files/jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.out"
+            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         else
             echo -e "\n * Error: The specified batchsystem (${batchsystem}) is not supported. Exiting...\n\n"
             exit 1

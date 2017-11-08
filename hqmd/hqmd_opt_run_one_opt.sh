@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
+# Usage information
 usage="Usage: hqmd_opt_run_one_opt.sh
 
 Has to be run in the opt root folder of the system."
@@ -90,7 +90,7 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     # timeout ${opt_timeout} cp2k -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
     cp2k -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
 
-    # Checking if the file system-r-1.out does already exist.
+    # Checking if the file cp2k.out.general does already exist
     while [ ! -f cp2k.out.general ]; do
         echo " * The file system.out.general does not exist yet. Waiting..."
         sleep 1

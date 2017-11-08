@@ -3,15 +3,15 @@
 #                                                                          PBS Settings
 ####################################################################################################################################################################
 
-#PBS -N runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#PBS -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 #PBS -l feature=mpp1:test
 ##PBS -q specialm1weekq
 #PBS -l walltime=00:12:00
 #PBS -l nodes=1:ppn=24
-#PBS -l signal=10@300
+#PBS -l signal=10@60
 #PBS -l naccesspolicy=singlejob
-#PBS -o batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
-#PBS -e batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-${PBS_JOBID}.out
 #PBS -m a
 #PBS -M silmaril@zedat.fu-berlin.de
 ##PBS -A bec00150
@@ -22,20 +22,25 @@
 ####################################################################################################################################################################
 
 # Definition
-HQ_JOBNAME=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
-HQ_RUNTIMELETTER=runtimeletter_placeholder
+HQ_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+HQ_WORKFLOW_ID=workflow_id_placeholder
+HQ_JTL=jtl_placeholder
 HQ_JID=jid_placeholder
 HQ_JSN=jsn_placeholder
+HQ_BID=${PBS_JOBID}
 
 # Exportation
 export HQ_JOBNAME
-export HQ_RUNTIMELETTER
+export HQ_WORKFLOW_ID
+export HQ_JTL
 export HQ_JID
 export HQ_JSN
+export HQ_BID
 
 
 #                                                                  Printing Basic Job Information
 ####################################################################################################################################################################
+
 echo
 echo "                                                  *** Job Information ***                                                        "
 echo "*********************************************************************************************************************************"

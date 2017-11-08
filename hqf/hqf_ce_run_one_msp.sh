@@ -1,6 +1,6 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
+# Usage information
 usage="Usage: hqf_ce_run_one_msp.sh
 
 Has to be run in the simulation main folder."
@@ -70,7 +70,7 @@ clean_up() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${runtimeletter}.${HQF_STARTDATE}.ce.* >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.ce.* >/dev/null 2>&1 || true
 
         # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
@@ -96,14 +96,14 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-runtimeletter="$(grep -m 1 "^runtimeletter=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 # Getting the energy eval folders
-if [ "${TD_cycle_type}" == "hq" ]; then
+if [ "${tdcycle_type}" == "hq" ]; then
     crosseval_folder="$(ls -vrd */)"
-elif [ "${TD_cycle_type}" == "lambda" ]; then
+elif [ "${tdcycle_type}" == "lambda" ]; then
     crosseval_folder="$(ls -vd */)"
 fi
 crosseval_folder=${crosseval_folder//\/}
@@ -118,6 +118,7 @@ for crosseval_folder in ${crosseval_folder}; do
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
         for snapshot_folder in $(ls -v); do
+
             # Checking if the snapshot was computed already
             if [ "${ce_continue^^}" == "TRUE" ]; then
                 if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
@@ -128,21 +129,24 @@ for crosseval_folder in ${crosseval_folder}; do
                     fi
                 fi
             fi
+
+            # Loop for allowing only the specified number of parallel runs
             while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
                 jobs
                 echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder} (hqf_ce_run_one_msp.sh)"
                 sleep 1.$RANDOM
                 echo
             done;
+
+            # Starting the cross evaluation
             sleep 0.$RANDOM
             cd ${snapshot_folder}/
-            echo -e "\n * Running the cross evaluation of snaphot ${snapshot_folder/*-}"
+            echo -e "\n * Running the cross evaluation of snapshot ${snapshot_folder/*-}"
             trap '' ERR
             ${command_prefix_ce_run_one_snapshot} hqf_ce_run_one_snapshot.sh &
             pid=$!
             pids[i]=$pid
             trap 'error_response_std $LINENO' ERR
-            echo "${pid} " >> ../../../../../runtime/pids/${system_name}_${subsystem}/ce
             i=$((i+1))
             cd ..
         done

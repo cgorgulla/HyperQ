@@ -1,12 +1,15 @@
 #!/usr/bin/env bash
 
-
 # Usage information
-usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <ntdsteps> <system 1 basename> <system 2 basename> <subsystem type> <simulation type> <simulation programs>
+usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <tdw_count> <system 1 basename> <system 2 basename> <subsystem type> <simulation type> <simulation programs>
 
-Has to be run in the system root folder.
-<ntdstepds> is the number TD windows (minimal value is 1).
-Possible subsystems are: L, LS, RLS.\nThe <qm_flag> can be: MM, QMMM"
+<tdw_count> is the number of TD windows (minimal value is 1).
+
+<subsystem>: Possible values: L, LS, RLS
+
+The <simulation type> Possible values: MM, QMMM
+
+Has to be run in the system root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -69,8 +72,8 @@ fi
 
 # Variables
 nbeads="${1}"
-ntdsteps="${2}"
-nsim="$((ntdsteps + 1))"
+tdw_count="${2}"
+tds_count="$((tdw_count + 1))"
 system_1_basename="${3}"
 system_2_basename="${4}"
 subsystem=${5}
@@ -114,13 +117,13 @@ mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1
 echo -e " * Preparing the cp2k qm_kind file for system 2"
 # Copying and adjusting the qatoms indices
 echo -e " * Copying and adjusting the qatoms indices"
-atomCountLigand1=$(grep " LIG " system1.pdb | wc -l)
-atomCountLigand2=$(grep " LIG " system2.pdb | wc -l)
-atomCountDifference1="$(( atomCountLigand2 - atomCountLigand1 ))"
-atomCountLigandSystem=$(grep " LIG " system.a1c1.pdb | wc -l)
-atomCountDifference2="$(( atomCountLigandSystem - atomCountLigand1 ))"
+atom_count_ligand1=$(grep " LIG " system1.pdb | wc -l)
+atom_count_ligand2=$(grep " LIG " system2.pdb | wc -l)
+atom_count_difference1="$(( atom_count_ligand2 - atom_count_ligand1 ))"
+atom_count_ligand_system=$(grep " LIG " system.a1c1.pdb | wc -l)
+atom_count_difference2="$(( atom_count_ligand_system - atom_count_ligand1 ))"
 
-# Copying the nonsolvent qatom indices of sysetm 1
+# Copying the nonsolvent qatom indices of system 1
 if [ -z "$(cat ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.indices | tr -d "[:space:]" )" ]; then
     echo -e " * Info: No QM atoms (among nonsolvent atoms) in system ${system_1_basename}."
 else
@@ -131,7 +134,7 @@ else
     done
 fi
 
-# Copying the nonsolvent qatom indices of sysetm 2
+# Copying the nonsolvent qatom indices of system 2
 if [ -z "$(cat ../../../input-files/systems/${system_2_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.indices | tr -d "[:space:]" )" ]; then
     echo -e " * Info: No QM atoms (among nonsolvent atoms) in system ${system_2_basename}."
 else
@@ -142,7 +145,7 @@ else
     done
 fi
 
-# Copying the nonsolvent qatom indices of sysetm 1 and generating the indices for system 2 from them
+# Copying the nonsolvent qatom indices of system 1 and generating the indices for system 2 from them
 if [ -z "$(cat ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.indices | tr -d "[:space:]" )" ]; then
     echo -e " * Info: No QM atoms (among solvent atoms) in system ${system_1_basename}."
 else
@@ -150,7 +153,7 @@ else
         element=${file/.indices}
         element=${element/*.}
         cp $file system1.solvent.qatoms.elements.${element}.indices
-        cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atomCountDifference1" '{print $1 + a}' | tr "\n" " " > system2.solvent.qatoms.elements.${element}.indices
+        cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atom_count_difference1" '{print $1 + a}' | tr "\n" " " > system2.solvent.qatoms.elements.${element}.indices
     done
 fi
 

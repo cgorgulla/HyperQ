@@ -7,7 +7,7 @@
 &MOTION
   &DRIVER
     UNIX
-    HOST ipi.runtimeletter.md.system_basename.cp2k
+    HOST ipi.workflow_id.md.system_basename.cp2k
   &END DRIVER
   &GEO_OPT
     MAX_ITER 300

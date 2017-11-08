@@ -73,16 +73,28 @@ set -o pipefail
 # Verbosity
 HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
 export HQ_VERBOSITY
-ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
-nsim="$((ntdsteps+1))"
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
+fi
+
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
 fi
 
 # Variables
 msp_list_file="${1}"
 command_general="${2}"
 output_filename="${3}"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count+1))"
 
 # Printing some information
 echo -e "\n *** Preparing the tasks for all MSPs in ${msp_list_file} ***\n"
@@ -102,8 +114,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     echo -e " * Preparing the tasks for the MSP ${msp}"
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo " * The variable TDS was specified in the general command. Spreading the command over each TD window."
-        for i in $(seq 1 ${nsim}); do
-            echo "    * Preparing the task for TDS ${i}/${nsim}"
+        for i in $(seq 1 ${tds_count}); do
+            echo "    * Preparing the task for TDS ${i}/${tds_count}"
             command_specific="${command_general// MSP / ${msp} }"
             command_specific="${command_specific//TDS/${i}:${i}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"

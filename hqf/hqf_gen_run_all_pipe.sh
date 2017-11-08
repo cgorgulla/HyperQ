@@ -1,40 +1,45 @@
 #!/usr/bin/env bash
 
-# Usage infomation
-usage="Usage: hq_gen_run_all_pipe.sh <MSP list file> <subsystem> <pipeline_type> <maximum parallel pipes> [<sim_index_range>]
+# Usage information
+usage="Usage: hq_gen_run_all_pipe.sh <MSP list file> <subsystem> <pipeline_type> <maximum parallel pipes> [<tds_range>]
 
-<MSP list file>: Text file containing a list of molecular system pairs (MSP), one pair per line, in form of system1_system2.
-                 For each MSP in the file <MSP list file> a task defined by <command> will be created.
+Arguments:
 
-<subsystem>: Possible values: L, LS, RLS
+    <MSP list file>: Text file containing a list of molecular system pairs (MSP), one pair per line, in form of system1_system2.
+                     For each MSP in the file <MSP list file> a task defined by <command> will be created.
 
-The pipeline can be composed of:
- Elementary components:
-  _pro_: preparing the optimizations
-  _rop_: running the optimizations
-  _ppo_: postprocessing the optimizations
-  _pre_: preparing the equilibrations
-  _req_: running the equilibrations
-  _ppe_: postprocessing the equilibrations
-  _prm_: preparing MD simulation
-  _rmd_: postprocessing MD simulation
-  _prc_: preparing the crossevaluation
-  _rce_: postprocessing the crossevaluation
-  _prf_: preparing the free energy calculation
-  _rfe_: postprocessing the free energy calculation
-  _ppf_: postprocessing the free energy calculation
+    <subsystem>: Possible values: L, LS, RLS
 
- Macro components:
-  _allopt_: equals _pro_rop_ppo_
-  _alleq_: equals _pre_req_ppe_
-  _allmd_ : equals _prd_rmd_
-  _allce_ : equals _prc_rce_
-  _allfec_: equals _prf_rfe_ppf_
-  _all_   : equals _allopt_alleq_allmd_allce_allfec_
+    The pipeline can be composed of:
+     Elementary components:
+      _pro_: preparing the optimizations
+      _rop_: running the optimizations
+      _ppo_: postprocessing the optimizations
+      _pre_: preparing the equilibrations
+      _req_: running the equilibrations
+      _ppe_: postprocessing the equilibrations
+      _prm_: preparing MD simulation
+      _rmd_: postprocessing MD simulation
+      _prc_: preparing the crossevaluation
+      _rce_: postprocessing the crossevaluation
+      _prf_: preparing the free energy calculation
+      _rfe_: postprocessing the free energy calculation
+      _ppf_: postprocessing the free energy calculation
 
-<sim_index_range>: Possible values:
-                      * all : Will cover all simulations (default)
-                      * startindex:endindex : The index starts at 1
+     Macro components:
+      _allopt_: equals _pro_rop_ppo_
+      _alleq_: equals _pre_req_ppe_
+      _allmd_ : equals _prd_rmd_
+      _allce_ : equals _prc_rce_
+      _allfec_: equals _prf_rfe_ppf_
+      _all_   : equals _allopt_alleq_allmd_allce_allfec_
+
+    <tds_range>:
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
+      * Currently only relevant for opt, eq, md
+      * If unset, 1:K will be used for the commands which need a range argument
 
 The script has to be run in the root folder."
 
@@ -126,10 +131,12 @@ msp_list_filename=${1}
 subsystem=${2}
 pipeline_type=${3}
 maximum_parallel_pipes=${4}
-if [ -z "${5}" ]; then
-    sim_index_range="all"
+
+# TDS Range
+if [ "${#}" == "5" ]; then
+    tds_range="${5}"
 else
-    sim_index_range="${4}"
+    tds_range=1:K
 fi
 
 # Printing information

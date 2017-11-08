@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
-usage="Usage: hqf_eq_run_one_eq.sh
+# Usage information
+usage="Usage: hqf_opt_run_one_tds.sh
 
-Has to be run in the eq root folder of the system."
+Has to be run in the opt root folder of the system."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -55,7 +55,6 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
-
 
 # Exit cleanup
 cleanup_exit() {
@@ -112,28 +111,41 @@ trap "cleanup_exit" EXIT
 # Bash options
 set -o pipefail
 
-
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
 # Variables
-subsystem="$(pwd | awk -F '/' '{print $(NF-2)}')"
-eq_programs=$(grep -m 1 "^eq_programs_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
-eq_timeout=$(grep -m 1 "^eq_timeout_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
-eq_continue=$(grep -m 1 "^eq_continue=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')
-system_name="$(pwd | awk -F '/' '{print     $(NF-3)}')"
+tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
+subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
+msp_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
+opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
+opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
+opt_continue=$(grep -m 1 "^opt_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
 sim_counter=0
 
-# Running the equilibration
+# Checking if this optimization has already been completed and should be skipped
+if [[ ${opt_continue^^} == "TRUE" && -f  ../system.${tds_folder//tds.}.opt.pdb ]]; then
+
+    # Printing some information
+    echo -e " * This optimization has already been completed. Skipping... (continuation mode)\n"
+
+    # Exiting
+    exit 0
+fi
+
+# Running the optimization
 # CP2K
-if [[ "${eq_programs}" == "cp2k" ]] ;then
+if [[ "${opt_programs}" == "cp2k" ]] ;then
+
+    # Changing into the simulation folder
+    cd cp2k
 
     # Cleaning the folder
-    if [ ${eq_continue^^} == "FALSE" ]; then
+    if [ ${opt_continue^^} == "FALSE" ]; then
         rm cp2k.out* > /dev/null 2>&1 || true
     elif [ -f cp2k.out.err ]; then
         # Renaming previous error files
@@ -141,9 +153,9 @@ if [[ "${eq_programs}" == "cp2k" ]] ;then
     fi
 
     # Variables
-    ncpus_cp2k_eq="$(grep -m 1 "^ncpus_cp2k_eq_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    export OMP_NUM_THREADS=${ncpus_cp2k_eq}
+    export OMP_NUM_THREADS=${ncpus_cp2k_opt}
 
     # Checking the input file
     ${cp2k_command} -e cp2k.in.main 1> cp2k.out.config 2> cp2k.out.err
@@ -155,37 +167,35 @@ if [[ "${eq_programs}" == "cp2k" ]] ;then
     # Updating variables
     pids[sim_counter]=$pid_cp2k
     sim_counter=$((sim_counter+1))
-    echo "${pid_cp2k}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/eq
 
-    # Checking if the file system-r-1.out does already exist.
-    while [ ! -f cp2k.out.general ]; do
-        echo " * The file system.out.general does not exist yet. Waiting..."
-        sleep 1
-    done
-    echo " * The file system.out.general has been detected. Continuing..."
+    # Changing back to the original folder
+    cd ..
 fi
 
 # Checking if the simulation is completed
-# Givint the output files some time to appear
 sleep 5
-# Checking within a continuous loop
 while true; do
 
-    # Checking for errors
-    if [[ -s cp2k.out.err ]] ; then
-        if [ -f cp2k.out.trajectory.pdb ]; then
+    # Printing some information
+    if [ "${HQ_VERBOSITY}" == "debug" ]; then
+        echo " * Checking if the simulation running in folder ${PWD} has completed."
+    fi
 
-            # Checking the number of frames. During MD simulations CP2K stores the initial conformation, thus Step 0 is always present, therefore we require at least two frames
-            frame_count=$(grep -c Step cp2k.out.trajectory.pdb)
-            if [ "${frame_count}" -ge "2" ]; then
+    # Checking for errors
+    if [[ -s cp2k/cp2k.out.err ]] ; then
+        if [ -f cp2k/cp2k.out.trajectory.pdb ]; then
+
+            # Checking the number of frames. During geometry optimizations CP2K stores only new conformations in the trajectory output file, thus the first step is Step 1 in the trajectory output file, and we require only one step
+            frame_count=$(grep -c Step cp2k/cp2k.out.trajectory.pdb)
+            if [ "${frame_count}" -ge "1" ]; then
                 echo " * Warning: CP2K seems to have completed with errors, but has produced the desired trajectories file which contains ${frame_count} coordinate frames. Continuing..."
                 break
             else
-                echo " * Error: CP2K seems to have completed with errors, and the trajectory outpuf file seems not to contain any coordinate frames. Exiting..."
+                echo " * Error: CP2K seems to have completed with errors, and the trajectory output file seems not to contain any coordinate frames. Exiting..."
                 exit 1
             fi
         else
-            echo " * Error: CP2K seems to have completed with errors, and has not produced trajectory output file. Exiting..."
+            echo " * Error: CP2K seems to have completed with errors, and has not produced any trajectory output file. Exiting..."
             exit 1
         fi
     fi
@@ -196,12 +206,12 @@ while true; do
         break
     fi
 
-    # Checking the condition of the ouptput major log file of CP2k
-    if [ -f cp2k.out.general ]; then
-        timeDiff=$(($(date +%s) - $(date +%s -r cp2k.out.general)))
-        # Checking the time difference with upper bound because very few times it seems that something goes wrong and the timeDiff is extremely large
-        if [[ "${timeDiff}" -ge "${eq_timeout}" ]] && [ "${timeDiff}" -le "$((${eq_timeout} + 10))" ]; then
-            echo " * CP2K seems to have completed the equilibration."
+    # Checking the condition of the output major log file of CP2k
+    if [ -f cp2k/cp2k.out.general ]; then
+        time_diff=$(($(date +%s) - $(date +%s -r cp2k/cp2k.out.general)))
+        # Checking the time difference with upper bound because very few times it seems that something goes wrong and the time_diff is extremely large
+        if [[ "${time_diff}" -ge "${opt_timeout}" ]] && [ "${time_diff}" -le "$((${opt_timeout} + 10))" ]; then
+            echo " * CP2K seems to have completed the optimization."
             break
         fi
     fi
@@ -210,3 +220,6 @@ while true; do
     sleep 1 || true             # true because the script might be terminated while sleeping, which would result in an error
 
 done
+
+# Printing script completion information
+echo -e "\n * The optimization run of the current TDS (${tds_folder}) of MSP (${msp_name}) has been completed.\n\n"

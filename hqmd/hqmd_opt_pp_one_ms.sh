@@ -74,7 +74,7 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 
 if [ "${opt_programs}" == "cp2k" ]; then
-    hq_opt_pp_one_opt.sh ${original_pdb_filename} ${psf_filename} ${folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
+    hq_opt_pp_one_tds.sh ${original_pdb_filename} ${psf_filename} ${folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
 elif [ "${opt_programs}" == "namd" ]; then
-    hq_opt_pp_one_opt.sh ${original_pdb_filename} ${psf_filename} ${folder}/namd/namd.out.dcd ${output_filename}
+    hq_opt_pp_one_tds.sh ${original_pdb_filename} ${psf_filename} ${folder}/namd/namd.out.dcd ${output_filename}
 fi

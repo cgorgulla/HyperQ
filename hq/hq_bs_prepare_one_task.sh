@@ -29,13 +29,6 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
-# Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
-    set -x
-fi
-
 # Standard error response 
 error_response_std() {
     # Printing some information
@@ -67,6 +60,25 @@ trap 'error_response_nonstd $LINENO' ERR
 
 # Bash options
 set -o pipefail
+
+# Verbosity
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+export HQ_VERBOSITY
+if [ "${HQ_VERBOSITY}" = "debug" ]; then
+    set -x
+fi
+
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
+fi
 
 # Variables
 command="${1}"

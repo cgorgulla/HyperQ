@@ -64,7 +64,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
                 print "Failed to generate image for this pair of molecules."
     
 
-# Checking the outpuf file
+# Checking the output file
 def help():
     print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 

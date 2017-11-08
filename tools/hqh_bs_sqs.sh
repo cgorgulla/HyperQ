@@ -49,7 +49,6 @@ elif [ "${batchsystem}" == "lsf" ]; then
 elif [ "${batchsystem}" == "sge" ]; then
     qstat | grep ${USER}
 else
-    echo -e " * Unsupported batchsystem (${batchsystem}) specified in the file ../workflow/control/all.ctrl. Exiting... \n\n"
+    echo -e " * Unsupported batchsystem (${batchsystem}) specified in the file input-files/config.txt. Exiting... \n\n"
     exit 1
 fi
-

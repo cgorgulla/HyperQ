@@ -1,13 +1,15 @@
 #!/usr/bin/env bash
 
-# Usage infomation
-usage="Usage: hqf_opt_run_one_msp.sh <opt_index_range>
+# Usage information
+usage="Usage: hqf_opt_run_one_msp.sh <tds_range>
 
-<opt_index_range>: Possible values:
-                      * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1 (w.r.t. to the eq folders present)
+Arguments:
+    <tds_range>: Range of the thermodynamic states
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
 
-Has to be run in the simulation main folder."
+Has to be run in the subsystem folder."
 
 if [ "${1}" == "-h" ]; then
     echo
@@ -118,66 +120,78 @@ fi
 echo -e "\n *** Running the geometry optimizations ${1}(hq_opt_run_one_msp.sh)"
 
 # Variables
-opt_index_range="${1}"
+tds_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 fes_opt_parallel_max="$(grep -m 1 "^fes_opt_parallel_max_${subsystem}" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
 command_prefix_opt_run_one_opt="$(grep -m 1 "^command_prefix_opt_run_one_opt=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
+tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count + 1))"
 
-# Getting the MD folders
-if [ "${TD_cycle_type}" == "hq" ]; then
-    opt_folders="$(ls -vrd opt.*)"
-elif [ "${TD_cycle_type}" == "lambda" ]; then
-    opt_folders="$(ls -vd opt.*)"
+
+# Checking if the variables nbeads and tdw_count are compatible
+if [ "${tdcycle_type}" == "hq" ]; then
+    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible... "
+    trap '' ERR
+    mod="$(expr ${nbeads} % ${tdw_count})"
+    trap 'error_response_std $LINENO' ERR
+    if [ "${mod}" != "0" ]; then
+        echo "Check failed"
+        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
+        exit 1
+    fi
+    echo " OK"
 fi
 
 # Setting the range indices
-if [ "${opt_index_range}" == "all" ]; then
-    opt_index_first=1
-    opt_index_last=$(echo ${opt_folders[@]} | wc -w)
-else
-    opt_index_first=${opt_index_range/:*}
-    opt_index_last=${opt_index_range/*:}
-    if ! [ "${opt_index_first}" -eq "${opt_index_first}" ]; then
-        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
-        exit 1
-    fi
-    if ! [ "${opt_index_last}" -eq "${opt_index_last}" ]; then
-        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
-        exit 1
-    fi
+tds_index_first=${tds_range/:*}
+tds_index_last=${tds_range/*:}
+if [ "${tds_index_last}" == "K" ]; then
+    tds_index_last=${tds_count}
 fi
 
-# Running the geopts
-i=1
-for folder in ${opt_folders}; do
+# Loop for each optimization in the specified tds range
+for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
 
-    # Checking if this opt should be skipped
-    if [[ "${i}" -lt "${opt_index_first}" ]] ||  [[ "${i}" -gt "${opt_index_last}" ]]; then
-        echo -e " * Skipping the MD simulation ${folder} because the md_index is not in the specified range."
-        i=$((i+1))
-        continue
+    # Determining the opt folder
+    if [ "${tdcycle_type}" == "hq" ]; then
+
+        # Variables
+        bead_step_size=$(expr $nbeads / $tdw_count)
+        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
+        bead_count2="$(( (tds_index-1)*bead_step_size))"
+        bead_configuration="k_${bead_count1}_${bead_count2}"
+        tds_folder=tds.${bead_configuration}
+
+    elif [ "${tdcycle_type}" == "lambda" ]; then
+
+        # Variables
+        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
+        lambda_configuration=lambda_${lambda_current}
+        tds_folder=tds.${lambda_configuration}
     fi
 
+    # Loop for allowing only the specified number of parallel runs
     while [ "$(jobs | wc -l)" -ge "${fes_opt_parallel_max}" ]; do 
         sleep 1; 
-    done;
-    if [ "${opt_programs}" == "cp2k" ]; then
-        cd ${folder}/cp2k
-    fi
-    echo -e " * Starting the optimization ${folder}"
-    ${command_prefix_opt_run_one_opt} hqf_opt_run_one_opt.sh &
+    done
+
+    # Starting the optimization
+    cd ${tds_folder}
+    echo -e " * Starting the optimization ${tds_folder}"
+    ${command_prefix_opt_run_one_opt} hqf_opt_run_one_tds.sh &
     pids[i]=$!
-    echo "${pids[i]}" >> ../../../../../runtime/pids/${system_name}_${subsystem}/opt
-    i=$((i+1))
-    cd ../..
+    tds_index=$((tds_index+1))
+    cd ..
 done
 
 # Waiting for the processes
-for pid in ${pids[@]}; do        # just the number of arguments matters
+for pid in ${pids[@]}; do        # just the size of the array matters, not its content
     wait -n
 done
 
-echo -e " * All optimizations have been completed."
+# Printing script completion information
+echo -e "\n * The optimization runs of all the specified TDSs (${tds_range}) of this MSP (${msp_name}) have been completed.\n\n"

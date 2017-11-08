@@ -73,27 +73,27 @@ subsystem=${1}
 set +o pipefail # not used because if no water the pipe would file
 i=0
 for folder in $(find input-files/systems/ -type d -name ${subsystem}); do
-    waterCount[i]=$(grep "^ATOM" ${folder}/system_complete.pdb | grep " OH2 " | wc -l)
+    water_count[i]=$(grep "^ATOM" ${folder}/system_complete.pdb | grep " OH2 " | wc -l)
     i=$((i+=1))
 done
 set -o pipefail # not used because if no water the pipe would file
 
-minimumWaterCount=${waterCount[0]}
-for i in ${waterCount[@]}; do
-    if [[ ${i} -lt ${minimumWaterCount} ]]; then
-        minimumWaterCount="${i}"
+minimum_water_count=${water_count[0]}
+for i in ${water_count[@]}; do
+    if [[ ${i} -lt ${minimum_water_count} ]]; then
+        minimum_water_count="${i}"
     fi
 done
 
 for folder in $(find input-files/systems/ -type d -name ${subsystem}); do
-    if [ "${minimumWaterCount}" -eq "0" ]; then
+    if [ "${minimum_water_count}" -eq "0" ]; then
         echo -e " * Minimum water count is 0. No water to reduce...\n"
         cp input-files/systems/${folder}/${subsystem}/system_complete.pdb ${folder}/system_complete.reduced.pdb
         cp input-files/systems/${folder}/${subsystem}/system_complete.psf ${folder}/system_complete.reduced.psf
     else
         # Reducing the number of water molecules in all the systems (which remained)
         cd ${folder}
-            vmdc ${script_dir}/hqh_sp_reduce_waters.vmd -args system_complete ${minimumWaterCount}
+            vmdc ${script_dir}/hqh_sp_reduce_waters.vmd -args system_complete ${minimum_water_count}
         cd ../../../..
     fi
 done

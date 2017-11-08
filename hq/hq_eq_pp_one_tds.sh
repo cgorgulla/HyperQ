@@ -1,9 +1,9 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_eq_pp_one_eq.sh <original pdb filename> <psf filename> <trajectory filename> <output filename>
+usage="Usage: hq_eq_pp_one_tds.sh <original pdb filename> <psf filename> <trajectory filename> <output filename>
 
-Has to be run in the specific system root folder."
+Has to be run in the subsystem folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -73,6 +73,13 @@ trajectory_filename=${3}
 output_filename=${4}
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+eq_continue="$(grep -m 1 "^eq_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+
+# Checking if the equilibration is in continuation mode
+if [[ "${eq_continue^^}" == "TRUE" ]] && [[ -f ${output_filename} ]]; then
+    echo -e "\n * The output file already exists and the equilibration is in continuation mode. Nothing to do...\n\n"
+    exit 0
+fi
 
 # Extracting the last snapshot
 echo -e "\n * Preparing the extraction of the last snapshot from the trajectory file"
@@ -119,6 +126,7 @@ size_y_new=$(awk -v y="${size_y_old}" 'BEGIN{printf("%9.1f", y+0.1)}')
 size_z_new=$(awk -v z="${size_z_old}" 'BEGIN{printf("%9.1f", z+0.1)}')
 cryst_line_new="$(printf "CRYST1%9.3f%9.3f%9.3f%7.2f%7.2f%7.2f P 1           1" ${size_x_new} ${size_y_new} ${size_z_new} 90 90 90)"
 sed -i "s/CRYST.*/${cryst_line_new}/" ${output_filename}
-#rm ${output_filename}.tmp
+rm ${output_filename}.tmp
 
-echo -e " * The final pdb file of the equilibration has been prepared"
+# Printing some information
+echo -e "\n * The postprocessing of the specified TDS has been successfully completed\n\n"

@@ -1,13 +1,15 @@
 #!/usr/bin/env bash 
 
-# Usage infomation
-usage="Usage: hqf_opt_prepare_one_msp.py <system 1 basename> <system 2 basename> <subsystem> <opt_index_range>
+# Usage information
+usage="Usage: hqf_opt_prepare_one_msp.sh <system 1 basename> <system 2 basename> <subsystem> <tds_range>
 
-<subsystem>: Possible values: L, LS, RLS
+Arguments:
+    <subsystem>: Possible values: L, LS, RLS
 
-<opt_index_range>: Possible values:
-                      * all : Will cover all simulations of the MSP
-                      * startindex:endindex : The index starts at 1 (w.r.t. the absolute simulation number)
+    <tds_range>: Range of the thermodynamic states
+      * Format: startindex:endindex
+      * The index starts at 1
+      * The capital letter K can be used to indicate the end state of the thermodynamic path
 
 Has to be run in the root folder."
 
@@ -76,48 +78,43 @@ fi
 system_1_basename="${1}"
 system_2_basename="${2}"
 subsystem="${3}"
-opt_index_range="${4}"
+tds_range="${4}"
 msp_name=${system_1_basename}_${system_2_basename}
-inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-TD_cycle_type="$(grep -m 1 "^TD_cycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
-ntdsteps="$(grep -m 1 "^ntdsteps=" input-files/config.txt | awk -F '=' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
 opt_continue="$(grep -m 1 "^opt_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
-nsim="$((ntdsteps + 1))"
+inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
+tds_count="$((tdw_count + 1))"
 
 # Printing information
 echo -e "\n *** Preparing the optimization folder for fes ${msp_name} (hq_opt_prepare_one_fes) *** "
 
 # Setting the range indices
-if [ "${opt_index_range}" == "all" ]; then
-    opt_index_first=1
-    opt_index_last=${nsim}
-else
-    opt_index_first=${opt_index_range/:*}
-    opt_index_last=${opt_index_range/*:}
-    if ! [ "${opt_index_first}" -eq "${opt_index_first}" ]; then
-        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
-        exit 1
-    fi
-    if ! [ "${opt_index_last}" -eq "${opt_index_last}" ]; then
-        echo " * Error: The input variable opt_index_range was not specified correctly. Exiting..."
-        exit 1
-    fi
+tds_index_first=${tds_range/:*}
+tds_index_last=${tds_range/*:}
+if [ "${tds_index_last}" == "K" ]; then
+    tds_index_last=${tds_count}
 fi
 
-# Checking if nbeads and ntdsteps are compatible
-if [ "${TD_cycle_type}" == "hq" ]; then
-    echo -e -n " * Checking if the variables <nbeads> and <ntdsteps> are compatible... "
+# Checking if the range indices have valid values
+if ! [ "${tds_index_first}" -le "${tds_index_first}" ]; then
+    echo " * Error: The input variable tds_range was not specified correctly. Exiting..."
+    exit 1
+fi
+
+# Checking if the variables nbeads and tdw_count are compatible
+if [ "${tdcycle_type}" == "hq" ]; then
+    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible... "
     trap '' ERR
-    mod="$(expr ${nbeads} % ${ntdsteps})"
+    mod="$(expr ${nbeads} % ${tdw_count})"
     trap 'error_response_std $LINENO' ERR
     if [ "${mod}" != "0" ]; then
         echo "Check failed"
-        echo " * The variables <nbeads> and <ntdsteps> are not compatible. nbeads % ntdsteps should be zero"
+        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
         exit 1
     fi
     echo " OK"
@@ -150,259 +147,52 @@ if  [ ! "${lambdavalue_count}" -ge "1" ]; then
 fi
 echo "OK"
 
-# Preparing the main folder
-echo -e " * Preparing the main folder"
-if [[ "${opt_continue^^}" == "FALSE" ]]; then
+# Checking if the general files for this MSP have to be prepared
+# Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
+if [[ "${opt_continue^^}" == "TRUE" ]] && ls ./opt/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null; then
 
-    # Creating required folders
-    if [ -d "opt/${msp_name}/${subsystem}" ]; then
-        rm -r opt/${msp_name}/${subsystem}
-    fi
-fi
-mkdir -p opt/${msp_name}/${subsystem}
-cd opt/${msp_name}/${subsystem}
+    # Printing information
+    echo " * The continuation mode for the optimizations is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."
+    echo " * Skipping the general preparation..."
 
-# Copying the system files
-echo -e " * Copying general simulation files"
-systemID=1
-for system_basename in ${system_1_basename} ${system_2_basename}; do 
-    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${systemID}.vmd.psf
-    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${systemID}.pdb
-    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
-    cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${systemID}.pdbx
-    (( systemID += 1 ))
-done
-cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
+    # Changing the pwd into the relevant folder
+    cd opt/${msp_name}/${subsystem}
 
-# Getting the cell size for the opt program input files
-line=$(grep CRYST1 system1.pdb)
-IFS=' ' read -r -a lineArray <<< "$line"
-A=${lineArray[1]}
-B=${lineArray[2]}
-C=${lineArray[3]}
+elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" ]] && ! ls ./opt/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null ); then
 
-# Computing the GMAX values for CP2K
-GMAX_A=${A/.*}
-GMAX_B=${B/.*}
-GMAX_C=${C/.*}
-GMAX_A_scaled=$((GMAX_A*cell_dimensions_scaling_factor))
-GMAX_B_scaled=$((GMAX_B*cell_dimensions_scaling_factor))
-GMAX_C_scaled=$((GMAX_C*cell_dimensions_scaling_factor))
-for value in GMAX_A GMAX_B GMAX_C GMAX_A_scaled GMAX_B_scaled GMAX_C_scaled; do
-    mod=$((${value}%2))
-    if [ "${mod}" == "0" ]; then
-        eval ${value}_odd=$((${value}+1))
-    else
-        eval ${value}_odd=$((${value}))
-    fi
-done
+    # Creating the main folder if not yet existing
+    echo -e " * Preparing the main folder"
+    mkdir -p opt/${msp_name}/${subsystem}
 
-if [ "${TD_cycle_type}" == "hq" ]; then
+    # Changing the pwd into the relevant folder
+    cd opt/${msp_name}/${subsystem}
 
-    # Loop for each intermediate state
-    beadStepSize=$(expr $nbeads / $ntdsteps)
-    for i in $(seq ${opt_index_first} ${opt_index_last}); do
-
-        # Variables
-        bead_count1="$(( nbeads - (i-1)*beadStepSize))"
-        bead_count2="$(( (i-1)*beadStepSize))"
-        bead_configuration="k_${bead_count1}_${bead_count2}"
-        lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        opt_folder=opt.${bead_configuration}
-
-        echo -e " * Preparing the files and directories for the optimization with bead-configuration ${bead_configuration}"
-
-        # Checking if the MD folder already exists
-        if [[ "${opt_continue^^}" == "TRUE" ]]; then
-            if [ -d "${opt_folder}" ]; then
-                echo " * The folder ${opt_folder} already exists. Checking its contents..."
-                cd ${opt_folder}
-                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
-
-                    echo " * The folder ${opt_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
-
-                    # Editing the cp2k major input file
-                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
-                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
-                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
-
-                    # Removing previous error files
-                    if [ -f cp2k/cp2k.out.err ]; then
-                        mv cp2k/cp2k.out.err cp2k/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
-                    fi
-
-                    # Finalization
-                    cd ..
-                    continue
-                else
-                    echo " * The folder ${opt_folder} seems to not contain files from a previous run. Preparing it newly..."
-                    cd ..
-                    rm -r ${opt_folder}
-                fi
-            fi
-        fi
-
-        # Preparation of the cp2k files
-        if [[ "${opt_programs}" == *"cp2k"* ]]; then
-
-            # Preparing the simulation folders
-            mkdir -p opt.${bead_configuration}/cp2k
-
-            # Copying the CP2K input files
-            if [ "${lambda_current}" == "0.000" ]; then
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 opt.${bead_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 opt.${bead_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            elif [ "${lambda_current}" == "1.000" ]; then
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 opt.${bead_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 opt.${bead_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            else
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda opt.${bead_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda opt.${bead_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            fi
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/ -type f -name "sub*"); do
-                cp $file opt.${bead_configuration}/cp2k/cp2k.in.${file/*\/}
-            done
-            # The specific subfiles at the end so that they can overrride the general subfiles
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/ -type f -name "sub*"); do
-                cp $file opt.${bead_configuration}/cp2k/cp2k.in.${file/*\/}
-            done
-
-            # Adjust the CP2K input files
-            sed -i "s/lambda_value/${lambda_current}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/subconfiguration/${bead_configuration}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" opt.${bead_configuration}/cp2k/cp2k.in.*
-            sed -i "s|subsystem_folder/|../../|" opt.${bead_configuration}/cp2k/cp2k.in.*
-        fi
+    # Copying the system files
+    echo -e " * Copying general simulation files"
+    system_ID=1
+    for system_basename in ${system_1_basename} ${system_2_basename}; do
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm
+        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx
+        (( system_ID += 1 ))
     done
-elif [ "${TD_cycle_type}" == "lambda" ]; then
+    cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping
 
-    # Loop for each intermediate state
-    for i in $(seq ${opt_index_first} ${opt_index_last}); do
+    # Preparing the shared input files
+    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system_1_basename} ${system_2_basename} ${subsystem} ${opt_type} ${opt_programs}
 
-        # Variables
-        lambda_current=$(echo "$((i-1))/${ntdsteps}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        lambda_configuration=lambda_${lambda_current}
-        opt_folder=opt.${lambda_configuration}
-
-        echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_current}"
-
-        # Checking if the MD folder already exists
-        if [[ "${opt_continue^^}" == "TRUE" ]]; then
-            if [ -d "${opt_folder}" ]; then
-                echo " * The folder ${opt_folder} already exists. Checking its contents..."
-                cd ${opt_folder}
-                if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
-
-                    echo " * The folder ${opt_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
-
-                    # Editing the cp2k major input file
-                    sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
-                    sed -i 's/! *EXT/  EXT/g' cp2k/cp2k.in.main
-                    sed -i 's/!\&END EXT_RESTART/\&END EXT_RESTART/g' cp2k/cp2k.in.main
-
-                    # Removing previous error files
-                    if [ -f cp2k/cp2k.out.err ]; then
-                        mv cp2k/cp2k.out.err cp2k/cp2k.out.err.old."$(date --rfc-3339=seconds | tr -s ' ' '_')"
-                    fi
-
-                    # Finalization
-                    cd ..
-                    continue
-                else
-                    echo " * The folder ${opt_folder} seems to not contain files from a previous run. Preparing it newly..."
-                    cd ..
-                    rm -r ${opt_folder}
-                fi
-            fi
-        fi
-
-        # Preparation of the cp2k files
-        if [[ "${opt_programs}" == *"cp2k"* ]]; then
-
-            # Preparing the simulation folder
-            mkdir -p opt.${lambda_configuration}/cp2k
-
-            # Copying the CP2K input files
-            # Copying the main files
-            if [ "${lambda_current}" == "0.000" ]; then
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_0 opt.${lambda_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_0 opt.${lambda_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            elif [ "${lambda_current}" == "1.000" ]; then
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.k_1 opt.${lambda_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.k_1 opt.${lambda_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            else
-                # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda opt.${lambda_configuration}/cp2k/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda opt.${lambda_configuration}/cp2k/cp2k.in.main
-                else
-                    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
-                    exit 1
-                fi
-            fi
-            # Copying the sub files
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/ -type f -name "sub*"); do
-                cp $file opt.${lambda_configuration}/cp2k/cp2k.in.${file/*\/}
-            done
-            # The sub files in the specific folder at the end so that they can overrride the ones of the general CP2K input folder
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/ -type f -name "sub*"); do
-                cp $file opt.${lambda_configuration}/cp2k/cp2k.in.${file/*\/}
-            done
-
-            # Adjust the CP2K input files
-            sed -i "s/lambda_value/${lambda_current}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/subconfiguration/${lambda_configuration}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${GMAX_A} ${GMAX_B} ${GMAX_C}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${GMAX_A_odd} ${GMAX_B_odd} ${GMAX_C_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${GMAX_A_scaled} ${GMAX_B_scaled} ${GMAX_C_scaled}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${GMAX_A_scaled_odd} ${GMAX_B_scaled_odd} ${GMAX_C_scaled_odd}/g" opt.${lambda_configuration}/cp2k/cp2k.in.*
-            sed -i "s|subsystem_folder/|../../|" opt.${lambda_configuration}/cp2k/cp2k.in.*
-        fi
-    done
+else
+    echo "Error: The parameter 'opt_continue' specified in the main configuration file has an unsupported value (${opt_continue}). Exiting..."
+    exit 1
 fi
 
-# Preparing the shared input files
-hqh_fes_prepare_one_fes_common.sh ${nbeads} ${ntdsteps} ${system_1_basename} ${system_2_basename} ${subsystem} ${opt_type} ${opt_programs}
+# Preparing the optimization folder for each TDS
+for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
+    hqf_opt_prepare_one_tds.sh ${tds_index}
+done
 
 cd ../../../
+
+# Printing program completion information
+echo -e "\n * The preparation of the subsystem folder for the MSP ${msp_name} has been successfully completed.\n\n"

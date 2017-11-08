@@ -3,17 +3,17 @@
 #                                                                         SLURM Settings
 ####################################################################################################################################################################
 
-#SBATCH --job-name=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#SBATCH --job-name=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 #SBATCH --partition=main
 #SBATCH --time=00-01:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=600
+#SBATCH --mem-per-cpu=60
 #SBATCH --signal=10@300
 ##SBATCH --constraint="scratch2"
 ##SBATCH --constraint="holyib"
-#SBATCH --output=batchsystem/output-files/jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
-#SBATCH --error=batchsystem/output-files/jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
+#SBATCH --output=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
+#SBATCH --error=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
 #SBATCH --mail-user=cgorgulla@crystal.harvard.edu
 #SBATCH --mail-type=fail
 
@@ -22,20 +22,25 @@
 ####################################################################################################################################################################
 
 # Definition
-HQ_JOBNAME=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
-HQ_RUNTIMELETTER=runtimeletter_placeholder
+HQ_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+HQ_WORKFLOW_ID=workflow_id_placeholder
+HQ_JTL=jtl_placeholder
 HQ_JID=jid_placeholder
 HQ_JSN=jsn_placeholder
+HQ_BID=${SLURM_JOB_ID}          # BID: Batchsystem ID
 
 # Exportation
 export HQ_JOBNAME
-export HQ_RUNTIMELETTER
+export HQ_WORKFLOW_ID
+export HQ_JTL
 export HQ_JID
 export HQ_JSN
+export HQ_BID
 
 
 #                                                                  Printing Basic Job Information
 ####################################################################################################################################################################
+
 echo
 echo "                                                  *** Job Information ***                                                        "
 echo "*********************************************************************************************************************************"

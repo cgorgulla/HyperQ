@@ -3,7 +3,7 @@
 #                                                                          LSF Settings
 ####################################################################################################################################################################
 
-#BSUB -J runtimeletter_placeholder-jid_placeholder.jsn_placeholder
+#BSUB -J workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 #BSUB -q mpi
 #BSUB -W 150:00
 #BSUB -n 1
@@ -11,8 +11,8 @@
 #BSUB -R "select[scratch2]"
 ##BSUB -R "span[ptile=8]"
 ##BSUB -R "rusage[ngpus=0.5]"               # Orchestra
-#BSUB -oo batchsystem/output-files/job-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
-#BSUB -wt '5'
+#BSUB -oo batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-%j.out
+#BSUB -wt '1'
 #BSUB -wa 'USR1'
 
 
@@ -20,20 +20,25 @@
 ####################################################################################################################################################################
 
 # Definition
-HQ_JOBNAME=runtimeletter_placeholder-jid_placeholder.jsn_placeholder
-HQ_RUNTIMELETTER=runtimeletter_placeholder
+HQ_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+HQ_WORKFLOW_ID=workflow_id_placeholder
+HQ_JTL=jtl_placeholder
 HQ_JID=jid_placeholder
 HQ_JSN=jsn_placeholder
+HQ_BID=${LSB_JOBID}
 
 # Exportation
 export HQ_JOBNAME
-export HQ_RUNTIMELETTER
+export HQ_WORKFLOW_ID
+export HQ_JTL
 export HQ_JID
 export HQ_JSN
+export HQ_BID
 
 
 #                                                                  Printing Basic Job Information
 ####################################################################################################################################################################
+
 echo
 echo "                                                  *** Job Information ***                                                        "
 echo "*********************************************************************************************************************************"

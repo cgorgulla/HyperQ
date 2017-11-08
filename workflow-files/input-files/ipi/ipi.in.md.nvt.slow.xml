@@ -8,6 +8,7 @@
      <checkpoint stride="10" filename="restart" overwrite="false"/>
   </output>
   <total_steps>10000000</total_steps>
+  <step>1</step>
   <prng> <seed> 32342 </seed> </prng>
   <ffsocket mode='unix' name='cp2k' pbc="true">
     <address> address.cp2k </address>
@@ -42,4 +43,3 @@
     </motion>
   </system>
 </simulation>
-

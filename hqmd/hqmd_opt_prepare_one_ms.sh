@@ -80,17 +80,17 @@ cd opt/${system_basename}/${subsystem}
 
 # Copying the system files
 echo -e " * Copying general simulation files"
-systemID=1
-cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.psf ./system${systemID}.psf
-cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.pdb ./system${systemID}.pdb
-cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${systemID}.prm
+system_ID=1
+cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.psf ./system${system_ID}.psf
+cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.pdb ./system${system_ID}.pdb
+cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm
 
 # Getting the cell size for the opt program input files
 line=$(grep CRYST1 system1.pdb)
-IFS=' ' read -r -a lineArray <<< "$line"
-A=${lineArray[1]}
-B=${lineArray[2]}
-C=${lineArray[3]}
+IFS=' ' read -r -a line_array <<< "$line"
+A=${line_array[1]}
+B=${line_array[2]}
+C=${line_array[3]}
 
 # Preparation of the cp2k files
 if [[ "${opt_programs}" == "cp2k" ]]; then
