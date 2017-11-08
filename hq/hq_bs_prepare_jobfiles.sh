@@ -111,7 +111,7 @@ batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{pr
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '=' '{print $2}')
-no_of_tasks="$(wc -l ${task_list} | awk '{print $1}')"
+tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
 if [[ "${batchsystem}" != "${job_template/*.}" ]]; then
@@ -166,8 +166,8 @@ cp batchsystem/templates/jobfiles.common.main.sh batchsystem/job-files/common/ma
 # Loop for each task
 jid=$first_jid
 sjid=1                                                                      # Subjob ID
-task_ID=1
-task_counter=1                                                              # Counting within subjobs
+task_ID=1                                                                   # Counting within subjobs
+task_counter=1                                                              # Counting the total number of tasks processed
 while IFS='' read -r command_task; do
 
     # Printing some information
@@ -231,6 +231,13 @@ while IFS='' read -r command_task; do
 
     # Adding the task to the task file
     echo "${command_prefix_bs_task} ${command_task}" >> ${task_file}
+
+    # Checking if this task is not the last one of all tasks
+    if [ "${task_counter}" -eq "${tasks_total}" ]; then
+
+        # Finalizing the task file
+        echo -e "\nwait" >> "${task_file}"
+    fi
 
     # Checking if this task is not the last one of this subjob
     if [ "${task_ID}" -lt "${tasks_per_subjob}" ]; then
