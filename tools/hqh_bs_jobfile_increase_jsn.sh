@@ -99,9 +99,12 @@ elif [ "${batchsystem}" = "sge" ]; then
     sed -i "s/^#\\$ -N .*/#\$ -N ${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 fi
 
+# Adjusting the output file names and possible other occurrences of jsn-${jsn}
+sed -i "s/jsn\-${jsn}/jsn-$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
+
 # Adjusting the HyperQ variables
 sed -i "s/^HQ_JSN=.*/HQ_JSN=$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 sed -i "s/^HQ_JOBNAME=.*/HQ_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
 # Printing final job information
-echo -e "\n * The jtn (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n\n"
+echo -e "\n * The JSN (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n\n"

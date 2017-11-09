@@ -15,7 +15,7 @@
 #SBATCH --output=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
 #SBATCH --error=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
 #SBATCH --mail-user=cgorgulla@crystal.harvard.edu
-#SBATCH --mail-type=fail
+#SBATCH --mail-type=fail,end
 
 
 #                                                                         HyperQ Variables

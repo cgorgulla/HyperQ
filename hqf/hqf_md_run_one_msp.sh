@@ -171,7 +171,7 @@ for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
         tds_folder=tds.${lambda_configuration}
     fi
 
-    # Loop for allowing only the specified number of parallel run
+    # Loop for allowing only the specified number of parallel runs
     while [ "$(jobs | { grep -v Done || true; } | wc -l)" -ge "${fes_md_parallel_max}" ]; do
         sleep 0.$RANDOM
     done;
@@ -186,7 +186,7 @@ for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
     i=$((i+1))
 done
 
-# Waiting for each process separately to capture all the exit codes
+# Waiting for each process separately to be able to respond to the exit code of everyone of them
 for pid in ${pids[@]}; do
     wait -n
 done

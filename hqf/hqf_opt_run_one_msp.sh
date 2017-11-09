@@ -188,8 +188,8 @@ for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
     cd ..
 done
 
-# Waiting for the processes
-for pid in ${pids[@]}; do        # just the size of the array matters, not its content
+# Waiting for each process separately to be able to respond to the exit code of everyone of them
+for pid in ${pids[@]}; do
     wait -n
 done
 

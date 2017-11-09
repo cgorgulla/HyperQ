@@ -25,6 +25,19 @@ start_time_seconds="$(date +%s)"
 export HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
 
+# Checking the version of BASH, we need at least 4.3 (wait -n)
+bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
+if [ ${bash_version} -lt 43 ]; then
+    # Printing some information
+    echo
+    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Exiting..."
+    echo
+    echo
+    exit 1
+fi
+
+
 ### Functions ###
 
 # Determining the control file
@@ -160,11 +173,15 @@ sync_control_parameters() {
     signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     internal_error_response="$(grep -m 1 "^internal_error_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+    HQ_TASK_ERROR_RESPONSE="$(grep -m 1 "^task_error_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
     internal_error_new_job_jtl="$(grep -m 1 "^internal_error_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+
+    # Exporting relevant parameters
+    export HQ_TASK_ERROR_RESPONSE
 
     # Checking and adjusting the new job type letters
     for jtl_name in internal_error_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
@@ -198,6 +215,9 @@ sync_control_parameters() {
 # Preparing the new jobfile
 prepare_new_job() {
 
+    # Variables
+    new_job_jtl=${1}
+
     # Updating the job file
     hqh_bs_jobfile_increase_jsn.sh ${new_job_jtl} ${HQ_JID}
 }
@@ -205,6 +225,9 @@ prepare_new_job() {
 
 # Start new job
 submit_new_job() {
+
+    # Variables
+    new_job_jtl=${1}
 
     # Checking if the next job should really be submitted
     if [[ "${prevent_new_job_submissions}" == "false" ]]; then
@@ -220,7 +243,7 @@ submit_new_job() {
         fi
 
         # Submitting the next job
-        hqh_bs_submit.sh batchsystem/job-files/main/jtl-${new_job_jtl}.jid-${HQ_JID}.${batchsystem}
+        hq_bs_start_jobs.sh ${new_job_jtl} ${HQ_JID} ${HQ_JID} false false
     fi
 }
 
@@ -256,22 +279,24 @@ error_response_std() {
     # Syncing the control parameters
     sync_control_parameters
 
-    #  Variables
-    new_job_jtl="${signals_type1_new_job_jtl}"
-
     # Checking if the error should be ignored
     if [[ "${internal_error_response}" == *"ignore"* ]]; then
+
+        # Nothing to do
         return
     else
+        #  Variables
+        new_job_jtl="${internal_error_new_job_jtl}"
+
         if [[ "${internal_error_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job
+            prepare_new_job ${new_job_jtl}
         fi
         if [[ "${internal_error_response}" == *"submit_new_job"* ]]; then
-            submit_new_job
+            submit_new_job ${new_job_jtl}
         fi
     fi
 
-    # Exiting
+    # Exiting (only reached if signal response is not 'ignore')
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -283,22 +308,25 @@ signals_type1_response() {
     # Syncing the control parameters
     sync_control_parameters
 
-    #  Variables
-    new_job_jtl="${signals_type1_new_job_jtl}"
-
     # Checking if the error should be ignored
     if [[ "${signals_type1_response}" == *"ignore"* ]]; then
+
+        # Nothing to do
         return
     else
+
+        #  Variables
+        new_job_jtl="${signals_type1_new_job_jtl}"
+
         if [[ "${signals_type1_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job
+            prepare_new_job ${new_job_jtl}
         fi
         if [[ "${signals_type1_response}" == *"submit_new_job"* ]]; then
-            submit_new_job
+            submit_new_job ${new_job_jtl}
         fi
     fi
 
-    # Exiting
+    # Exiting (only reached if signal response is not 'ignore')
     exit 0
 }
 if [[ -n "${signals_type1}" ]]; then
@@ -312,22 +340,24 @@ signals_type2_response() {
     # Syncing the control parameters
     sync_control_parameters
 
-    #  Variables
-    new_job_jtl="${signals_type2_new_job_jtl}"
-
     # Checking if the error should be ignored
     if [[ "${signals_type2_response}" == *"ignore"* ]]; then
+
+        # Nothing to do
         return
     else
+        #  Variables
+        new_job_jtl="${signals_type2_new_job_jtl}"
+
         if [[ "${signals_type2_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job
+            prepare_new_job ${new_job_jtl}
         fi
         if [[ "${signals_type2_response}" == *"submit_new_job"* ]]; then
-            submit_new_job
+            submit_new_job ${new_job_jtl}
         fi
     fi
 
-    # Exiting
+    # Exiting (only reached if signal response is not 'ignore')
     exit 0
 }
 if [[ -n "${signals_type2}" ]]; then
@@ -341,36 +371,59 @@ signals_type3_response() {
     # Syncing the control parameters
     sync_control_parameters
 
-    #  Variables
-    new_job_jtl="${signals_type3_new_job_jtl}"
-
     # Checking if the error should be ignored
     if [[ "${signals_type3_response}" == *"ignore"* ]]; then
+
+        # Nothing to do
         return
     else
+        #  Variables
+        new_job_jtl="${signals_type3_new_job_jtl}"
+
         if [[ "${signals_type3_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job
+            prepare_new_job ${new_job_jtl}
         fi
         if [[ "${signals_type3_response}" == *"submit_new_job"* ]]; then
-            submit_new_job
+            submit_new_job ${new_job_jtl}
         fi
     fi
 
-    # Exiting
+    # Exiting (only reached if signal response is not 'ignore')
     exit 0
 }
 if [[ -n "${signals_type3}" ]]; then
     trap 'signals_type3_response' ${signals_type3//:/ }
 fi
 
+terminate_processes() {
+
+    # Terminating all processes
+    echo " * Terminating remaining processes..."
+    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+
+    # Trapping signals
+    trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+    # Terminating everything else which is still running and which was started by this script
+    pkill -P $$ || true
+
+    # Terminating the entire process group
+    kill -SIGTERM -$$ || true
+
+    # Giving the processes some time to wrap up everthing
+    sleep 15
+}
 
 # Exit trap
 exit_response() {
 
+    # Terminating remaining processes
+    terminate_processes
+
     # Printing final information
     print_job_infos_end
 }
-
+trap 'exit_response' EXIT
 
 ### Preparing folders ###
 # Preparing the output folder for the batchsystem log files
@@ -392,10 +445,10 @@ new_job_jtl="${job_success_new_job_jtl}"
 
 # Checking if the error should be ignored
 if [[ "${job_success_actions}" == *"prepare_new_job"* ]]; then
-    prepare_new_job
+    prepare_new_job ${new_job_jtl}
 fi
 if [[ "${job_success_actions}" == *"submit_new_job"* ]]; then
-    submit_new_job
+    submit_new_job ${new_job_jtl}
 fi
 
 # Exiting

@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <first job ID> <last job ID> <increase job serial number> <check for active jobs>
 
-Starts the job files in batchsystem/job-files/main/jid-<jid>.<batchsystem>
+Starts the job files in batchsystem/job-files/main/jtl-<jtl>.jid-<jid>.<batchsystem>
 The variable <batchsystem> is determined by the corresponding setting in the file input-files/config.txt
 
 Arguments:
@@ -110,13 +110,10 @@ if [ -f "batchsystem/tmp/jobs-to-start" ]; then
 fi
 mkdir -p batchsystem/tmp
 
-# Preparing the output-files folder if not yet existent
+# Preparing files and folders
 mkdir -p batchsystem/output-files
-
-# Storing all the jobs which are currently running
-touch batchsystem/tmp/jobs-all
 touch batchsystem/tmp/jobs-to-start
-hqh_bs_sqs.sh > batchsystem/tmp/jobs-all 2>/dev/null || true
+
 
 # Checking if we should check for already active jobs
 jobs_started=0
@@ -125,6 +122,10 @@ if [ "${check_active_jobs^^}" == "TRUE" ]; then
 
     # Printing some information
     echo -e "\nChecking which jobs are already in the batchsystem"
+
+    # Getting the active jobs
+    touch batchsystem/tmp/jobs-all
+    hqh_bs_sqs.sh > batchsystem/tmp/jobs-all 2>/dev/null || true
 
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
@@ -188,7 +189,7 @@ fi
 
 # Removing the temporary files
 if [ -f "batchsystem/tmp/jobs-all" ]; then
-    rm batchsystem/tmp/jobs-all
+    rm batchsystem/tmp/jobs-all || true
 fi
 if [ -f "batchsystem/tmp/jobs-to-start" ]; then
     rm batchsystem/tmp/jobs-to-start
