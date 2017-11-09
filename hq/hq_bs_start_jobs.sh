@@ -110,6 +110,9 @@ if [ -f "batchsystem/tmp/jobs-to-start" ]; then
 fi
 mkdir -p batchsystem/tmp
 
+# Preparing the output-files folder if not yet existent
+mkdir -p batchsystem/output-files
+
 # Storing all the jobs which are currently running
 touch batchsystem/tmp/jobs-all
 touch batchsystem/tmp/jobs-to-start
