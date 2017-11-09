@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+### Basic setup ###
+
 # Printing some information
 echo
 echo "                                                      *** Job Output ***                                                         "
@@ -8,7 +11,6 @@ echo
 
 # Shell options
 shopt -s nullglob       # Required for our code
-set -m                  # Allowing each task ot be ints own process group (HQ assumes that)
 
 # Verbosity
 HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}' | tr -d '[:space:]')"
@@ -17,11 +19,11 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
-# Setting up basic variables
+# Basic variables
 starting_time="$(date)"
-start_time_seconds="$(date -s)"
+start_time_seconds="$(date +%s)"
 export HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2})' | tr -d '[:space:]')"
+batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
 
 ### Functions ###
 
@@ -228,6 +230,10 @@ print_job_infos_end() {
 
 
 #### Traps ###
+
+# Syncing the control parameters here to get the signal types for the various traps
+sync_control_parameters
+
 # Internal error response
 error_response_std() {
 

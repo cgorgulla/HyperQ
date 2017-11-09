@@ -18,8 +18,8 @@ Arguments:
       _ppe_: postprocessing the equilibrations
       _prm_: preparing MD simulation
       _rmd_: postprocessing MD simulation
-      _prc_: preparing the crossevaluation
-      _rce_: postprocessing the crossevaluation
+      _prc_: preparing the crossevaluations
+      _rce_: postprocessing the crossevaluations
       _prf_: preparing the free energy calculation
       _rfe_: postprocessing the free energy calculation
       _ppf_: postprocessing the free energy calculation

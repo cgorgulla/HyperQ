@@ -18,7 +18,7 @@ echo
 ####################################################################################################################################################################
 
 # Shell options
-set -m                  # Allowing each task to be in its own process group (HQ assumes that)
+set -m                  # Allowing each task to be in its own process group (HQ assumes that, though it will check and work around if this should not be the case)
 
 # Verbosity
 HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}' | tr -d '[:space:]')"

@@ -9,8 +9,8 @@
 #$ -l h_rt=12:00:00
 #$ -l mem_free=600M
 #$ -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
-#$ -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-$JOB_ID.out
-#$ -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.sn-jsn_placeholder.main.bid-$JOB_ID.out
+#$ -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
+#$ -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
 #$ -m a
 #$ -M cgorgulla@crystal.harvard.edu
 #$ -notify
