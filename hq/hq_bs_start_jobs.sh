@@ -167,6 +167,10 @@ else
     exit 1
 fi
 
+# Setting file permissions
+chmod u+x batchsystem/job-files/main/*
+chmod u+x batchsystem/job-files/subjobs/*
+
 # Updating and submitting the relevant jobs
 if [ -f batchsystem/tmp/jobs-to-start ]; then
     for jid in $(cat batchsystem/tmp/jobs-to-start ); do
