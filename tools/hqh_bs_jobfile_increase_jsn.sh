@@ -100,8 +100,8 @@ elif [ "${batchsystem}" = "sge" ]; then
 fi
 
 # Adjusting the HyperQ variables
-sed -i "s/^HQ_JSN=.*/HQ_JSN=$((jsn+1))" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
-sed -i "s/^HQ_JOBNAME=.*/HQ_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
+sed -i "s/^HQ_JSN=.*/HQ_JSN=$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
+sed -i "s/^HQ_JOBNAME=.*/HQ_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
 # Printing final job information
 echo -e "\n * The jtn (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n\n"

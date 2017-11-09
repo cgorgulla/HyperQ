@@ -199,7 +199,7 @@ logfile_folder_root="log-files/${startdate_hr}/${msp_name}_${subsystem}"
 
 # Removing old file
 if [ -f runtime/error ]; then
-    rm runtime/error
+    rm runtime/error || true
 fi
 
 # TDS Range
