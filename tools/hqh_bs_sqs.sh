@@ -43,7 +43,7 @@ fi
 if [ "${batchsystem}" == "slurm" ]; then
     squeue -l | grep ${USER}
 elif [ "${batchsystem}" == "mtp" ]; then
-    qstat | grep ${USER}
+    qstat | grep ${USER} | grep -v " C "
 elif [ "${batchsystem}" == "lsf" ]; then
     bjobs | grep ${USER}
 elif [ "${batchsystem}" == "sge" ]; then
