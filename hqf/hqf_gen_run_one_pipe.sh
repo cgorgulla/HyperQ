@@ -52,7 +52,7 @@ fi
 if [[ "$#" -ne "3" ]] && [[ "$#" -ne "4" ]]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments were provided when calling the script."
+    echo "Reason: The wrong number of arguments was provided when calling the script."
     echo "Number of expected arguments: 3-4"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
@@ -149,12 +149,20 @@ check_error_indicators() {
 
 # Convert pid to pgid
 pgid_from_pid() {
+
+    # Variables
     pid=$1
-    ps -o pgid= "$pid" 2>/dev/null | egrep -o "[0-9]+"
+
+    # Getting the pgid
+    pgid_tmp=$(ps -o pgid= "$pid" 2>/dev/null | egrep -o "[0-9]+")
+
+    # Printing/returning the pgid
+    echo "${pgid_tmp}"
 }
 
 # Bash options
 set -o pipefail
+set +m                      # Making sure job control is deactivated so that everything remains in our PGID
 
 # Checking the folder
 if [ ! -d input-files ]; then
@@ -205,11 +213,26 @@ fi
 mkdir -p ${logfile_folder_root}
 mkdir -p runtime
 
-# Making sure the script is run in its own process group
-# Deactivated for now because the condition is true on the HLRN but the code causes an error: execvp: No such file or directory)
-#if [ "$$" != "$(pgid_from_pid $$)" ]; then
-#    exec setsid "$(readlink -f "$0")" "$@"
-#fi
+# Checking if we are the session leader
+pgid=$(pgid_from_pid $$)
+if [ "$$" != "${pgid}" ]; then
+
+    # Sleeping shortly to prevent an infinite loop overload, just in case
+    sleep 1
+
+    # Changing the PGID of this process to our own PID (but out PID will remain the same - process replacement)
+    # Exit traps will not be executed anymore, thus no need to suppress them (since they would kill the entire process group)
+    exec setsid $(readlink -f "$0") $@
+
+    # If the above command would have worked we would not have reached this line
+    echo -e " * Failed to make this script a process group leader. Exiting..."
+
+    # Deactivating the default exit trap since it would terminate the entire process group, while we are not the group leader
+    trap '' EXIT
+
+    # Exiting
+    exit 0
+fi
 
 # Logging the output of this script
 exec &> >(tee ${logfile_folder_root}/hqf_gen_run_one_pipe.sh_${pipeline_type})

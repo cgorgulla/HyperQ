@@ -7,7 +7,8 @@ echo "**************************************************************************
 echo
 
 # Shell options
-shopt -s nullglob
+shopt -s nullglob       # Required for our code
+set -m                  # Allowing each task ot be ints own process group (HQ assumes that)
 
 # Verbosity
 HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}' | tr -d '[:space:]')"
@@ -362,7 +363,7 @@ mkdir -p batchsystem/output-files
 
 
 ### Running the subjobs ###
-source batchsystem/job-files/subjobs/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
+source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 
 # Waiting for the subjobs to finish
 wait

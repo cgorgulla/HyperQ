@@ -16,7 +16,7 @@ fi
 if [ "$#" -ne "2" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments were provided when calling the script."
+    echo "Reason: The wrong number of arguments was provided when calling the script."
     echo "Number of expected arguments: 2"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"

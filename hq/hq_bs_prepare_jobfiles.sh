@@ -33,7 +33,7 @@ fi
 if [ "$#" -ne "8" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments were provided when calling the script."
+    echo "Reason: The wrong number of arguments was provided when calling the script."
     echo "Number of expected arguments: 8"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
@@ -155,8 +155,8 @@ fi
 
 # Preparing required folders
 mkdir -p batchsystem/job-files/main/
+mkdir -p batchsystem/job-files/subjob-lists/
 mkdir -p batchsystem/job-files/subjobs/
-mkdir -p batchsystem/job-files/tasks/
 mkdir -p batchsystem/job-files/common/
 mkdir -p batchsystem/output-files/
 
@@ -175,16 +175,16 @@ while IFS='' read -r command_task; do
 
     # Variables
     job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"
-    subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sh"
-    task_file="batchsystem/job-files/tasks/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
-    command_task="${command_task} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
+    subjoblist_file="batchsystem/job-files/subjob-lists/jtl-${jtl}.jid-${jid}.sh"
+    subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
+    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
 
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
-        command_task="${command_task} &"
+        command_task="${command_task} \&"
     fi
 
-    # Checking if this is the first task of a new subjob
+    # Checking if this task is the first task of a new subjob
     if [ "${task_ID}" -eq "1" ]; then
 
         # Checking if a new job file has to be created
@@ -201,20 +201,17 @@ while IFS='' read -r command_task; do
         fi
 
         # Preparing the initial subjob file
-        echo -e "#!/usr/bin/env bash" > ${task_file}
-        echo >> ${task_file}
-        echo >> ${task_file}
-        echo "# Body" >> ${task_file}
+        cp batchsystem/templates/jobfiles.subjob.sh ${subjob_file}
 
         # Preparing the subjob command for the subjob file
         if [ ${batchsystem^^} == "SLURM" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "MTP" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "LSF" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         elif [ ${batchsystem^^} == "SGE" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${task_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
         else
             echo -e "\n * Error: The specified batchsystem (${batchsystem}) is not supported. Exiting...\n\n"
             exit 1
@@ -226,28 +223,30 @@ while IFS='' read -r command_task; do
         fi
 
         # Adding the subjob to the subjob file
-        echo "${command_subjob}" >> ${subjob_file}
+        echo "${command_subjob}" >> ${subjoblist_file}
     fi
 
-    # Adding the task to the task file
-    echo "${command_prefix_bs_task} ${command_task}" >> ${task_file}
+    # Adding the task to the subjob file
+    #echo "${command_prefix_bs_task} ${command_task}" >> ${subjob_file}
+    sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task}\n#task_placeholder|g" ${subjob_file} 
 
-    # Checking if this task is not the last one of all tasks
-    if [ "${task_counter}" -eq "${tasks_total}" ]; then
+    if [ "${task_counter}" == "${tasks_total}" ]; then
 
-        # Finalizing the task file
-        echo -e "\nwait" >> "${task_file}"
-    fi
+        # Finalizing the subjob file
+        sed -i "/#task_placeholder/d" ${subjob_file}
 
     # Checking if this task is not the last one of this subjob
-    if [ "${task_ID}" -lt "${tasks_per_subjob}" ]; then
+    elif [ "${task_ID}" -lt "${tasks_per_subjob}" ]; then
+
+        # Increasing the task_ID
         task_ID="$((task_ID+1))"
     else
+
         # Resetting the task ID
         task_ID=1
 
-        # Finalizing the task file
-        echo -e "\nwait" >> "${task_file}"
+        # Finalizing the subjob file
+        sed -i "/#task_placeholder/d" ${subjob_file}
 
         # Checking if this subjob was not the last subjob of this job
         if [ "${sjid}" -lt "${subjobs_per_job}" ]; then
@@ -271,7 +270,7 @@ done < "${task_list}"
 
 # Setting the permissions
 chmod u+x batchsystem/job-files/main/*
-chmod u+x batchsystem/job-files/subjobs/*
+chmod u+x batchsystem/job-files/subjob-lists/*
 
 # Printing final information
 echo -e "\n * All job-files have been prepared.\n\n"
