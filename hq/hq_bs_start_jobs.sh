@@ -119,6 +119,8 @@ touch batchsystem/tmp/jobs-to-start
 hqh_bs_sqs.sh > batchsystem/tmp/jobs-all 2>/dev/null || true
 
 # Checking if we should check for already active jobs
+jobs_started=0
+jobs_omitted=0
 if [ "${check_active_jobs^^}" == "TRUE" ]; then
 
     # Printing some information
@@ -127,17 +129,37 @@ if [ "${check_active_jobs^^}" == "TRUE" ]; then
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
         if ! grep -q "${workflow_id}:${jtl}\.${jid}" batchsystem/tmp/jobs-all; then
+
+            # Printing some information
             echo "Adding job ${jid} to the list of jobs to be started."
+
+            # Adding the JID
             echo ${jid} >> batchsystem/tmp/jobs-to-start
+
+            # Increasing the counter
+            jobs_started=$((jobs_started+1))
         else
+
+            # Printing some information
             echo "Omitting the job ${jtl}.${jid} because it was found to be already in the batchsystem."
+
+            # Increasing the counter
+            jobs_omitted=$((jobs_omitted+1))
         fi
     done
 elif [ "${check_active_jobs^^}" == "FALSE" ]; then
 
     # Loop for all JIDs
     for jid in $(seq ${first_jid} ${last_jid}); do
+
+        # Printing some information
+        echo "Adding job ${jid} to the list of jobs to be started."
+
+        # Adding the JID
         echo ${jid} >> batchsystem/tmp/jobs-to-start
+
+        # Increasing the counter
+        jobs_started=$((jobs_started+1))
     done
 else
 
@@ -146,7 +168,6 @@ else
 fi
 
 # Updating and submitting the relevant jobs
-k=0
 if [ -f batchsystem/tmp/jobs-to-start ]; then
     for jid in $(cat batchsystem/tmp/jobs-to-start ); do
 
@@ -156,11 +177,8 @@ if [ -f batchsystem/tmp/jobs-to-start ]; then
         fi
 
         # Submitting the job
-        echo "Starting job ${jid}"
+        echo -e "\n * Starting job ${jid}"
         hqh_bs_submit.sh batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
-
-        # Increasing the counter
-        k=$((k + 1))
     done
 fi
 
@@ -173,7 +191,8 @@ if [ -f "batchsystem/tmp/jobs-to-start" ]; then
 fi
 
 # Displaying some information
-if [[ ! "$*" = *"quiet"* ]]; then
-    echo "Number of jobs which have been started: ${k}"
-    echo
-fi
+echo -e " * The submission of the jobs has been completed"
+echo -e " * Total number of jobs which have specified: $((last_jid-first_jid+1))"
+echo -e " * Number of jobs which have been started: ${jobs_started}"
+echo -e " * Number of jobs which have been started: ${jobs_omitted}"
+echo

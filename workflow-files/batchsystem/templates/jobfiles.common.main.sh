@@ -199,7 +199,7 @@ sync_control_parameters() {
 prepare_new_job() {
 
     # Updating the job file
-    hqh_bs_jobfile_increase_sn.sh ${new_job_jtl} ${HQ_JID}
+    hqh_bs_jobfile_increase_jsn.sh ${new_job_jtl} ${HQ_JID}
 }
 
 
