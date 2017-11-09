@@ -1,12 +1,14 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_bs_prepare_jobfiles.sh <task-list> <job-template> <job-type-letter> <first job ID> <subjobs per job> <tasks per subjob> <parallelize subjobs> <parallelize tasks>
+usage="Usage: hq_bs_prepare_jobfiles.sh <task-list> <job-template> <subjob template> <job-type-letter> <first job ID> <subjobs per job> <tasks per subjob> <parallelize subjobs> <parallelize tasks>
 
 Arguments:
     <task list>: One task per line, one task is represented by one command. No empty lines should be present.
 
     <job-template>: A batchsystem jobfile template which needs to have a file ending matching the batchsystem type specified in the input-files/config.txt file
+
+    <subjob template>: Template filename for the subjobs.
 
     <job-type-letter>: Any lowercase letter between a and j.
 
@@ -30,11 +32,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "8" ]; then
+if [ "$#" -ne "9" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 8"
+    echo "Number of expected arguments: 9"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -101,12 +103,13 @@ echo -e "\n ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
 # Variables
 task_list=$1
 job_template=$2
-jtl=$3
-first_jid=$4
-subjobs_per_job=$5
-tasks_per_subjob=$6
-parallelize_subjobs=$7
-parallelize_tasks=$8
+subjob_template=$3
+jtl=$4
+first_jid=$5
+subjobs_per_job=$6
+tasks_per_subjob=$7
+parallelize_subjobs=$8
+parallelize_tasks=$9
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print $2}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '=' '{print $2}')
@@ -157,11 +160,7 @@ fi
 mkdir -p batchsystem/job-files/main/
 mkdir -p batchsystem/job-files/subjob-lists/
 mkdir -p batchsystem/job-files/subjobs/
-mkdir -p batchsystem/job-files/common/
 mkdir -p batchsystem/output-files/
-
-# Copying the common main job file
-cp batchsystem/templates/jobfiles.common.main.sh batchsystem/job-files/common/main.sh
 
 # Loop for each task
 jid=$first_jid
@@ -201,7 +200,7 @@ while IFS='' read -r command_task; do
         fi
 
         # Preparing the initial subjob file
-        cp batchsystem/templates/jobfiles.subjob.sh ${subjob_file}
+        cp ${subjob_template} ${subjob_file}
 
         # Preparing the subjob command for the subjob file
         if [ ${batchsystem^^} == "SLURM" ]; then

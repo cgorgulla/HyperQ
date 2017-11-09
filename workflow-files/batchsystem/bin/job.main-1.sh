@@ -243,7 +243,7 @@ print_job_infos_end() {
 # Syncing the control parameters here to get the signal types for the various traps
 sync_control_parameters
 
-# Internal error response
+# Standard internal error response
 error_response_std() {
 
     # Printing basic error information
@@ -330,7 +330,7 @@ signals_type2_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${signals_type1}" ]]; then
+if [[ -n "${signals_type2}" ]]; then
     trap 'signals_type2_response' ${signals_type2//:/ }
 fi
 
@@ -359,7 +359,7 @@ signals_type3_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${signals_type1}" ]]; then
+if [[ -n "${signals_type3}" ]]; then
     trap 'signals_type3_response' ${signals_type3//:/ }
 fi
 

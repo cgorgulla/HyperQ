@@ -69,4 +69,4 @@ echo
 #export CUDA_VISIBLE_DEVICES
 
 # Sourcing the common main section of the job files
-source batchsystem/job-files/common/main.sh
+source batchsystem/bin/job.main-1.sh

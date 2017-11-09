@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 
-#                                                                         SLURM Settings
+#                                                                          PBS Settings
 ####################################################################################################################################################################
 
-#SBATCH --job-name=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
-#SBATCH --partition=main
-#SBATCH --time=00-01:00:00
-#SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=60
-#SBATCH --signal=10@300
-##SBATCH --constraint="scratch2"
-##SBATCH --constraint="holyib"
-#SBATCH --output=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
-#SBATCH --error=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
-#SBATCH --mail-user=cgorgulla@crystal.harvard.edu
-#SBATCH --mail-type=fail
+#PBS -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+#PBS -l feature=mpp1:test
+##PBS -q specialm1weekq
+#PBS -l walltime=00:12:00
+#PBS -l nodes=1:ppn=24
+#PBS -l signal=10@60
+#PBS -l naccesspolicy=singlejob
+#PBS -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -m a
+#PBS -M silmaril@zedat.fu-berlin.de
+##PBS -A bec00150
+##PBS -A bec00123
 
 
 #                                                                         HyperQ Variables
@@ -27,7 +27,7 @@ HQ_WORKFLOW_ID=workflow_id_placeholder
 HQ_JTL=jtl_placeholder
 HQ_JID=jid_placeholder
 HQ_JSN=jsn_placeholder
-HQ_BID=${SLURM_JOB_ID}          # BID: Batchsystem ID
+HQ_BID=${PBS_JOBID}
 
 # Exportation
 export HQ_JOBNAME
@@ -50,10 +50,14 @@ echo "------------------------"
 env
 echo
 echo
-echo
-echo "Job infos by scontrol"
+echo "Job infos by checkjob"
 echo "------------------------"
-scontrol show job $SLURM_JOB_ID
+checkjob $PBS_JOBID
+echo
+echo
+echo "Job infos by qstat -f"
+echo "------------------------"
+qstat -f $PBS_JOBID
 echo
 echo
 
@@ -62,6 +66,7 @@ echo
 ####################################################################################################################################################################
 
 # Cluster/Batchsystem specific preparations (e.g. module loading)
+module load bash
 
 # Sourcing the common main section of the job files
-source batchsystem/job-files/common/main.sh
+source batchsystem/bin/job.main-1.sh

@@ -62,4 +62,4 @@ echo
 # Cluster/Batchsystem specific preparations (e.g. module loading)
 
 # Sourcing the common main section of the job files
-source batchsystem/job-files/common/main.sh
+source batchsystem/bin/job.main-1.sh
