@@ -166,23 +166,32 @@ sync_control_parameters() {
     signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
     job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
 
-    # Checking and adjusting the new job type letter
-    if [[ "${new_job_jtl}" =~ [abcdefghij] ]]; then
+    # Checking and adjusting the new job type letters
+    for jtl_name in internal_error_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
 
-        # Nothing to do
-        :
-    elif [[ "${new_job_jtl}" == "same" ]]; then
+        # Variables
+        jtl_value=${!jtl_name}                              # indirect variable expansion
 
-        # Setting the new jtl
-        new_job_jtl="${HQ_JTL}"
-    elif [[ "${new_job_jtl}" == "next" ]]; then
+        # Checking the type of the value and if the value is valid
+        if [[ "${jtl_value}" =~ ^[abcdefghij]$ ]]; then
 
-        # Increasing the new jtl to the next letter in the alphabet
-        new_job_jtl=$(echo ${HQ_JTL} | tr abcdefghi 012345678 | awk '{print $1+1}' | tr 0123456789 abcdefghij)              #$((36#${HQ_JTL}-9))    https://stackoverflow.com/questions/27489170/assign-number-value-to-alphabet-in-shell-bash
-    else
-        echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n"
-        exit 1
-    fi
+            # Nothing to do, but the value is valid
+            :
+        elif [[ "${jtl_value}" == "same" ]]; then
+
+            # Setting the new jtl
+            eval ${jtl_name}=${HQ_JTL}
+        elif [[ "${jtl_value}" == "next" ]]; then
+
+            # Increasing the new jtl to the next letter in the alphabet
+            eval ${jtl_name}=$(echo ${HQ_JTL} | tr abcdefghi 012345678 | awk '{print $1+1}' | tr 0123456789 abcdefghij)              #$((36#${HQ_JTL}-9))    https://stackoverflow.com/questions/27489170/assign-number-value-to-alphabet-in-shell-bash
+        else
+
+            # Printing some error message before exiting
+            echo -e "\n * Error: The input argument '${jtl_name}' has an unsupported value (${jtl_value}). Exiting...\n\n"
+            exit 1
+        fi
+    done
 }
 
 
