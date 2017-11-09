@@ -114,6 +114,7 @@ batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{pr
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '=' '{print $2}')
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '=' '{print $2}')
+subjob_delay_time=$(grep -m 1 "^subjob_delay_time=" input-files/config.txt | awk -F '=' '{print $2}')
 tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
@@ -227,7 +228,7 @@ while IFS='' read -r command_task; do
 
     # Adding the task to the subjob file
     #echo "${command_prefix_bs_task} ${command_task}" >> ${subjob_file}
-    sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task}\n#task_placeholder|g" ${subjob_file} 
+    sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task}\nsleep ${subjob_delay_time}\n\n#task_placeholder|g" ${subjob_file}
 
     if [ "${task_counter}" == "${tasks_total}" ]; then
 

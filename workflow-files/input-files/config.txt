@@ -367,3 +367,11 @@ command_prefix_ce_run_one_snapshot=bash
 
 batchsystem=lsf
 # Supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
+
+subjob_delay_time=10
+# Possible values: Non-negative integer
+# Unit: Seconds
+# Summary:  The waiting time before the next task of the same subjob file is started. This is useful if different tasks are preparing files in the same directory
+#           (usually common files for the same MSP) to avoid race conditions which can cause HyperQ to fail
+#           The value is used during the job creation with hq_bs_prepare_jobfiles.sh
+# Recommended value: At least 10 seconds
