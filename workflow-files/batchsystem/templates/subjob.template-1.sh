@@ -55,6 +55,32 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+terminate_processes() {
+
+    # Printing some information
+    echo " * Terminating remaining processes..."
+
+    # Trapping ERR and other signals to prevent errors and other traps
+    trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+    # Terminating remaining background jobs
+    kill $(jobs -p)
+
+    # Terminating everything which is still running and which was started by this script
+    pkill -P $$ || true
+
+    # Terminating the entire process group
+    kill -SIGTERM -$$ || true
+}
+
+# Exit trap
+exit_response() {
+
+    # Terminating remaining processes
+    terminate_processes
+
+}
+trap 'exit_response' EXIT
 
 #                                                                         Running the tasks
 #####################################################################################################################################################################

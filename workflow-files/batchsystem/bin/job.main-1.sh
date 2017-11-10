@@ -397,12 +397,14 @@ fi
 
 terminate_processes() {
 
-    # Terminating all processes
+    # Printing some information
     echo " * Terminating remaining processes..."
-    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
 
-    # Trapping signals
+    # Trapping ERR and other signals to prevent errors and other traps
     trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+    # Terminating remaining background jobs
+    kill $(jobs -p)
 
     # Terminating everything else which is still running and which was started by this script
     pkill -P $$ || true
