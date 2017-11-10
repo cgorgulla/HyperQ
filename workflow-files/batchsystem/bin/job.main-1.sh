@@ -282,11 +282,13 @@ error_response_std() {
     # Checking if the error should be ignored
     if [[ "${internal_error_response}" == *"ignore"* ]]; then
 
-        # Nothing to do
+        # Nothing to do, continuing script execution
         return
+
+    # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        # Deactivating further signal and error responses
         trap '' 1 2 3 9 10 12 15 18 ERR
 
         #  Variables
@@ -309,17 +311,25 @@ trap 'error_response_std $LINENO' ERR
 # Type 1 signal handling
 signals_type1_response() {
 
+    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' ${signals_type1//:/ }
+
     # Syncing the control parameters
     sync_control_parameters
 
     # Checking if the error should be ignored
     if [[ "${signals_type1_response}" == *"ignore"* ]]; then
 
-        # Nothing to do
+        # Restoring the original signal trap trap
+        trap 'signals_type1_response' ${signals_type1//:/ }
+
+        # Continuing job execution
         return
+
+    # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        # Deactivating further signal and error responses
         trap '' 1 2 3 9 10 12 15 18 ERR
 
         #  Variables
@@ -344,17 +354,25 @@ fi
 # Type 2 signal handling
 signals_type2_response() {
 
+    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' ${signals_type2//:/ }
+
     # Syncing the control parameters
     sync_control_parameters
 
     # Checking if the error should be ignored
     if [[ "${signals_type2_response}" == *"ignore"* ]]; then
 
-        # Nothing to do
+        # Restoring the original signal trap trap
+        trap 'signals_type2_response' ${signals_type2//:/ }
+
+        # Continuing job execution
         return
+
+    # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        # Deactivating further signal and error responses
         trap '' 1 2 3 9 10 12 15 18 ERR
 
         #  Variables
@@ -379,17 +397,25 @@ fi
 # Type 3 signal handling
 signals_type3_response() {
 
+    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' ${signals_type3//:/ }
+
     # Syncing the control parameters
     sync_control_parameters
 
     # Checking if the error should be ignored
     if [[ "${signals_type3_response}" == *"ignore"* ]]; then
 
-        # Nothing to do
+        # Restoring the original signal trap trap
+        trap 'signals_type3_response' ${signals_type3//:/ }
+
+        # Continuing job execution
         return
+
+    # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        # Deactivating further signal and error responses
         trap '' 1 2 3 9 10 12 15 18 ERR
 
         #  Variables
@@ -453,8 +479,12 @@ source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 # Waiting for the subjobs to finish
 wait
 
+# Sleeping some time because sometimes the processes/tasks of this job might respond to job signals earlier than this script, which might be interpreted by the script as successful completion of the job (happened on the HLRN)
+sleep 60
+
 
 ### Finalizing the job ###
+
 # Syncing the control parameters
 sync_control_parameters
 

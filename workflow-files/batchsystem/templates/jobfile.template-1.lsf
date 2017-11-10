@@ -10,9 +10,9 @@
 #BSUB -R "rusage[mem=1000]"
 #BSUB -R "select[scratch2]"
 ##BSUB -R "span[ptile=8]"
-##BSUB -R "rusage[ngpus=0.5]"               # Orchestra
+##BSUB -R "rusage[ngpus=0.5]"                                                            # Relevant for orchestra
 #BSUB -oo batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
-#BSUB -wt '5'
+#BSUB -wt '5'                                                                            # Should be at least 1 minute. Recommended value: 5 minutes
 #BSUB -wa 'USR1'
 
 

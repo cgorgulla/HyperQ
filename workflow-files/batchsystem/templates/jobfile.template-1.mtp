@@ -8,7 +8,7 @@
 ##PBS -q specialm1weekq
 #PBS -l walltime=00:12:00
 #PBS -l nodes=1:ppn=24
-#PBS -l signal=10@300
+#PBS -l signal=10@300                                                        # Should be at least 60 seconds. Recommended value: 300 seconds
 #PBS -l naccesspolicy=singlejob
 #PBS -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
 #PBS -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
