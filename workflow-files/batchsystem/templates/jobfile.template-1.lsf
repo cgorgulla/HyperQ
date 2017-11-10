@@ -12,7 +12,7 @@
 ##BSUB -R "span[ptile=8]"
 ##BSUB -R "rusage[ngpus=0.5]"               # Orchestra
 #BSUB -oo batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
-#BSUB -wt '1'
+#BSUB -wt '5'
 #BSUB -wa 'USR1'
 
 

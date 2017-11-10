@@ -63,9 +63,6 @@ terminate_processes() {
 
     # Terminating everything which is still running and which was started by this script
     pkill -P $$ || true
-
-    # Terminating the entire process group
-    kill -SIGTERM -$$ || true
 }
 
 # Exit trap

@@ -285,6 +285,10 @@ error_response_std() {
         # Nothing to do
         return
     else
+
+        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        trap '' 1 2 3 9 10 12 15 18 ERR
+
         #  Variables
         new_job_jtl="${internal_error_new_job_jtl}"
 
@@ -305,9 +309,6 @@ trap 'error_response_std $LINENO' ERR
 # Type 1 signal handling
 signals_type1_response() {
 
-    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
-    trap '' 1 2 3 9 10 12 15 18 ERR
-
     # Syncing the control parameters
     sync_control_parameters
 
@@ -317,6 +318,9 @@ signals_type1_response() {
         # Nothing to do
         return
     else
+
+        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        trap '' 1 2 3 9 10 12 15 18 ERR
 
         #  Variables
         new_job_jtl="${signals_type1_new_job_jtl}"
@@ -340,9 +344,6 @@ fi
 # Type 2 signal handling
 signals_type2_response() {
 
-    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
-    trap '' 1 2 3 9 10 12 15 18 ERR
-
     # Syncing the control parameters
     sync_control_parameters
 
@@ -352,6 +353,10 @@ signals_type2_response() {
         # Nothing to do
         return
     else
+
+        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        trap '' 1 2 3 9 10 12 15 18 ERR
+
         #  Variables
         new_job_jtl="${signals_type2_new_job_jtl}"
 
@@ -374,9 +379,6 @@ fi
 # Type 3 signal handling
 signals_type3_response() {
 
-    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
-    trap '' 1 2 3 9 10 12 15 18 ERR
-
     # Syncing the control parameters
     sync_control_parameters
 
@@ -386,6 +388,10 @@ signals_type3_response() {
         # Nothing to do
         return
     else
+
+        # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+        trap '' 1 2 3 9 10 12 15 18 ERR
+
         #  Variables
         new_job_jtl="${signals_type3_new_job_jtl}"
 
