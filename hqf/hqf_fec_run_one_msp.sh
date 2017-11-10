@@ -60,7 +60,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -68,12 +68,12 @@ fi
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 
 # Variables

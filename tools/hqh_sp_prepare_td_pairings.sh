@@ -70,10 +70,10 @@ fi
 
 # Variables
 lomap_output_basename="lomap"
-lomap_ncpus="$(grep -m 1 "^lomap_ncpus" input-files/config.txt | awk -F '=' '{print $2}')"
-mcs_time="$(grep -m 1 "^mcs_time" input-files/config.txt | awk -F '=' '{print $2}')"
-draw_pairwise_mcs="$(grep -m 1 "^draw_pairwise_mcs" input-files/config.txt | awk -F '=' '{print $2}')"
-lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | awk -F '=' '{print $2}')"
+lomap_ncpus="$(grep -m 1 "^lomap_ncpus" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+mcs_time="$(grep -m 1 "^mcs_time" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+draw_pairwise_mcs="$(grep -m 1 "^draw_pairwise_mcs" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Creating required folders
 if [ -d "input-files/mappings" ]; then

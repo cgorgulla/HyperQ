@@ -37,7 +37,7 @@ if [ "$#" -ne "2" ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -79,8 +79,8 @@ set -o pipefail
 jtl=${1}
 jid=${2}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
-jsn=$(grep -m 1 "^HQ_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | awk -F '=' '{print $2}' | tr -d '[:space:]')
+workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+jsn=$(grep -m 1 "^HQ_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 
 # Checking if the job type letter is valid
 if [[ "${jtl}" != [[:lower:]] ]]; then

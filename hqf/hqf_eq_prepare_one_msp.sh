@@ -68,7 +68,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -80,15 +80,15 @@ system_2_basename="${2}"
 subsystem=${3}
 tds_range=${4}
 msp_name=${system_1_basename}_${system_2_basename}
-inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-eq_type="$(grep -m 1 "^eq_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-eq_continue="$(grep -m 1 "^eq_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_type="$(grep -m 1 "^eq_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_continue="$(grep -m 1 "^eq_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
 
 # Printing information

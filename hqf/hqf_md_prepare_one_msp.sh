@@ -68,7 +68,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -80,15 +80,15 @@ system2_basename="${2}"
 subsystem=${3}
 tds_range=${4}
 msp_name=${system1_basename}_${system2_basename}
-inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
+inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
-stride_ipi_properties="$(grep "potential" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
-stride_ipi_trajectory="$(grep "<checkpoint" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')"
+stride_ipi_properties="$(grep "potential" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')"
+stride_ipi_trajectory="$(grep "<checkpoint" input-files/ipi/${inputfile_ipi_md} | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')"
 
 # Printing information
 echo -e "\n *** Preparing the MD simulation ${msp_name} (hqf_md_prepare_one_msp.sh)\n"

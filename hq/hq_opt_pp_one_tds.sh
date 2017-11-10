@@ -60,7 +60,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -72,8 +72,8 @@ psf_filename=${2}  # only needed for vmd
 trajectory_filename=${3}
 output_filename=${4}
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-opt_continue="$(grep -m 1 "^opt_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_continue="$(grep -m 1 "^opt_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Checking if the optimization is in continuation mode
 if [[ "${opt_continue^^}" == "TRUE" ]] && [[ -f ${output_filename} ]]; then

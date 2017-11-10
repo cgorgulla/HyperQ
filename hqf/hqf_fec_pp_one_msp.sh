@@ -59,7 +59,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -70,7 +70,7 @@ msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_1_basename="${msp_name/_*}"
 system_2_basename="${msp_name/*_}"
-fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 
 # Printing some information

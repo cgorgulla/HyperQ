@@ -68,7 +68,7 @@ prepare_restart() {
     crosseval_folder=${4}
     restart_ID=${5}
     evalstate=${6}
-    inputfile_ipi_ce=$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')
+    inputfile_ipi_ce=$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
     if [ "${tdcycle_type}" == "hq" ]; then
         if [ "${evalstate}" == "endstate" ]; then
             subconfiguration_local="${bead_configuration_endstate}"
@@ -231,8 +231,8 @@ prepare_restart() {
     if [[ "${md_programs}" == *"iqi"* ]]; then
 
         # Variables
-        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the i-QI files and folders
         mkdir -p ${crosseval_folder}/snapshot-${restart_ID}/iqi
@@ -246,7 +246,7 @@ prepare_restart() {
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -257,20 +257,20 @@ system1_basename="${1}"
 system2_basename="${2}"
 subsystem=${3}
 msp_name=${system1_basename}_${system2_basename}
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | awk -F '=' '{print $2}')"
-ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')"
-ce_type="$(grep -m 1 "^ce_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-ce_continue="$(grep -m 1 "^ce_continue=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_type="$(grep -m 1 "^ce_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
 
 

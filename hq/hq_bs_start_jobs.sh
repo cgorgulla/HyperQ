@@ -71,7 +71,7 @@ trap 'error_response_nonstd $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -95,8 +95,8 @@ first_jid=${2}
 last_jid=${3}
 increase_jsn=${4}
 check_active_jobs=${5}
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
+batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
+workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 
 # Checking if the job type letter is valid
 if ! [[ "${jtl}" =~ [abcdefghij] ]]; then

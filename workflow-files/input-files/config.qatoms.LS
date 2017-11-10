@@ -1,1 +1,1 @@
-same residue as (within 5 of serial 1 14 24)
+same residue as (within 5 of serial 1 2 3)

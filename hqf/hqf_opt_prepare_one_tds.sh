@@ -64,7 +64,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -73,14 +73,14 @@ fi
 # Variables
 tds_index="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-opt_continue="$(grep -m 1 "^opt_continue="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_continue="$(grep -m 1 "^opt_continue="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$(($tdw_count + 1))"
 
 # Printing information

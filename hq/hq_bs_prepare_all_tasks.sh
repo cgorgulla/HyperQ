@@ -71,7 +71,7 @@ trap 'error_response_nonstd $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -93,7 +93,7 @@ fi
 msp_list_file="${1}"
 command_general="${2}"
 output_filename="${3}"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | awk -F '=' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count+1))"
 
 # Printing some information

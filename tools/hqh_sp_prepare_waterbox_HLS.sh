@@ -70,7 +70,7 @@ script_dir=$(dirname $0)
 receptor_basename=$1
 ligand_basename=$2
 output_basename=$3
-waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" ../../../config.txt | awk -F '=' '{print $2}')"
+waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" ../../../config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Body
 vmdc "${script_dir}/hqh_sp_prepare_waterbox_HLS.vmd" -args $receptor_basename $ligand_basename $output_basename ${script_dir} $waterbox_padding_size_RLS

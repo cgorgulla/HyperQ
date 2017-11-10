@@ -55,7 +55,7 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -72,9 +72,9 @@ msp_name="${system_1_basename}_${system_2_basename}"
 subsystem_folder="md/${msp_name}/${subsystem}"
 ce_folder="ce/${msp_name}/${subsystem}"
 fec_folder="fec/AFE/${msp_name}/${subsystem}"
-fec_stride=$(grep -m 1 "^fec_stride_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
-fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')
-umbrella_sampling=$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | awk -F '=' '{print $2}')
+fec_stride=$(grep -m 1 "^fec_stride_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+fec_first_snapshot_index=$(grep -m 1 "^fec_first_snapshot_index_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+umbrella_sampling=$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 subsystem_folder="md/${msp_name}/${subsystem}"
 cutoff=1000
 
@@ -111,8 +111,8 @@ while read line; do
     tds_folder_2="$(echo -n ${line} | awk '{print $2}')"
     crosseval_folder_fw="${tds_folder_1}-${tds_folder_2}"     # TDS folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${tds_folder_2}-${tds_folder_1}"     # Opposite of fw
-    stride_ipi_properties=$(grep "potential" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
-    stride_ipi_trajectory=$(grep "<checkpoint" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | awk -F '=' '{print $2}' | tr -d '"')
+    stride_ipi_properties=$(grep "potential" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')
+    stride_ipi_trajectory=$(grep "<checkpoint" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')
     #stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
     TD_window="${tds_folder_1}-${tds_folder_2}"
 

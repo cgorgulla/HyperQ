@@ -69,7 +69,7 @@ set -o pipefail
 echo -e "\n *** Postprocessing the equilibration (hqf_eq_pp_one_msp.sh)"
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -79,10 +79,10 @@ fi
 tds_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
 
 # Setting the range indices

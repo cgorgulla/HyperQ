@@ -79,7 +79,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -110,11 +110,11 @@ subjobs_per_job=$6
 tasks_per_subjob=$7
 parallelize_subjobs=$8
 parallelize_tasks=$9
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print $2}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')
-command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '=' '{print $2}')
-command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '=' '{print $2}')
-subjob_delay_time=$(grep -m 1 "^subjob_delay_time=" input-files/config.txt | awk -F '=' '{print $2}')
+batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '[=#]' '{print $2}')
+command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '[=#]' '{print $2}')
+subjob_delay_time=$(grep -m 1 "^subjob_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match

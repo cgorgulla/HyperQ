@@ -82,7 +82,7 @@ clean_up() {
 trap 'clean_up' EXIT
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -94,11 +94,11 @@ echo -e "\n *** Starting the cross evalutations (hqf_ce_run_one_msp.sh) ***"
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
-fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
 
 # Getting the energy eval folders
 if [ "${tdcycle_type}" == "hq" ]; then

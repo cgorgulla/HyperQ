@@ -64,7 +64,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -73,17 +73,17 @@ fi
 # Variables
 tds_index="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Printing information
 echo -e "\n *** Preparing the simulation folder for TDS ${tds_index} (hqf_md_prepare_one_tds.sh) "
@@ -261,8 +261,8 @@ if [ "${tdcycle_type}" == "hq" ]; then
     if [[ "${md_programs}" == *"iqi"* ]]; then
 
         # Variables
-        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
         mkdir ${tds_folder}/iqi
@@ -444,8 +444,8 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     if [[ "${md_programs}" == *"iqi"* ]]; then
 
         # Variables
-        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+        inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
         mkdir ${tds_folder}/iqi

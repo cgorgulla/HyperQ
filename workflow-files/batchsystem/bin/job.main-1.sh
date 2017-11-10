@@ -13,7 +13,7 @@ echo
 shopt -s nullglob       # Required for our code
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -164,21 +164,21 @@ sync_control_parameters() {
     determine_control_file
 
     # Getting the control parameters
-    job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+    job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     prevent_new_job_submissions="$(grep -m 1 "^prevent_new_job_submissions=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-    signals_type1="$(grep -m 1 "^signals_type1=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type2="$(grep -m 1 "^signals_type2=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type3="$(grep -m 1 "^signals_type3=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type1_response="$(grep -m 1 "^signals_type1_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    internal_error_response="$(grep -m 1 "^internal_error_response=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+    signals_type1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type1_response="$(grep -m 1 "^signals_type1_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    internal_error_response="$(grep -m 1 "^internal_error_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     HQ_TASK_ERROR_RESPONSE="$(grep -m 1 "^task_error_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-    internal_error_new_job_jtl="$(grep -m 1 "^internal_error_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
-    job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | awk -F '=' '{print $2}' | tr -d '[:space:]')"
+    internal_error_new_job_jtl="$(grep -m 1 "^internal_error_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Exporting relevant parameters
     export HQ_TASK_ERROR_RESPONSE

@@ -75,7 +75,7 @@ echo
 # Variables
 receptor_basename=${1}
 dirname=$(dirname $0)
-receptor_FFparameter_source="$(grep -m 1 "^receptor_FFparameter_source=" ../config.txt | awk -F '=' '{print $2}')"
+receptor_FFparameter_source="$(grep -m 1 "^receptor_FFparameter_source=" ../config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Preparing the receptor
 if [ "${receptor_FFparameter_source}" == "MATCH" ]; then

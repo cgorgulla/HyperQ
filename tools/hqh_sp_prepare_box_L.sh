@@ -68,7 +68,7 @@ fi
 script_dir=$(dirname $0)
 ligand_basename=$1
 output_basename=$2
-padding_size="$(grep -m 1 "^box_edge_length_L="  ../../../config.txt | awk -F '=' '{print $2}')"
+padding_size="$(grep -m 1 "^box_edge_length_L="  ../../../config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Preparing the box
 vmdc "${script_dir}/hqh_sp_prepare_box_L.vmd" -args $ligand_basename $output_basename ${script_dir}

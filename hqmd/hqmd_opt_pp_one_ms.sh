@@ -56,7 +56,7 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -71,7 +71,7 @@ original_pdb_filename="system1.pdb"
 psf_filename="system1.psf"
 output_filename="system1.opt.out.pdb"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 if [ "${opt_programs}" == "cp2k" ]; then
     hq_opt_pp_one_tds.sh ${original_pdb_filename} ${psf_filename} ${folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}

@@ -40,7 +40,7 @@ Arguments:
       * If unset, 1:K will be used for the commands which need a range argument
 
 The script has to be run in the root folder."
-
+set -x
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
     echo
@@ -174,7 +174,7 @@ if [ ! -d input-files ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" == "debug" ]; then
     set -x
@@ -192,8 +192,8 @@ subsystem="${2}"
 pipeline_type="${3}"
 system1="${msp_name/_*}"
 system2="${msp_name/*_}"
-workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | awk -F '=' '{print $2}')"
-command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '=' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
 startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"                          # human readable format
 logfile_folder_root="log-files/${startdate_hr}/${msp_name}_${subsystem}"
 

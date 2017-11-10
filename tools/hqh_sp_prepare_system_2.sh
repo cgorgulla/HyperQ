@@ -73,10 +73,10 @@ echo "**************************************************************************
 dirname=$(dirname $0)
 ligand_basename=${1}
 subsystem=${2}
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
-md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | awk -F '=' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Adjusting the pdb and psf files
 cd input-files/systems/${ligand_basename}/${subsystem}

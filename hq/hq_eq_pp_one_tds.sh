@@ -28,7 +28,7 @@ if [ "$#" -ne "4" ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -72,8 +72,8 @@ psf_filename=${2}  # only needed for vmd
 trajectory_filename=${3}
 output_filename=${4}
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-eq_continue="$(grep -m 1 "^eq_continue=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+eq_continue="$(grep -m 1 "^eq_continue=" ../../../input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
 # Checking if the equilibration is in continuation mode
 if [[ "${eq_continue^^}" == "TRUE" ]] && [[ -f ${output_filename} ]]; then

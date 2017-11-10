@@ -112,7 +112,7 @@ trap "cleanup_exit" EXIT
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -122,9 +122,9 @@ fi
 tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 msp_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
-opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
-opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
-opt_continue=$(grep -m 1 "^opt_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')
+opt_programs=$(grep -m 1 "^opt_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+opt_timeout=$(grep -m 1 "^opt_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+opt_continue=$(grep -m 1 "^opt_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 sim_counter=0
 
 # Checking if this optimization has already been completed and should be skipped
@@ -153,8 +153,8 @@ if [[ "${opt_programs}" == "cp2k" ]] ;then
     fi
 
     # Variables
-    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_opt="$(grep -m 1 "^ncpus_cp2k_opt_${subsystem}=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
     export OMP_NUM_THREADS=${ncpus_cp2k_opt}
 
     # Checking the input file

@@ -116,7 +116,7 @@ trap 'clean_exit' EXIT
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -127,14 +127,14 @@ echo -e "\n *** Starting the MD simulations (hqf_md_run_one_msp.sh)"
 
 # Variables
 tds_range="${1}"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max_${subsystem}=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-command_prefix_md_run_one_md="$(grep -m 1 "^command_prefix_md_run_one_md=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | awk -F '=' '{print $2}')"
+fes_md_parallel_max="$(grep -m 1 "^fes_md_parallel_max_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+command_prefix_md_run_one_md="$(grep -m 1 "^command_prefix_md_run_one_md=" ../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
 
 # Setting the range indices

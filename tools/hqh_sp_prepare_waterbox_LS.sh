@@ -68,7 +68,7 @@ fi
 script_dir=$(dirname $0)
 ligand_basename=$1
 output_basename=$2
-waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS="  ../../../config.txt | awk -F '=' '{print $2}')"
+waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS="  ../../../config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Body
 vmdc "${script_dir}/hqh_sp_prepare_waterbox_LS.vmd" -args $ligand_basename $output_basename ${script_dir} ${waterbox_padding_size_LS}

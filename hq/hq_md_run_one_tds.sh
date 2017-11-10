@@ -118,7 +118,7 @@ trap "cleanup_exit" EXIT
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -128,10 +128,10 @@ fi
 system_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
 
@@ -169,8 +169,8 @@ fi
 if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Variables
-    ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
     max_it=60
     iteration_no=0
 
@@ -248,8 +248,8 @@ fi
 # Running NAMD
 if [[ "${md_programs}" == "namd" ]]; then
     cd namd
-    # ncpus_namd_md="$(grep -m 1 "^ncpus_namd_md=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
-    namd_command="$(grep -m 1 "^namd_command=" ../../../../../input-files/config.txt | awk -F '=' '{print $2}')"
+    # ncpus_namd_md="$(grep -m 1 "^ncpus_namd_md=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    namd_command="$(grep -m 1 "^namd_command=" ../../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
     ${namd_command} namd.in.md > namd.out.run${run}.screen 2>namd.out.run${run}.err & # removed +idlepoll +p${ncpus_namd_md}
     pid=$!
     pids[${sim_counter}]=$pid

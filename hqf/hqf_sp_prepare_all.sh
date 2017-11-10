@@ -64,7 +64,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | awk -F '=' '{print $2}')"
+HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
@@ -78,8 +78,8 @@ echo "   Preparing all input structures  (hqf_sp_prepare_all.sh)   "
 echo "************************************************************"
 
 # Variables
-input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | awk -F '=' '{print $2}')"
-lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | awk -F '=' '{print $2}')"
+input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 subsystems=${1//,/ }
 
 # Lomap flag
@@ -278,11 +278,11 @@ for subsystem in ${subsystems}; do
     elif [[ "${subsystem}" == "RLS" ]]; then
 
         # Variables
-        receptor_type="$(grep -m 1 "^receptor_type=" input-files/config.txt | awk -F '=' '{print $2}')"
+        receptor_type="$(grep -m 1 "^receptor_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         if [[ "${receptor_type}" == "H" ]]; then
             # Variables
-            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
+            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
             if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
                 echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
                 echo -e " *        Supported values are: common, individual"
@@ -292,7 +292,7 @@ for subsystem in ${subsystems}; do
 
             # Preparing the receptor files
             if [[ ${receptor_mode} == "common" ]]; then
-                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
+                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
                 cd input-files/receptor
                 hqh_sp_prepare_H.sh ${receptor_basename}
                 cd ../..
@@ -332,7 +332,7 @@ for subsystem in ${subsystems}; do
         elif [[ "${receptor_type}" == "P" ]]; then
 
             # Variables
-            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | awk -F '=' '{print $2}')"
+            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
             if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
                 echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
                 echo -e " *        Supported values are: common, individual"
@@ -343,7 +343,7 @@ for subsystem in ${subsystems}; do
             for file in $(ls -v input-files/ligands/pdb); do
                 ligand_basename="${file/.pdb}"
                 if [[ ${receptor_mode} == "common" ]]; then
-                    receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | awk -F '=' '{print $2}')"
+                    receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
                 elif [[ ${receptor_mode} == "individual" ]]; then
                     receptor_basename="${ligand_basename}"
                 fi

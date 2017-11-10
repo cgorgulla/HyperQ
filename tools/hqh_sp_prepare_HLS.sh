@@ -76,7 +76,7 @@ echo
 receptor_basename=${1}
 ligand_basename=${2}
 dirname=$(dirname $0)
-ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" input-files/config.txt | awk -F '=' '{print $2}')"
+ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Copying files, creating folders
 echo -e "\n * Copying files and folders"
