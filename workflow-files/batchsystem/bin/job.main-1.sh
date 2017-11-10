@@ -305,6 +305,9 @@ trap 'error_response_std $LINENO' ERR
 # Type 1 signal handling
 signals_type1_response() {
 
+    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+    trap '' 1 2 3 9 10 12 15 18 ERR
+
     # Syncing the control parameters
     sync_control_parameters
 
@@ -337,6 +340,9 @@ fi
 # Type 2 signal handling
 signals_type2_response() {
 
+    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+    trap '' 1 2 3 9 10 12 15 18 ERR
+
     # Syncing the control parameters
     sync_control_parameters
 
@@ -367,6 +373,9 @@ fi
 
 # Type 3 signal handling
 signals_type3_response() {
+
+    # Deactivating further signal responses since some batchsystems send an abundance of signals which would bring us into trouble when responding to every one of them
+    trap '' 1 2 3 9 10 12 15 18 ERR
 
     # Syncing the control parameters
     sync_control_parameters
@@ -438,11 +447,12 @@ source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 # Waiting for the subjobs to finish
 wait
 
+
 ### Finalizing the job ###
 # Syncing the control parameters
 sync_control_parameters
 
-#  Variables
+# Variables
 new_job_jtl="${job_success_new_job_jtl}"
 
 # Checking if the error should be ignored

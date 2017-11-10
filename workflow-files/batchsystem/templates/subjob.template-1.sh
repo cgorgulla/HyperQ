@@ -21,8 +21,6 @@ echo
 set -m                  # Allowing each task to be in its own process group (HQ assumes that, though it will check and work around if this should not be the case)
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
 if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
@@ -37,13 +35,10 @@ error_response_std() {
     echo "Error on line $1" 1>&2
     echo
 
-    # Syncing the control parameters
-    sync_control_parameters
-
     if [ "${HQ_TASK_ERROR_RESPONSE}" == "internal_error" ]; then
 
         # Printing some information
-        echo -e " * The entire subjob will be terminated, causing an internal job error.,,"
+        echo -e " * The entire subjob will be terminated, and an internal job error raised..."
 
         # Exiting
         exit 1
@@ -64,7 +59,7 @@ terminate_processes() {
     trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
     # Terminating remaining background jobs
-    kill $(jobs -p)
+    kill $(jobs -p) || true
 
     # Terminating everything which is still running and which was started by this script
     pkill -P $$ || true

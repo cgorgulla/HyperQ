@@ -11,6 +11,7 @@ verbosity=debug
 # Possible values: normal, debug
 # This option mainly effects the screen output and the logfiles
 
+# The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
 
 
 *****************************************************************************************************************************************************************
