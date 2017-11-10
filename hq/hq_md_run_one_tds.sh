@@ -268,15 +268,31 @@ while true; do
 
     # Checking the condition of the output files
     if [ -f ipi/ipi.out.run${run}.screen ]; then
+
+        # Variables
         time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
-        if [ "${time_diff}" -ge "${md_timeout}" ]; then
+
+        # Checking the time diff
+        if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+10))" ]]; then
+            
+            # Printing some information
             echo " * i-PI seems to have completed the MD simulation."
             break
+        elif [[ "${time_diff}" -ge "$((md_timeout+10))" ]]; then
+        
+            # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
+            touch ipi/ipi.out.run${run}.screen
         fi
     fi
     if [ -f ipi/ipi.out.run${run}.err ]; then
+        
+        # Variables
         error_count="$( { grep -i error ipi/ipi.out.run${run}.err  || true; } | wc -l)"
+
+        # Checking the error_count
         if [ ${error_count} -ge "1" ]; then
+
+            # Printing some information
             echo -e "Error detected in the ipi output files"
             echo "Exiting..."
             exit 1
@@ -284,29 +300,60 @@ while true; do
     fi
     # Checking the condition of the output files of cp2k
     for bead_folder in $(ls -v cp2k/); do
+
         # Checking if memory error - happens often at the end of runs it seems, thus we treat it as a successful run
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
+
+            # Variables
             pseudo_error_count="$( { grep -E "invalid memory reference | corrupted | Caught" cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
+
+            # Checking the pseudo_error_count
             if [ "${pseudo_error_count}" -ge "1" ]; then
+
+                # Printing some message
                 echo " * The MD simulation seems to have completed."
+
+                # Termination
                 break 2
             fi
         fi
+
+        # Checking if an error file exists
         if [ -f cp2k/${bead_folder}/cp2k.out.run${run}.err ]; then
+
+            # Variables
             error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.run${run}.err || true; } | wc -l)"
+
+            # Checking the error count
             if [ ${error_count} -ge "1" ]; then
+
+                # Variables
                 set +o pipefail
                 backtrace_length="$(grep -A 100 Backtrace cp2k/${bead_folder}/cp2k.out.run${run}.err | grep -v Backtrace | wc -l)"
                 socket_error_count="$(grep -A 100 socket cp2k/${bead_folder}/cp2k.out.run${run}.err | wc -l)"
                 set -o pipefail
+
+                # Checking the variables
                 if [ "${backtrace_length}" -ge "1" ]; then
+
+                    # Printing error message
                     echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err."
+
+                    # Termination
                     exit 1
                 elif [ "${socket_error_count}" -ge "1" ]; then
+
+                    # Printing error message
                     echo -e "Error detected in the file cp2k/${bead_folder}/cp2k.out.run${run}.err related to the socket."
+
+                    # Termination
                     exit 1
                 else
+
+                    # Printing message
                     echo " * The MD simulation seems to have completed."
+
+                    # Termination
                     break 2
                 fi
             fi
@@ -319,15 +366,25 @@ while true; do
         # Checking the condition of the output files
         sleep 1 || true
         if [ -f ipi/ipi.out.run${run}.err ]; then
+
+            # Variables
             error_count="$( { grep -i error ipi/ipi.out.run${run}.err || true; } | wc -l)"
+
+            # Checking the error count
             if [ ${error_count} -ge "1" ]; then
                 echo -e "Error detected in the ipi output files"
                 echo "Exiting..."
                 exit 1
             fi
         else
+
+            # Variables
             time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+            
+            # Still waiting until we reach md_timeout, just in case the process check was erroneous 
             if [ "${time_diff}" -ge "${md_timeout}" ]; then
+                
+                # Printing message
                 echo " * i-PI seems to have completed the MD simulation."
                 break 2
             fi

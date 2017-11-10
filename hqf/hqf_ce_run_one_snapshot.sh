@@ -216,24 +216,43 @@ fi
 waiting_time_start=$(date +%s)
 while true; do
 
-    # Printing some information
+    # Checking verbosity status
     if [ "${HQ_VERBOSITY}" == "debug" ]; then
+
+        # Printing some information
         echo " * Checking if the computation running in folder ${PWD} has completed."
     fi
 
     # Checking the condition of the output files
     if [ -f ipi/ipi.out.properties ]; then
+
+        # Variables
         propertylines_word_count="$(grep "^ *[0-9]" ipi/ipi.out.properties | wc -w)"
+
+        # Checking the number of words
         if [ "${propertylines_word_count}" -ge "3" ]; then
+
+             # Variables
              snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
+
+             # Printing some information
              echo " * Snapshot ${snapshot_id} completed after ${snapshot_time_total} seconds."
              break
         fi
     fi
+
+    # Variables
     waiting_time_diff=$(($(date +%s) - ${waiting_time_start}))
-    if [ "${waiting_time_diff}" -ge "${ce_timeout}" ]; then
+
+    # Checking the time difference
+    if [[ "${waiting_time_diff}" -ge "${ce_timeout}" ]] && [[ "${waiting_time_diff}" -le "$((ce_timeout+10))" ]]; then
         echo " * CE-Timeout for snapshot ${snapshot_id} reached. Skipping this snapshot..."
         exit 1
+
+    elif [[ "${waiting_time_diff}" -ge "$((ce_timeout+10))" ]]; then
+
+        # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
+        waiting_time_start=$(date +%s)
     fi
 #    # Checking for cp2k errors
 #    for bead_folder in $(ls -v cp2k/); do
@@ -254,6 +273,8 @@ while true; do
 
     # Checking if ipi has terminated (most likely successfully after the previous error checks)
     if [ ! -e  /proc/${pid_ipi} ]; then
+
+        # Printing some information
         echo " * i-PI seems to have terminated without error."
         break
     fi

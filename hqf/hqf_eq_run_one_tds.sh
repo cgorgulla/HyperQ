@@ -208,11 +208,20 @@ while true; do
 
     # Checking the condition of the output major log file of CP2k
     if [ -f cp2k/cp2k.out.general ]; then
+
+        # Variables
         time_diff=$(($(date +%s) - $(date +%s -r cp2k/cp2k.out.general)))
+
         # Checking the time difference with upper bound because very few times it seems that something goes wrong and the time_diff is extremely large
         if [[ "${time_diff}" -ge "${eq_timeout}" ]] && [ "${time_diff}" -le "$((${eq_timeout} + 10))" ]; then
+
+            # Printing message
             echo " * CP2K seems to have completed the equilibration."
             break
+        elif [[ "${time_diff}" -ge "$((eq_timeout+10))" ]]; then
+
+            # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
+            touch cp2k/cp2k.out.general
         fi
     fi
 
