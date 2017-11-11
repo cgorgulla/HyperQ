@@ -1,19 +1,21 @@
 #!/usr/bin/env bash
 
-#                                                                         SLURM Settings
+#                                                                          PBS Settings
 ####################################################################################################################################################################
 
-#$ -S /usr/bin/env bash
-#$ -cwd
-#$ -q wagnerlab
-#$ -l h_rt=12:00:00
-#$ -l mem_free=600M
-#$ -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
-#$ -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
-#$ -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
-#$ -m a
-#$ -M cgorgulla@crystal.harvard.edu
-#$ -notify
+#PBS -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+#PBS -l feature=mpp1:test
+##PBS -q specialm1weekq
+#PBS -l walltime=00:12:00
+#PBS -l nodes=1:ppn=24
+#PBS -l signal=10@300                                                        # Should be at least 60 seconds. Recommended value: 300 seconds
+#PBS -l naccesspolicy=singlejob
+#PBS -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+#PBS -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
+##PBS -m ea
+##PBS -M
+##PBS -A bec00150
+##PBS -A bec00123
 
 
 #                                                                         HyperQ Variables
@@ -25,7 +27,7 @@ HQ_WORKFLOW_ID=workflow_id_placeholder
 HQ_JTL=jtl_placeholder
 HQ_JID=jid_placeholder
 HQ_JSN=jsn_placeholder
-HQ_BID=${JOB_ID}
+HQ_BID=${PBS_JOBID}
 
 # Exportation
 export HQ_JOBNAME
@@ -48,10 +50,14 @@ echo "------------------------"
 env
 echo
 echo
-echo
-echo "Job infos by qstat -j"
+echo "Job infos by checkjob"
 echo "------------------------"
-qstat -j $JOB_ID
+checkjob $PBS_JOBID
+echo
+echo
+echo "Job infos by qstat -f"
+echo "------------------------"
+qstat -f $PBS_JOBID
 echo
 echo
 

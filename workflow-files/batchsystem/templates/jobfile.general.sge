@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+#                                                                         SLURM Settings
+####################################################################################################################################################################
+
+#$ -S /usr/bin/env bash
+#$ -cwd
+#$ -q wagnerlab
+#$ -l h_rt=12:00:00
+#$ -l mem_free=600M
+#$ -N workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+#$ -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
+#$ -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-$JOB_ID.out
+#$ -m a
+##$ -M cgorgulla@crystal.harvard.edu
+#$ -notify
+
+
+#                                                                         HyperQ Variables
+####################################################################################################################################################################
+
+# Definition
+HQ_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+HQ_WORKFLOW_ID=workflow_id_placeholder
+HQ_JTL=jtl_placeholder
+HQ_JID=jid_placeholder
+HQ_JSN=jsn_placeholder
+HQ_BID=${JOB_ID}
+
+# Exportation
+export HQ_JOBNAME
+export HQ_WORKFLOW_ID
+export HQ_JTL
+export HQ_JID
+export HQ_JSN
+export HQ_BID
+
+
+#                                                                  Printing Basic Job Information
+####################################################################################################################################################################
+
+echo
+echo "                                                  *** Job Information ***                                                        "
+echo "*********************************************************************************************************************************"
+echo
+echo "Environment variables"
+echo "------------------------"
+env
+echo
+echo
+echo
+echo "Job infos by qstat -j"
+echo "------------------------"
+qstat -j $JOB_ID
+echo
+echo
+
+
+#                                                                          Main Job Work
+####################################################################################################################################################################
+
+# Cluster/Batchsystem specific preparations (e.g. module loading)
+
+# Sourcing the common main section of the job files
+source batchsystem/bin/job.main-1.sh

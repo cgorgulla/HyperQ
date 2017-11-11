@@ -12,8 +12,8 @@
 #PBS -l naccesspolicy=singlejob
 #PBS -o batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
 #PBS -e batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-${PBS_JOBID}.out
-#PBS -m ea
-#PBS -M silmaril@zedat.fu-berlin.de
+##PBS -m ea
+##PBS -M
 ##PBS -A bec00150
 ##PBS -A bec00123
 
