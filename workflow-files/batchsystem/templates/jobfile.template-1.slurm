@@ -62,6 +62,7 @@ echo
 ####################################################################################################################################################################
 
 # Cluster/Batchsystem specific preparations (e.g. module loading)
+module load python/3.4.1-fasrc01                            # Required for Odyssey
 
 # Sourcing the common main section of the job files
 source batchsystem/bin/job.main-1.sh
