@@ -243,7 +243,7 @@ submit_new_job() {
         fi
 
         # Submitting the next job
-        hq_bs_start_jobs.sh ${new_job_jtl} ${HQ_JID} ${HQ_JID} false false
+        hq_bs_start_jobs.sh ${new_job_jtl} ${HQ_JID} ${HQ_JID} false false 1
     fi
 }
 
