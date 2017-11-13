@@ -79,6 +79,7 @@ if [ ! -d input-files ]; then
     # Since the input-folder might not exist yet, we inform the user that this has to be the root folder and give him a chance to abort
     echo -e "\n"
     read -p "This script has to be run in the root folder of the workflow. Press Enter to continue... "
+
 fi
 
 # Asking the user if the input-folder should be prepared
@@ -98,6 +99,9 @@ if [ "${answer}" = "true" ]; then
 
     # Printing some information
     echo -e "\n\n *** Preparing the input-files folder ***\n"
+
+    # Preparing the input-files directory if not yet there
+    mkdir -p input-files
 
     ### Config files ###
     # Asking if the config-files should be prepared
