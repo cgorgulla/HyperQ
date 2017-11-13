@@ -112,9 +112,9 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     # Preparing the corresponding tasks for this MSP
     echo -e " * Preparing the tasks for the MSP ${msp}"
     if [[ "${command_general}" == *"TDS"* ]]; then
-        echo " * The variable TDS was specified in the general command. Spreading the command over each TD window."
+        echo "   * Preparing one task for each TDS..."
         for i in $(seq 1 ${tds_count}); do
-            echo "    * Preparing the task for TDS ${i}/${tds_count}"
+            echo "     * Preparing the task for TDS ${i}/${tds_count}"
             command_specific="${command_general// MSP / ${msp} }"
             command_specific="${command_specific//TDS/${i}:${i}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
