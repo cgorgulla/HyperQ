@@ -72,6 +72,7 @@ fi
 # Variables
 tds_index="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
+msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -100,6 +101,10 @@ if [ "${tdcycle_type}" == "hq" ]; then
     tds_folder="tds.${bead_configuration}"
     k_stepsize=$(echo "1 / $tdw_count" | bc -l)
     echo -e "\n * Preparing the files and directories for the TDS with bead-configuration ${bead_configuration}"
+
+
+    # Copying the equilbration coordinates
+    cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system.${bead_configuration}.eq.pdb)

@@ -140,7 +140,6 @@ elif [[ "${md_continue^^}" == "FALSE" ]] || ( [[ "${md_continue^^}" == "TRUE" ]]
         (( system_ID += 1 ))
     done
     cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
-    cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 
     # Preparing the shared CP2K input files
     hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
