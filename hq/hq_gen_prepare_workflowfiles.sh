@@ -81,21 +81,34 @@ if [ ! -d input-files ]; then
     read -p "This script has to be run in the root folder of the workflow. Press Enter to continue... "
 
 fi
-
-# Asking the user if the input-folder should be prepared
+# Asking if everything should be prepared/cleaned up
 echo
 while true; do
     echo
-    read -p "Should the input-files folder be prepared? " answer
-    case ${answer} in
-        [Yy]* ) answer=true; break;;
-        [Nn]* ) answer=false; break;;
+    read -p "Should everything be prepared/cleaned up? " answer_cleanup_all
+    case ${answer_cleanup_all} in
+        [Yy]* ) answer_cleanup_all=true; break;;
+        [Nn]* ) answer_cleanup_all=false; break;;
         * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
     esac
 done
 
+# Asking the user if the input-folder should be prepared
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the input-files folder be prepared? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+
 # Checking the answer
-if [ "${answer}" = "true" ]; then
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
     # Printing some information
     echo -e "\n\n *** Preparing the input-files folder ***\n"
@@ -105,18 +118,20 @@ if [ "${answer}" = "true" ]; then
 
     ### Config files ###
     # Asking if the config-files should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the config files of the input-files folder be prepared (replacing existing files)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the config files of the input-files folder be prepared (replacing existing files)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the input-files/iqi folder"
@@ -127,18 +142,20 @@ if [ "${answer}" = "true" ]; then
 
     ### CP2K input-files folder ###
     # Asking if the CP2K folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the input-files/cp2k folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the input-files/cp2k folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the input-files/cp2k folder"
@@ -152,18 +169,20 @@ if [ "${answer}" = "true" ]; then
 
     ### i-PI input-files folder ###
     # Asking if the i-PI folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the input-files/ipi folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the input-files/ipi folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the input-files/ipi folder"
@@ -177,18 +196,20 @@ if [ "${answer}" = "true" ]; then
 
     ### i-QI input-files folder ###
     # Asking if the i-QI folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the input-files/iqi folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the input-files/iqi folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the input-files/iqi folder"
@@ -203,19 +224,21 @@ fi
 
 
 # Asking the user if the batchsystem-folder should be prepared
-echo
-while true; do
+if [ ${answer_cleanup_all} == "false" ]; then
     echo
-    read -p "Should the batchsystem folder be prepared? " answer
-    case ${answer} in
-        [Yy]* ) answer=true; break;;
-        [Nn]* ) answer=false; break;;
-        * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-    esac
-done
+    while true; do
+        echo
+        read -p "Should the batchsystem folder be prepared? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
 
 # Checking the answer
-if [ "${answer}" = "true" ]; then
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
     # Printing some information
     echo -e "\n\n *** Preparing the batchsystem folder ***\n"
@@ -225,18 +248,20 @@ if [ "${answer}" = "true" ]; then
 
     ### Tasks folder ###
     # Asking if the tasks folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/task-lists folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/task-lists folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the batchsystem/task-lists folder"
@@ -250,18 +275,20 @@ if [ "${answer}" = "true" ]; then
 
     ### Template files folder ###
     # Asking if the templates folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/templates folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/templates folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the batchsystem/templates folder"
@@ -275,18 +302,20 @@ if [ "${answer}" = "true" ]; then
 
     ### bin folder ###
     # Asking if the bin folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/bin folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/bin folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the batchsystem/bin folder"
@@ -300,18 +329,20 @@ if [ "${answer}" = "true" ]; then
 
     ### Control folder ###
     # Asking if the control folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/control folder be prepared (replacing existing files & folders)? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/control folder be prepared (replacing existing files & folders)? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Preparing the batchsystem/control folder"
@@ -323,21 +354,22 @@ if [ "${answer}" = "true" ]; then
         cp -r ${HQ_HOME}/workflow-files/batchsystem/control batchsystem/
     fi
 
-
     ### Jobfiles folder ###
     # Asking if the control folder should be prepared
-    echo
-    while true; do
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/job-files folder be deleted if it exists? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/job-files folder be deleted if it exists? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
         echo -e " * Deleting the batchsystem/job-files folder if it exists"
@@ -347,22 +379,24 @@ if [ "${answer}" = "true" ]; then
     fi
 
     ### Output-files folder ###
-    # Asking if the output-files folder should be prepared
-    echo
-    while true; do
+    # Asking if the output-files folder should be removed
+    if [ ${answer_cleanup_all} == "false" ]; then
         echo
-        read -p "Should the batchsystem/output-files folder be deleted if it exists? " answer
-        case ${answer} in
-            [Yy]* ) answer=true; break;;
-            [Nn]* ) answer=false; break;;
-            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
-        esac
-    done
+        while true; do
+            echo
+            read -p "Should the batchsystem/output-files folder be removed if it exists? " answer
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
     # Checking the answer
-    if [ "${answer}" = "true" ]; then
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
-        echo -e " * Deleting the batchsystem/output-files folder if it exists"
+        echo -e " * Removing the batchsystem/output-files folder if it exists"
 
         # Removing the old files and folders
         rm -r batchsystem/output-files &> /dev/null || true
@@ -370,6 +404,53 @@ if [ "${answer}" = "true" ]; then
 
 fi
 
+# Asking if the log-files folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the log-files folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the log-files folder if existent"
+
+    # Removing the old files and folders
+    rm -r log-files &> /dev/null || true
+
+fi
+
+# Asking if the runtime folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the runtime folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the runtime folder if existent"
+
+    # Removing the old files and folders
+    rm -r runtime &> /dev/null || true
+
+fi
 
 # Displaying some information
 echo -e "\n\n * The preparation of the files and folders has been completed\n\n"
