@@ -439,6 +439,7 @@ if [[ -n "${signals_type3}" ]]; then
     trap 'signals_type3_response' ${signals_type3//:/ }
 fi
 
+# Function for terminating remaining processess
 terminate_processes() {
 
     # Printing some information
@@ -465,6 +466,9 @@ exit_response() {
 
     # Terminating remaining processes
     terminate_processes
+
+    # Cleaning up files and folders
+    rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
 
     # Printing final information
     print_job_infos_end

@@ -63,6 +63,9 @@ terminate_processes() {
 
     # Terminating everything which is still running and which was started by this script
     pkill -P $$ || true
+
+    # Sleeping some time to give the processes time to terminate nicely
+    sleep 10
 }
 
 # Exit trap
