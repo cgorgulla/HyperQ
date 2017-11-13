@@ -76,11 +76,16 @@ trap 'exit_response' EXIT
 
 #                                                                         Running the tasks
 #####################################################################################################################################################################
+echo
+echo
+echo "                                                    *** Task Output ***                                                          "
+echo "*********************************************************************************************************************************"
+echo
 
 # List of tasks
 #task_placeholder
 
-# Waiting for each process separately to be able to respond to the exit code of everyone of them
+# Waiting for each process separately to be able to respond to the exit code of everyone of them (only needed for the parallel tasks mode, but does not interfere with the serial mode)
 job_count=$(jobs | wc -l)
 for pid in $(seq 1 ${job_count}); do
     wait -n

@@ -353,16 +353,18 @@ fes_ce_parallel_max_LS=10
 fes_ce_parallel_max_RLS=10
 
 command_prefix_bs_subjob=bash
-command_prefix_bs_task=setsid
+# Cray/HLRN: aprun -cc none -n 1
+# Slurm: srun -N 1 -n 1
+command_prefix_bs_task=bash
 command_prefix_gen_run_one_pipe_sub=bash
 command_prefix_opt_run_one_opt=bash
 command_prefix_eq_run_one_eq=bash
 command_prefix_md_run_one_md=bash
 command_prefix_ce_run_one_snapshot=bash
 # Can contain spaces, e.g. options to the prefix command
-# Common prefixes are: aprun, setsid
+# Common prefixes are: bash, aprun, setsid, ...
 # Should not be empty. 'bash' can be used if no other prefix is needed for a bash script for instance
-# setsid should always be used for command_prefix_bs_task
+# setsid ist not needed for command_prefix_bs_task, because the tasks are automatically run in their own process groups and setsid would therefore not have much effect
 
 
 ************************************************************************** Batchsystem **************************************************************************
@@ -370,7 +372,7 @@ command_prefix_ce_run_one_snapshot=bash
 batchsystem=lsf
 # Supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
 
-subjob_delay_time=10
+tasks_parallel_delay_time=10
 # Possible values: Non-negative integer
 # Unit: Seconds
 # Summary:  The waiting time before the next task of the same subjob file is started. This is useful if different tasks are preparing files in the same directory

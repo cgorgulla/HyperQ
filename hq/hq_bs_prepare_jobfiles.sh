@@ -114,7 +114,7 @@ batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '[=#]' '{print $2}')
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '[=#]' '{print $2}')
-subjob_delay_time=$(grep -m 1 "^subjob_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
@@ -179,11 +179,6 @@ while IFS='' read -r command_task; do
     subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
     command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
 
-    # Checking the parallel flags
-    if [ "${parallelize_tasks}" == "true" ]; then
-        command_task="${command_task} \&"
-    fi
-
     # Checking if this task is the first task of a new subjob
     if [ "${task_ID}" -eq "1" ]; then
 
@@ -228,7 +223,17 @@ while IFS='' read -r command_task; do
 
     # Adding the task to the subjob file
     #echo "${command_prefix_bs_task} ${command_task}" >> ${subjob_file}
-    sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task}\nsleep ${subjob_delay_time}\n\n#task_placeholder|g" ${subjob_file}
+
+    # Checking the parallel flags
+    if [ "${parallelize_tasks}" == "true" ]; then
+        sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task} \& \nsleep ${tasks_parallel_delay_time}\n\n#task_placeholder|g" ${subjob_file}
+    elif [ "${parallelize_tasks}" == "false" ]; then
+        sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task} \& \nwait\n\n#task_placeholder|g" ${subjob_file}
+    else
+        # Printing an error message before exiting
+        echo -e "\n * Error: The input argument 'parallelize_tasks' has an unsupported value (${parallelize_tasks}). Exiting...\n\n"
+        exit 1
+    fi
 
     if [ "${task_counter}" == "${tasks_total}" ]; then
 
