@@ -62,8 +62,8 @@ echo
 ####################################################################################################################################################################
 
 # Cluster/Batchsystem specific preparations (e.g. module loading)
-module load python/3.4.1-fasrc01                            # Required for Odyssey
-PATH="$HOME/anaconda2/bin:$PATH"
+module load python/3.4.1-fasrc01                            # Provides the python3 executable needed by HQ
+PATH="$HOME/anaconda2/bin:$PATH"                            # Restores the correct order of our PATH variable (which was changed by the python 3 module)
 
 # Sourcing the common main section of the job files
 source batchsystem/bin/job.main-1.sh
