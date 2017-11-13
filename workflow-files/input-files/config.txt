@@ -10,9 +10,13 @@ workflow_id=A
 # In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
 # Should be an upper case letter (to be more easy to distinguish from the job type letter (JTL) used in the HQ job files)
 
-verbosity=debug
+verbosity_runtime=debug
 # Possible values: normal, debug
 # This option mainly effects the screen output and the logfiles
+
+verbosity_preparation=normal
+# Possible values: normal, debug
+# This option affects the preparation scripts for setting up the basic workflow files (before the workflow is running)
 
 temperature=298
 # In Kelvin

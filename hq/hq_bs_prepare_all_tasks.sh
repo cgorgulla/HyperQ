@@ -71,9 +71,8 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+if [ "${verbosity_preparation}" = "debug" ]; then
     set -x
 fi
 
