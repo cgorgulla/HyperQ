@@ -20,6 +20,8 @@ Has to be run in the root folder."
 
 # Checking the input parameters
 if [ "${1}" == "-h" ]; then
+
+    # Printing some information
     echo
     echo -e "$usage"
     echo
@@ -27,6 +29,8 @@ if [ "${1}" == "-h" ]; then
     exit 0
 fi
 if [ "$#" -ne "6" ]; then
+
+    # Printing some information
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments was provided when calling the script."
@@ -42,6 +46,7 @@ fi
 
 # Standard error response 
 error_response_std() {
+
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
@@ -67,6 +72,18 @@ error_response_std() {
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
+
+# Cleanup function before exiting
+cleanup_exit() {
+
+    # Printing some information
+    echo
+    echo " * Cleaning up..."
+
+    # Removing the temp-folder
+    rm -r ${temp_folder} || true
+}
+set 'cleanup_exit' EXIT
 
 # Bash options
 set -o pipefail
@@ -99,6 +116,8 @@ check_active_jobs=${5}
 delay_time=${6}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+time_nanoseconds="$(date +%Y%m%d%m%S-%N)"
+temp_folder=runtime/${time_nanoseconds}
 
 # Checking if the job type letter is valid
 if ! [[ "${jtl}" =~ [abcdefghij] ]]; then
@@ -106,16 +125,10 @@ if ! [[ "${jtl}" =~ [abcdefghij] ]]; then
     exit 1
 fi
 
-# Removing old files if existent
-if [ -f "batchsystem/tmp/jobs-to-start" ]; then
-    rm batchsystem/tmp/jobs-to-start
-fi
-mkdir -p batchsystem/tmp
-
 # Preparing files and folders
 mkdir -p batchsystem/output-files
-touch batchsystem/tmp/jobs-to-start
-
+mkdir -p ${temp_folder}
+touch ${temp_folder}/jobs-to-start
 
 # Checking if we should check for already active jobs
 jobs_started=0
@@ -126,18 +139,18 @@ if [ "${check_active_jobs^^}" == "TRUE" ]; then
     echo -e "\nChecking which jobs are already in the batchsystem"
 
     # Getting the active jobs
-    touch batchsystem/tmp/jobs-all
-    hqh_bs_sqs.sh > batchsystem/tmp/jobs-all 2>/dev/null || true
+    touch ${temp_folder}/jobs-all
+    hqh_bs_sqs.sh > ${temp_folder}/jobs-all 2>/dev/null || true
 
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
-        if ! grep -q "${workflow_id}:${jtl}\.${jid}" batchsystem/tmp/jobs-all; then
+        if ! grep -q "${workflow_id}:${jtl}\.${jid}" ${temp_folder}/jobs-all; then
 
             # Printing some information
             echo "Adding job ${jid} to the list of jobs to be started."
 
             # Adding the JID
-            echo ${jid} >> batchsystem/tmp/jobs-to-start
+            echo ${jid} >> ${temp_folder}/jobs-to-start
 
             # Increasing the counter
             jobs_started=$((jobs_started+1))
@@ -159,7 +172,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
         echo "Adding job ${jid} to the list of jobs to be started."
 
         # Adding the JID
-        echo ${jid} >> batchsystem/tmp/jobs-to-start
+        echo ${jid} >> ${temp_folder}/jobs-to-start
 
         # Increasing the counter
         jobs_started=$((jobs_started+1))
@@ -175,8 +188,8 @@ chmod u+x batchsystem/job-files/main/*
 chmod u+x batchsystem/job-files/subjobs/*
 
 # Updating and submitting the relevant jobs
-if [ -f batchsystem/tmp/jobs-to-start ]; then
-    for jid in $(cat batchsystem/tmp/jobs-to-start ); do
+if [ -f ${temp_folder}/jobs-to-start ]; then
+    for jid in $(cat ${temp_folder}/jobs-to-start ); do
 
         # Preparing the new jobfile
         if [ "${increase_jsn^^}" == "TRUE" ]; then
@@ -193,16 +206,15 @@ if [ -f batchsystem/tmp/jobs-to-start ]; then
 fi
 
 # Removing the temporary files
-if [ -f "batchsystem/tmp/jobs-all" ]; then
-    rm batchsystem/tmp/jobs-all || true
+if [ -f "${temp_folder}/jobs-all" ]; then
+    rm ${temp_folder}/jobs-all || true
 fi
-if [ -f "batchsystem/tmp/jobs-to-start" ]; then
-    rm batchsystem/tmp/jobs-to-start
+if [ -f "${temp_folder}/jobs-to-start" ]; then
+    rm ${temp_folder}/jobs-to-start
 fi
 
 # Displaying some information
-echo -e " * The submission of the jobs has been completed"
+echo -e "\n * The submission of the jobs has been completed"
 echo -e " * Total number of jobs which have specified: $((last_jid-first_jid+1))"
 echo -e " * Number of jobs which have been started: ${jobs_started}"
-echo -e " * Number of jobs which have been omitted: ${jobs_omitted}"
-echo
+echo -e " * Number of jobs which have been omitted: ${jobs_omitted}\n\n"

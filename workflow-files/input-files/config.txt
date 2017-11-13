@@ -261,7 +261,8 @@ inputfolder_cp2k_eq_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_md_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_ce_specific_RLS=hqf.specific.MM
 
-cp2k_command=cp2k.ssmp
+cp2k_command=cp2k-5.1.sopt
+#cp2k-5.1.sopt
 #cp2k_command=/home/wagner/cgorgulla/Dropbox/Software/installed/bin/cp2k.ssmp 
 #cp2k_command=/programs/x86_64-linux/cp2k/4.1/exe/Linux-x86-64-gfortran/cp2k.ssmp
 #cp2k_command=/nmr/programs/cp2k-4.1/cp2k.popt
