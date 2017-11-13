@@ -389,7 +389,7 @@ command_prefix_ce_run_one_snapshot=bash
 
 ************************************************************************** Batchsystem **************************************************************************
 
-batchsystem=lsf
+batchsystem=slurm
 # Supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
 
 tasks_parallel_delay_time=10
