@@ -110,13 +110,13 @@
         DO_EWALD           T
         DISPERSION         T
         &PARAMETER
-          PARAM_FILE_PATH  subsystem_folder/../../../../../common/dftb/3ob-3-1
+          PARAM_FILE_PATH  subsystem_folder_placeholder/../../../../../common/dftb/3ob-3-1
           PARAM_FILE_NAME  file.associations
           DISPERSION_TYPE  D3 
           DISPERSION_RADIUS           15.
           COORDINATION_CUTOFF         1.e-4
           D3_SCALING                  1.0 1.0 1.5
-          DISPERSION_PARAMETER_FILE subsystem_folder/../../../../../common/dftd/dftd3.dat
+          DISPERSION_PARAMETER_FILE subsystem_folder_placeholder/../../../../../common/dftd/dftd3.dat
         &END PARAMETER
       &END DFTB
     &END QS
@@ -168,7 +168,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -199,13 +199,13 @@
     &END KIND    
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.opt.out.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.opt.out.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS  
   &QMMM
     &CELL
@@ -217,8 +217,8 @@
     CENTER_GRID FALSE
 #    CENTER_TYPE PBC_AWARE_MAX_MINUS_MIN
     USE_GEEP_LIB 12               
-    @include subsystem_folder/cp2k.in.qm_kinds.system1
-    @include subsystem_folder/cp2k.in.qmmm.link.system1   
+    @include subsystem_folder_placeholder/cp2k.in.qm_kinds.system1
+    @include subsystem_folder_placeholder/cp2k.in.qmmm.link.system1
     NOCOMPATIBILITY
 #    &FORCEFIELD
 #      &NONBONDED

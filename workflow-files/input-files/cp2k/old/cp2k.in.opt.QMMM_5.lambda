@@ -110,15 +110,15 @@
       # c: H1d  : Hamiltonian of system 1 dummies
       # d: H2   : Hamltionian of system 2
       VARIABLES a b c d
-      MIXING_FUNCTION (1-lambda_value)*(a+b)+lambda_value*(c+d)
+      MIXING_FUNCTION (1-lambda_value_placeholder)*(a+b)+lambda_value_placeholder*(c+d)
     &END
-    @include subsystem_folder/cp2k.in.mapping.opt
+    @include subsystem_folder_placeholder/cp2k.in.mapping.opt
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.lambda_lambda_value.opt.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.lambda_lambda_value_placeholder.opt.pdb
     &END TOPOLOGY
     &CELL
       ABC 58.558 60.576 42.820
@@ -151,13 +151,13 @@
         DO_EWALD           T
         DISPERSION         T
         &PARAMETER
-          PARAM_FILE_PATH  subsystem_folder/../../../input-files/common/dftb/3ob-3-1
+          PARAM_FILE_PATH  subsystem_folder_placeholder/../../../input-files/common/dftb/3ob-3-1
           PARAM_FILE_NAME  file.associations
           DISPERSION_TYPE  D3 
           DISPERSION_RADIUS           15.
           COORDINATION_CUTOFF         1.e-4
           D3_SCALING                  1.0 1.0 1.5
-          DISPERSION_PARAMETER_FILE subsystem_folder/../../../input-files/common/dftd/dftd3.dat
+          DISPERSION_PARAMETER_FILE subsystem_folder_placeholder/../../../input-files/common/dftd/dftd3.dat
         &END PARAMETER
       &END DFTB
     &END QS
@@ -210,7 +210,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -241,13 +241,13 @@
     &END KIND    
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS  
   &QMMM
     &CELL
@@ -271,12 +271,12 @@
     CENTER_GRID FALSE
 #    CENTER_TYPE PBC_AWARE_MAX_MINUS_MIN
     USE_GEEP_LIB 12               
-    @include subsystem_folder/cp2k.in.qm_kinds.system1
-    @include subsystem_folder/cp2k.in.qmmm.link.system1   
+    @include subsystem_folder_placeholder/cp2k.in.qm_kinds.system1
+    @include subsystem_folder_placeholder/cp2k.in.qmmm.link.system1
     NOCOMPATIBILITY
     &FORCEFIELD
       &NONBONDED14
-        @include subsystem_folder/cp2k.in.qmmm.lj.system1
+        @include subsystem_folder_placeholder/cp2k.in.qmmm.lj.system1
       &END NONBONDED14
     &END FORCEFIELD
   &END QMMM
@@ -305,11 +305,11 @@
         RCUT_NB 14
       &END
       #&NONBONDED
-      #  @include subsystem_folder/cp2k.in.LJ.system2
+      #  @include subsystem_folder_placeholder/cp2k.in.LJ.system2
       #&END NONBONDED
-      @include subsystem_folder/cp2k.in.bonds.system2
-      @include subsystem_folder/cp2k.in.angles.system2
-      @include subsystem_folder/cp2k.in.dihedrals.system2
+      @include subsystem_folder_placeholder/cp2k.in.bonds.system2
+      @include subsystem_folder_placeholder/cp2k.in.angles.system2
+      @include subsystem_folder_placeholder/cp2k.in.dihedrals.system2
     &END FORCEFIELD
     &POISSON
       &EWALD
@@ -323,9 +323,9 @@
   &SUBSYS
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system2.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system2.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system2.dummy.psf      
+      CONN_FILE_NAME subsystem_folder_placeholder/system2.dummy.psf
       &GENERATE 
         BONDLENGTH_MAX 1000
       &END GENERATE
@@ -359,11 +359,11 @@
         RCUT_NB 14.
       &END
       #&NONBONDED
-      #  @include subsystem_folder/cp2k.in.LJ.system1
+      #  @include subsystem_folder_placeholder/cp2k.in.LJ.system1
       #&END NONBONDED
-      @include subsystem_folder/cp2k.in.bonds.system1
-      @include subsystem_folder/cp2k.in.angles.system1
-      @include subsystem_folder/cp2k.in.dihedrals.system1
+      @include subsystem_folder_placeholder/cp2k.in.bonds.system1
+      @include subsystem_folder_placeholder/cp2k.in.angles.system1
+      @include subsystem_folder_placeholder/cp2k.in.dihedrals.system1
     &END FORCEFIELD
     &POISSON
       &EWALD
@@ -377,9 +377,9 @@
   &SUBSYS
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.dummy.psf      
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.dummy.psf
       &GENERATE 
         BONDLENGTH_MAX 1000
       &END GENERATE
@@ -415,13 +415,13 @@
         DO_EWALD           T
         DISPERSION         T
         &PARAMETER
-          PARAM_FILE_PATH  subsystem_folder/../../../input-files/common/dftb/3ob-3-1
+          PARAM_FILE_PATH  subsystem_folder_placeholder/../../../input-files/common/dftb/3ob-3-1
           PARAM_FILE_NAME  file.associations
           DISPERSION_TYPE  D3 
           DISPERSION_RADIUS           15.
           COORDINATION_CUTOFF         1.e-4
           D3_SCALING                  1.0 1.0 1.5
-          DISPERSION_PARAMETER_FILE subsystem_folder/../../../input-files/common/dftd/dftd3.dat
+          DISPERSION_PARAMETER_FILE subsystem_folder_placeholder/../../../input-files/common/dftd/dftd3.dat
         &END PARAMETER
       &END DFTB
     &END QS
@@ -474,7 +474,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system2.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system2.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -505,13 +505,13 @@
     &END KIND    
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system2.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system2.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system2.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system2.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS  
   &QMMM
     &CELL
@@ -536,12 +536,12 @@
     CENTER_GRID FALSE
 #    CENTER_TYPE PBC_AWARE_MAX_MINUS_MIN
     USE_GEEP_LIB 12               
-    @include subsystem_folder/cp2k.in.qm_kinds.system2
-    @include subsystem_folder/cp2k.in.qmmm.link.system2        
+    @include subsystem_folder_placeholder/cp2k.in.qm_kinds.system2
+    @include subsystem_folder_placeholder/cp2k.in.qmmm.link.system2
     NOCOMPATIBILITY
     &FORCEFIELD
       &NONBONDED14
-        @include subsystem_folder/cp2k.in.qmmm.lj.system2
+        @include subsystem_folder_placeholder/cp2k.in.qmmm.lj.system2
       &END NONBONDED14
     &END FORCEFIELD
   &END QMMM

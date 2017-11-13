@@ -30,7 +30,7 @@
       &EWALD
         EWALD_TYPE ewald
         ALPHA 0.5
-        GMAX cell_dimensions_odd_rounded
+        GMAX cell_dimensions_odd_rounded_placeholder
         &MULTIPOLES
           MAX_MULTIPOLE_EXPANSION quadrupole
         &END
@@ -41,7 +41,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
         EMAX_SPLINE 100000
@@ -55,38 +55,38 @@
       &EWALD
         EWALD_TYPE spme
         ALPHA 0.5
-        GMAX cell_dimensions_scaled_rounded
+        GMAX cell_dimensions_scaled_rounded_placeholder
         O_SPLINE 6
       &END EWALD
     &END POISSON
   &END MM  
   &SUBSYS
     &CELL
-      ABC cell_dimensions_full_rounded
+      ABC cell_dimensions_full_rounded_placeholder
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT upsf
-      CONN_FILE_NAME subsystem_folder/system1.cp2k.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.cp2k.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+    @include subsystem_folder_placeholder/cp2k.in.sub.kind.element.c36
   &END SUBSYS  
   &QMMM
     &CELL
-      ABC cell_dimensions_full_rounded
+      ABC cell_dimensions_full_rounded_placeholder
       PERIODIC xyz
     &END CELL
     E_COUPL coulomb
     CENTER never
     CENTER_GRID false
     USE_GEEP_LIB 12               
-    @include subsystem_folder/cp2k.in.qm_kinds.system1
-    @include subsystem_folder/cp2k.in.qmmm.link.system1   
+    @include subsystem_folder_placeholder/cp2k.in.qm_kinds.system1
+    @include subsystem_folder_placeholder/cp2k.in.qmmm.link.system1
     NOCOMPATIBILITY
     &FORCEFIELD
       &NONBONDED14
-        @include subsystem_folder/cp2k.in.qmmm.lj.system1
+        @include subsystem_folder_placeholder/cp2k.in.qmmm.lj.system1
       &END NONBONDED14
     &END FORCEFIELD
   &END QMMM

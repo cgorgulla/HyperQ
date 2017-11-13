@@ -14,13 +14,13 @@
         DO_EWALD           T
         DISPERSION         T
         &PARAMETER
-          PARAM_FILE_PATH  subsystem_folder/../../../input-files/common/dftb/3ob-3-1
+          PARAM_FILE_PATH  subsystem_folder_placeholder/../../../input-files/common/dftb/3ob-3-1
           PARAM_FILE_NAME  file.associations
           DISPERSION_TYPE  D3 
           DISPERSION_RADIUS           15.
           COORDINATION_CUTOFF         1.e-4
           D3_SCALING                  1.0 1.0 1.5
-          DISPERSION_PARAMETER_FILE subsystem_folder/../../../input-files/common/dftd/dftd3.dat
+          DISPERSION_PARAMETER_FILE subsystem_folder_placeholder/../../../input-files/common/dftd/dftd3.dat
         &END PARAMETER
       &END DFTB
     &END QS
@@ -71,7 +71,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
         EMAX_SPLINE 100000
@@ -96,12 +96,12 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT upsf
-      CONN_FILE_NAME subsystem_folder/system1.cp2k.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.cp2k.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.sub.kind.dftb3.3ob
-    @include subsystem_folder/cp2k.in.sub.kind.element.c36
+    @include subsystem_folder_placeholder/cp2k.in.sub.kind.dftb3.3ob
+    @include subsystem_folder_placeholder/cp2k.in.sub.kind.element.c36
   &END SUBSYS  
   &QMMM
     &CELL
@@ -112,8 +112,8 @@
     CENTER never
     CENTER_GRID false
     USE_GEEP_LIB 12               
-    @include subsystem_folder/cp2k.in.qm_kinds.system1
-    @include subsystem_folder/cp2k.in.qmmm.link.system1   
+    @include subsystem_folder_placeholder/cp2k.in.qm_kinds.system1
+    @include subsystem_folder_placeholder/cp2k.in.qmmm.link.system1
     NOCOMPATIBILITY
   &END QMMM
 &END FORCE_EVAL

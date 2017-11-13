@@ -14,7 +14,7 @@
     STEPS 100000
     !HQ_STEPS_TOTAL 100000             ! should be equal to the value of STEPS. HyperQ uses this value to adjust the STEPS when preparing restart files
     TIMESTEP [fs] 1.0
-    TEMPERATURE [K] 298
+    TEMPERATURE [K] temperature_placeholder
     &BAROSTAT
       PRESSURE [bar] 1.0
       TIMECON [fs] 200.0
@@ -66,16 +66,16 @@
       VARIABLES a b
       MIXING_FUNCTION a+b
     &END
-    @include subsystem_folder/cp2k.in.mapping.single
+    @include subsystem_folder_placeholder/cp2k.in.mapping.single
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.subconfiguration.opt.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.opt.pdb
     &END TOPOLOGY
     &CELL
-      ABC cell_dimensions_full_rounded
+      ABC cell_dimensions_full_rounded_placeholder
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL

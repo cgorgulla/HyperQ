@@ -147,8 +147,8 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.} </address>|g" ipi.in.*
-    sed -i "s|<address>.*cp2k.*|<address> ${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.} </address>|g" ipi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.}|g" ipi.in.*
+    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" ipi.in.*
 
     # Removing the socket files if still existent from previous runs
     rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
@@ -186,7 +186,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
+                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
@@ -231,7 +231,7 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
     rm iqi.out.run${run}* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|<address>.*iqi.*|<address> ${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.} </address>|g" iqi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.}|g" iqi.in.*
 
     # Starting i-QI
     echo " * Starting iqi"

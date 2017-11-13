@@ -7,7 +7,7 @@
 &MOTION
   &DRIVER
     UNIX
-    HOST address.cp2k
+    HOST address_cp2k_placeholder
   &END DRIVER
 &END MOTION
 
@@ -29,16 +29,16 @@
       VARIABLES c d
       MIXING_FUNCTION c+d
     &END
-    @include subsystem_folder/cp2k.in.mapping.single
+    @include subsystem_folder_placeholder/cp2k.in.mapping.single
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.subconfiguration.eq.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.eq.pdb
     &END TOPOLOGY
     &CELL
-      ABC cell_dimensions_full_rounded
+      ABC cell_dimensions_full_rounded_placeholder
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL

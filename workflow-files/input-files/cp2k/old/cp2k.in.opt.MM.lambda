@@ -102,13 +102,13 @@
       VARIABLES a b c d
       MIXING_FUNCTION (1-lambda_value)*(a+b)+lambda_value*(c+d)
     &END
-    @include subsystem_folder/cp2k.in.mapping.opt
+    @include subsystem_folder_placeholder/cp2k.in.mapping.opt
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.a1c1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.a1c1.pdb
     &END TOPOLOGY
     &CELL
       ABC 58.558 60.576 42.820
@@ -131,7 +131,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -156,13 +156,13 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS
   &PRINT
     &FORCES off
@@ -188,11 +188,11 @@
         EMAX_SPLINE 100000000.0
       &END
       #&NONBONDED
-      #  @include subsystem_folder/cp2k.in.LJ.system2
+      #  @include subsystem_folder_placeholder/cp2k.in.LJ.system2
       #&END NONBONDED
-      @include subsystem_folder/cp2k.in.bonds.system2
-      @include subsystem_folder/cp2k.in.angles.system2
-      @include subsystem_folder/cp2k.in.dihedrals.system2
+      @include subsystem_folder_placeholder/cp2k.in.bonds.system2
+      @include subsystem_folder_placeholder/cp2k.in.angles.system2
+      @include subsystem_folder_placeholder/cp2k.in.dihedrals.system2
     &END FORCEFIELD
     &POISSON
       &EWALD
@@ -206,9 +206,9 @@
   &SUBSYS
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system2.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system2.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system2.dummy.psf      
+      CONN_FILE_NAME subsystem_folder_placeholder/system2.dummy.psf
       &GENERATE 
         BONDLENGTH_MAX 10000
       &END GENERATE
@@ -241,11 +241,11 @@
         EMAX_SPLINE 100000000.0
       &END
       #&NONBONDED
-      #  @include subsystem_folder/cp2k.in.LJ.system1
+      #  @include subsystem_folder_placeholder/cp2k.in.LJ.system1
       #&END NONBONDED
-      @include subsystem_folder/cp2k.in.bonds.system1
-      @include subsystem_folder/cp2k.in.angles.system1
-      @include subsystem_folder/cp2k.in.dihedrals.system1
+      @include subsystem_folder_placeholder/cp2k.in.bonds.system1
+      @include subsystem_folder_placeholder/cp2k.in.angles.system1
+      @include subsystem_folder_placeholder/cp2k.in.dihedrals.system1
     &END FORCEFIELD
     &POISSON
       &EWALD
@@ -259,9 +259,9 @@
   &SUBSYS
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.dummy.psf      
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.dummy.psf
       &GENERATE 
         BONDLENGTH_MAX 10000
       &END GENERATE
@@ -287,7 +287,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system2.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system2.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -313,13 +313,13 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system2.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system2.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system2.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system2.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS
   &PRINT
     &FORCES off

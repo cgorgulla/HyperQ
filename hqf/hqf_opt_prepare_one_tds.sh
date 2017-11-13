@@ -208,14 +208,14 @@ if [ "${tdcycle_type}" == "hq" ]; then
         done
 
         # Adjust the CP2K input files
-        sed -i "s/lambda_value/${lambda_current}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/subconfiguration/${bead_configuration}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../|" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda_current}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/subconfiguration_placeholder_placeholder/${bead_configuration}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" tds.${bead_configuration}/cp2k/cp2k.in.*
     fi
 elif [ "${tdcycle_type}" == "lambda" ]; then
 
@@ -316,14 +316,14 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         done
 
         # Adjust the CP2K input files
-        sed -i "s/lambda_value/${lambda_current}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/subconfiguration/${lambda_configuration}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../|" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda_current}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" tds.${lambda_configuration}/cp2k/cp2k.in.*
     fi
 fi
 

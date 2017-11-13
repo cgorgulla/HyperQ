@@ -100,7 +100,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME subsystem_folder/system1.prm
+      PARM_FILE_NAME subsystem_folder_placeholder/system1.prm
       PARMTYPE chm
       &SPLINE
          EMAX_SPLINE 100000
@@ -126,13 +126,13 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system1.opt.out.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system1.opt.out.pdb
       CONN_FILE_FORMAT psf
-      CONN_FILE_NAME subsystem_folder/system1.psf
+      CONN_FILE_NAME subsystem_folder_placeholder/system1.psf
     &END TOPOLOGY
-    @include subsystem_folder/cp2k.in.kind.1
-    @include subsystem_folder/cp2k.in.kind.2
-    @include subsystem_folder/cp2k.in.kind.3
+    @include subsystem_folder_placeholder/cp2k.in.kind.1
+    @include subsystem_folder_placeholder/cp2k.in.kind.2
+    @include subsystem_folder_placeholder/cp2k.in.kind.3
   &END SUBSYS
   &PRINT
     &FORCES off

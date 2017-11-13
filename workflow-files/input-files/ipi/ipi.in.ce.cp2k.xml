@@ -10,18 +10,18 @@
   <total_steps>0</total_steps>
   <prng> <seed> 32342 </seed> </prng>
   <ffsocket mode='unix' name='cp2k' pbc="true">
-    <address> address.cp2k </address>
+    <address> address_cp2k_placeholder </address>
     <latency>0.01</latency>
     <timeout>5000</timeout>
   </ffsocket>
   <system>
-    <initialize nbeads='1'>
+    <initialize nbeads='nbeads_placeholder'>
       <file mode='chk'> ipi.in.restart </file>
     </initialize>
     <forces>
       <force forcefield='cp2k'/></forces>
     <ensemble>
-      <temperature units="kelvin"> 298 </temperature>
+      <temperature units="kelvin"> temperature_placeholder </temperature>
       <pressure units='bar'> 1.0 </pressure>
     </ensemble>
     <motion mode="dynamics">

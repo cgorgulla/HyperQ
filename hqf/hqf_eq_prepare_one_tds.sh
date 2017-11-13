@@ -80,6 +80,7 @@ inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsy
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 eq_continue="$(grep -m 1 "^eq_continue="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+temperature="$(grep -m 1 "^temperature="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$(($tdw_count + 1))"
 
@@ -222,12 +223,13 @@ if [ "${tdcycle_type}" == "hq" ]; then
         # Adjust the CP2K input files
         sed -i "s/lambda_value/${lambda_current}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s/subconfiguration/${bead_configuration}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../|" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/temperature_placeholder/${temperature}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded/${cell_A} ${cell_B} ${cell_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded/${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" tds.${bead_configuration}/cp2k/cp2k.in.*
     fi
 elif [ "${tdcycle_type}" == "lambda" ]; then
 
@@ -336,14 +338,15 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         done
 
         # Adjust the CP2K input files
-        sed -i "s/lambda_value/${lambda_current}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/subconfiguration/${lambda_configuration}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../|" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda_current}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/temperature_placeholder/${temperature}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" tds.${lambda_configuration}/cp2k/cp2k.in.*
     fi
 fi
 

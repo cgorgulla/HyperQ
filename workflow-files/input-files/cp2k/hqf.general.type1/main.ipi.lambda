@@ -7,7 +7,7 @@
 &MOTION
   &DRIVER
     UNIX
-    HOST address.cp2k
+    HOST address_cp2k_placeholder
   &END DRIVER
 &END MOTION
 
@@ -27,18 +27,18 @@
       # c: H1d  : Hamiltonian of system 1 dummies
       # d: H2   : Hamltionian of system 2
       VARIABLES a b c d
-      MIXING_FUNCTION (1-lambda_value)*(a+b)+lambda_value*(c+d)
+      MIXING_FUNCTION (1-lambda_value_placeholder)*(a+b)+lambda_value_placeholder*(c+d)
     &END
-    @include subsystem_folder/cp2k.in.mapping.double
+    @include subsystem_folder_placeholder/cp2k.in.mapping.double
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder/system.subconfiguration.eq.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.eq.pdb
     &END TOPOLOGY
     &CELL
-      ABC cell_dimensions_full_rounded
+      ABC cell_dimensions_full_rounded_placeholder
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL

@@ -127,8 +127,9 @@ prepare_restart() {
     cp ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/${restart_file} ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     sed -i "/<step>/d" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
-    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
-    sed -i "s|subsystem_folder|../../..|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads_placeholder|${nbeads}|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder_placeholder|../../..|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
+    sed -i "s|temperature_placeholder|${temperature}|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
 
     # Preparing the CP2K files
     for bead in $(eval echo "{1..${nbeads}}"); do
@@ -178,8 +179,8 @@ prepare_restart() {
             done
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/lambda_value/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/lambda_value_placeholder/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
 
         elif [ "${tdcycle_type}" ==  "hq" ]; then
 
@@ -214,16 +215,16 @@ prepare_restart() {
             done
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         fi
 
         # Adjusting the CP2K files
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../../../|" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../../../..|" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
@@ -237,7 +238,7 @@ prepare_restart() {
         mkdir -p ${crosseval_folder}/snapshot-${restart_ID}/iqi
         cp ../../../input-files/iqi/${inputfile_iqi_md} ${crosseval_folder}/snapshot-${restart_ID}/iqi/iqi.in.main.xml
         cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${crosseval_folder}/snapshot-${restart_ID}/iqi/
-        sed -i "s|subsystem_folder|../../..|g" ${crosseval_folder}/snapshot-${restart_ID}/iqi/iqi.in.main.xml
+        sed -i "s|subsystem_folder_placeholder|../../..|g" ${crosseval_folder}/snapshot-${restart_ID}/iqi/iqi.in.main.xml
     fi
 }
 
@@ -270,6 +271,7 @@ inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsyst
 inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+temperature="$(grep -m 1 "^temperature=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
 
 

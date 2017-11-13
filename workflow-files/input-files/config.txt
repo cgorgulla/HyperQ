@@ -2,6 +2,9 @@
 **************************************************************************   General   **************************************************************************
 *****************************************************************************************************************************************************************
 
+# Notes
+# The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
+
 workflow_id=A
 # Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q.
 # In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
@@ -11,7 +14,11 @@ verbosity=debug
 # Possible values: normal, debug
 # This option mainly effects the screen output and the logfiles
 
-# The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
+temperature=298
+# In Kelvin
+# Used during all simulations and calculations where a temperature is needed (i.e. EQ, MD, FEC)
+# Input files for the simulations are adjusted automatically by replacing the term 'temperature_placeholder'
+
 
 
 *****************************************************************************************************************************************************************
@@ -263,15 +270,15 @@ cp2k_command=cp2k.ssmp
 ****************************************************************************** i-PI *****************************************************************************
 
 # Ligand (L) input files
-inputfile_ipi_md_L=ipi.in.md.nvt.fast.xml
+inputfile_ipi_md_L=ipi.in.md.nvt.xml
 inputfile_ipi_ce_L=ipi.in.ce.cp2k.xml
 
 # Ligand, solvent (LS) input files
-inputfile_ipi_md_LS=ipi.in.md.nvt.medium.xml
+inputfile_ipi_md_LS=ipi.in.md.nvt.xml
 inputfile_ipi_ce_LS=ipi.in.ce.cp2k.xml
 
 # Protein, ligand, solvent (RLS) input files
-inputfile_ipi_md_RLS=ipi.in.md.nvt.slow.xml
+inputfile_ipi_md_RLS=ipi.in.md.nvt.xml
 inputfile_ipi_ce_RLS=ipi.in.ce.cp2k.xml
 
 ipi_set_randomseed=true
@@ -295,6 +302,15 @@ inputfile_iqi_md_RLS=iqi.in.RLS.xml
 inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 
+************************************************************************* MD Simulations ************************************************************************
+
+md_stride_L=1000
+md_stride_LS=500
+md_stride_RLS=100
+# The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
+# Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
+
+
 *********************************************************************** Cross-Evaluations ***********************************************************************
 
 ce_first_restart_ID_L=1
@@ -303,7 +319,7 @@ ce_first_restart_ID_RLS=1
 ce_stride_L=1
 ce_stride_LS=1
 ce_stride_RLS=1
-# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. the only every <stride_ce>th restart files of ipi from the MD simulations is issued
+# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
 
@@ -318,7 +334,6 @@ fec_stride_RLS=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
 # The snapshot folder in the cross evaluation folders are indexed starting by 1
 
-temperature=300
 C_absolute_tolerance=1
 delta_F_min=-10000
 delta_F_max=10000

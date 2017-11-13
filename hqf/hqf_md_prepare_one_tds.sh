@@ -80,6 +80,8 @@ md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/confi
 tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+temperature="$(grep -m 1 "^temperature=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_stride="$(grep -m 1 "^md_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -97,7 +99,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
     bead_configuration="k_${bead_count1}_${bead_count2}"
     tds_folder="tds.${bead_configuration}"
     k_stepsize=$(echo "1 / $tdw_count" | bc -l)
-    echo -e "\n * Preparing the files and directories for the fes with bead-configuration ${bead_configuration}"
+    echo -e "\n * Preparing the files and directories for the TDS with bead-configuration ${bead_configuration}"
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system.${bead_configuration}.eq.pdb)
@@ -177,9 +179,11 @@ if [ "${tdcycle_type}" == "hq" ]; then
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subconfiguration|${bead_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subsystem_folder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_stride_placeholder|${md_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|subconfiguration_placeholder|${bead_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
         sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
     fi
@@ -210,14 +214,13 @@ if [ "${tdcycle_type}" == "hq" ]; then
             done
 
             # Adjusting the CP2K input files
-            sed -i "s/subconfiguration/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE}.md.cp2k.${bead_configuration}|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -246,13 +249,13 @@ if [ "${tdcycle_type}" == "hq" ]; then
             done
 
             # Adjusting the CP2K input files
-            sed -i "s/subconfiguration/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -267,7 +270,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
         mkdir ${tds_folder}/iqi
         cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
         cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
-        sed -i "s|subsystem_folder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
+        sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
     fi
 
 elif [ "${tdcycle_type}" == "lambda" ]; then
@@ -296,7 +299,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     lambda_configuration=lambda_${lambda_current}
     tds_folder="tds.lambda_${lambda_current}"
 
-    echo -e "\n * Preparing the files and directories for the fes with lambda-configuration ${lambda_configuration}"
+    echo -e "\n * Preparing the files and directories for the TDS with lambda-configuration ${lambda_configuration}"
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system.${lambda_configuration}.eq.pdb)
@@ -376,9 +379,11 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|nbeads=.*>|nbeads='${nbeads}'>|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subconfiguration|${lambda_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subsystem_folder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_stride_placeholder|${md_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|subconfiguration_placeholder|${lambda_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
         sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
     fi
@@ -429,14 +434,14 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         done
 
         # Adjusting the CP2K input files
-        sed -i "s/subconfiguration/${lambda_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/lambda_value/${lambda_current}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_full_rounded/GMAX ${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_odd_rounded/GMAX ${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|subsystem_folder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda_current}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the input files of i-QI
@@ -450,6 +455,6 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         mkdir ${tds_folder}/iqi
         cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
         cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
-        sed -i "s|subsystem_folder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
+        sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
     fi
 fi

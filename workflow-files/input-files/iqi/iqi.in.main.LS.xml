@@ -1,12 +1,12 @@
 <simulation verbosity="debug">
 	<interface type="socket">
 		<socket type="unix">
-			<address> address.iqi </address>
+			<address> address_iqi_placeholder </address>
 		</socket>
 	</interface>
    	<atoms>
    		<type>
-   			<file type="pdbx"> subsystem_folder/system.a1c1.pdbx</file>
+   			<file type="pdbx"> subsystem_folder_placeholder/system.a1c1.pdbx</file>
 		</type>
    	</atoms>
 	<potential type="QMMM1">
