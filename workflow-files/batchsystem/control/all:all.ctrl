@@ -4,6 +4,12 @@
 
 # The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
 
+job_initial_sleeping_time_max=120
+# In seconds
+# Sleeping a random amount of time to avoid race conditions when jobs are starting and simultaneously
+# Relevant if the batchsystem starts pending jobs simultaneously
+# Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner (see the tasks_parallel_delay_time option in HQ config file)
+
 
 
 *****************************************************************************************************************************************************************

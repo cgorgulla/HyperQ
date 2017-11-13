@@ -35,19 +35,20 @@ line=$(grep -m 1 "^batchsystem=" input-files/config.txt)
 batchsystem="${line/batchsystem=}"
 
 # Verbosity
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+if [ "${verbosity_preparation}" = "debug" ]; then
     set -x
 fi
 
 # Determining the batchsystem
 if [ "${batchsystem}" == "slurm" ]; then
-    squeue -l | grep ${USER}
+    squeue -l | grep ${USER:0:8}
 elif [ "${batchsystem}" == "mtp" ]; then
-    qstat | grep ${USER} | grep -v " C "
+    qstat | grep ${USER:0:8} | grep -v " C "
 elif [ "${batchsystem}" == "lsf" ]; then
-    bjobs | grep ${USER}
+    bjobs | grep ${USER:0:8}
 elif [ "${batchsystem}" == "sge" ]; then
-    qstat | grep ${USER}
+    qstat | grep ${USER:0:8}
 else
     echo -e " * Unsupported batchsystem (${batchsystem}) specified in the file input-files/config.txt. Exiting... \n\n"
     exit 1

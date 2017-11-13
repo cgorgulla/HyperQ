@@ -475,8 +475,16 @@ trap 'exit_response' EXIT
 # Preparing the output folder for the batchsystem log files
 mkdir -p batchsystem/output-files
 
+###  Random sleep
+# Sleeping a random amount of time to avoid race conditions when jobs are started simultaneously
+# Relevant if the batchsystem starts pending jobs simultaneously. Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner
+job_initial_sleeping_time_max="$(grep -m 1 "^job_initial_sleeping_time_max=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+disperson_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n1)
+sleep ${disperson_time}
+
 
 ### Running the subjobs ###
+
 source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 
 # Waiting for the subjobs to finish
