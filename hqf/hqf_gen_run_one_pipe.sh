@@ -74,7 +74,7 @@ error_response_std() {
     echo
     echo
 
-    # Error flag file for the batchsystem module
+    # Setting the file-based error flag for the batchsystem module
     touch runtime/${HQ_STARTDATE}/error
     exit 1
 }
@@ -98,27 +98,17 @@ trap 'user_abort' SIGINT
 # Exit cleanup
 cleanup_exit() {
 
+    # Printing some information
+    echo
     echo "Cleaning up..."
-
-    # Changing to the root folder
-    for i in {1..5}; do
-        if [ -d input-files ]; then
-            # Removing possible error files
-            rm runtime/error 1>/dev/null 2>&1 || true
-            break
-        else
-            cd ..
-        fi
-    done
 
     # Removing remaining socket files
     rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.* 2>&1 > /dev/null
 
     # Terminating all remaining processes
-    # Get our process group id
-    #pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
-    # $$ (process id) equals pgid since we are the session leader
-    pgid=$$
+    # Getting our process group id
+    pgid=$(ps -o pgid= $$ | grep -o [0-9]*)
+    # The pgid is supposed to be the pid since we are supposed to be the session leader, but due to the error we can't be sure
 
     # Terminating everything which was started by this script
     pkill -SIGTERM -P $$ || true
@@ -138,17 +128,6 @@ cleanup_exit() {
     " || true &> /dev/null
 }
 trap "cleanup_exit" EXIT
-
-# Error indicator check
-check_error_indicators() {
-
-    waiting_time=${1}
-    sleep ${waiting_time}
-    if [ -f "runtime/error" ]; then
-        echo -e " * Error detected. Exiting...\n\n"
-        exit 1
-    fi
-}
 
 # Convert pid to pgid
 pgid_from_pid() {
@@ -210,7 +189,7 @@ fi
 
 # Folders
 mkdir -p ${logfile_folder_root}
-mkdir -p runtime/${HQ_STARTDATE}
+mkdir -p runtime/${HQ_STARTDATE}/
 
 # Checking if we are the session leader
 pgid=$(pgid_from_pid $$)

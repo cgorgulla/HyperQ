@@ -45,8 +45,9 @@ error_response_std() {
     # Changing to the root folder
     for i in {1..10}; do
         if [ -d input-files ]; then
+
             # Setting the error flag
-            echo "" > runtime/${HQ_STARTDATE}
+            touch runtime/${HQ_STARTDATE}/error
             exit 1
         else
             cd ..
@@ -293,7 +294,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     if  [ ! "${lambdavalue_count}" -ge "1" ]; then
         echo "Check failed"
         echo -e "\n * Error: The CP2K equilibration input file does not contain the lambda_value variable. Exiting...\n\n"
-        echo "" > runtime/${HQ_STARTDATE}
+        touch runtime/${HQ_STARTDATE}/error
         exit 1
     fi
     echo "OK"

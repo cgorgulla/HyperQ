@@ -22,7 +22,7 @@ if [ "$#" -ne "0" ]; then
     echo -e "$usage"
     echo
     echo
-    echo "" > runtime/${HQ_STARTDATE}
+    touch runtime/${HQ_STARTDATE}/error
     exit 1
 fi
 
@@ -40,8 +40,9 @@ error_response_std() {
     # Changing to the root folder
     for i in {1..10}; do
         if [ -d input-files ]; then
+
             # Setting the error flag
-            echo "" > runtime/${HQ_STARTDATE}
+            touch runtime/${HQ_STARTDATE}/error
             exit 1
         else
             cd ..

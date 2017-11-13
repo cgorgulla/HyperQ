@@ -49,8 +49,9 @@ error_response_std() {
     # Changing to the root folder
     for i in {1..10}; do
         if [ -d input-files ]; then
+
             # Setting the error flag
-            echo "" > runtime/${HQ_STARTDATE}
+            touch runtime/${HQ_STARTDATE}/error
             exit 1
         else
             cd ..
@@ -126,20 +127,62 @@ elif [[ "${md_continue^^}" == "FALSE" ]] || ( [[ "${md_continue^^}" == "TRUE" ]]
 
     # Preparing the main folder
     echo -e " * Preparing the main folder"
-    mkdir -p md/${msp_name}/${subsystem}
+    mkdir -p md/${msp_name}/${subsystem} || true
     cd md/${msp_name}/${subsystem}
 
     # Copying the shared simulation files
     echo -e " * Copying general simulation files"
     system_ID=1
     for system_basename in ${system1_basename} ${system2_basename}; do
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm
-        cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx
+
+        # Copying the required input files. Making sure the files exist, and copying them ignoring possible errors which can arise during parallel preparations of different TDS of the same MSP
+        if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ]; then
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf || true
+        else
+            # Printing some error message
+            echo "Error: An required input-file does not exist. Exiting...\n\n"
+
+            # Raising an error
+            false
+        fi
+        if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ]; then
+            cp../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true
+        else
+            # Printing some error message
+            echo "Error: An required input-file does not exist. Exiting...\n\n"
+
+            # Raising an error
+            false
+        fi
+        if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ]; then
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm || true
+        else
+            # Printing some error message
+            echo "Error: An required input-file does not exist. Exiting...\n\n"
+
+            # Raising an error
+            false
+        fi
+        if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ]; then
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx || true
+        else
+            # Printing some error message
+            echo "Error: An required input-file does not exist. Exiting...\n\n"
+
+            # Raising an error
+            false
+        fi
         (( system_ID += 1 ))
     done
-    cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
+    if [ -f ../../../input-files/mappings/${msp_name} ]; then
+        cp ../../../input-files/mappings/${msp_name} ./system.mcs.mapping || true
+    else
+        # Printing some error message
+        echo "Error: An required input-file does not exist. Exiting...\n\n"
+
+        # Raising an error
+        false
+    fi
 
     # Preparing the shared CP2K input files
     hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}

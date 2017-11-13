@@ -59,8 +59,9 @@ error_response_std() {
     # Changing to the root folder
     for i in {1..10}; do
         if [ -d input-files ]; then
+
             # Setting the error flag
-            echo "" > runtime/${HQ_STARTDATE}
+            touch runtime/${HQ_STARTDATE}/error
             exit 1
         else
             cd ..
@@ -128,6 +129,7 @@ fi
 # Preparing files and folders
 mkdir -p batchsystem/output-files
 mkdir -p ${temp_folder}
+touch ${temp_folder}/jobs-all
 touch ${temp_folder}/jobs-to-start
 
 # Checking if we should check for already active jobs
@@ -139,7 +141,6 @@ if [ "${check_active_jobs^^}" == "TRUE" ]; then
     echo -e "\nChecking which jobs are already in the batchsystem"
 
     # Getting the active jobs
-    touch ${temp_folder}/jobs-all
     hqh_bs_sqs.sh > ${temp_folder}/jobs-all 2>/dev/null || true
 
     # Determining which jobs which have to be restarted
