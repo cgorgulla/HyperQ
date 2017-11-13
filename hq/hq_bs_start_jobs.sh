@@ -83,7 +83,7 @@ cleanup_exit() {
     # Removing the temp-folder
     rm -r ${temp_folder} || true
 }
-set 'cleanup_exit' EXIT
+trap 'cleanup_exit' EXIT
 
 # Bash options
 set -o pipefail
