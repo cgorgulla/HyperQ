@@ -67,9 +67,9 @@ if [ "${verbosity_preparation}" = "debug" ]; then
     set -x
 fi
 
-# Checking if the variable HQ_ROOT is set
+# Checking if the variable HQ_HOME is set
 if [[ -z "${HQ_HOME}" ]]; then
-    echo -e "\n * Error: The environment variable HQ_ROOT is not set. Exiting...\n\n"
+    echo -e "\n * Error: The environment variable HQ_HOME is not set. Exiting...\n\n"
     exit 1
 fi
 
@@ -206,7 +206,7 @@ fi
 echo
 while true; do
     echo
-    read -p "Should the batchsystem folder be prepared?" answer
+    read -p "Should the batchsystem folder be prepared? " answer
     case ${answer} in
         [Yy]* ) answer=true; break;;
         [Nn]* ) answer=false; break;;
@@ -344,6 +344,28 @@ if [ "${answer}" = "true" ]; then
 
         # Removing the old files and folders
         rm -r batchsystem/job-files &> /dev/null || true
+    fi
+
+    ### Output-files folder ###
+    # Asking if the output-files folder should be prepared
+    echo
+    while true; do
+        echo
+        read -p "Should the batchsystem/output-files folder be deleted if it exists? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+    # Checking the answer
+    if [ "${answer}" = "true" ]; then
+
+        # Printing some information
+        echo -e " * Deleting the batchsystem/output-files folder if it exists"
+
+        # Removing the old files and folders
+        rm -r batchsystem/output-files &> /dev/null || true
     fi
 
 fi
