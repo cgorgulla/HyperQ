@@ -35,7 +35,7 @@ bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
 if [ ${bash_version} -lt 43 ]; then
     # Printing some information
     echo
-    echo "Error: BASH version seems to be too old. At least version 4.3 is required."
+    echo "Error: The Bash version seems to be too old. At least version 4.3 is required."
     echo "Exiting..."
     echo
     echo

@@ -62,25 +62,24 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')" &>/dev/null || true      # the config file might not exist yet since this script might just prepare it
+verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt &>/dev/null | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')" &>/dev/null || true      # the config file might not exist yet since this script might just prepare it
 if [ "${verbosity_preparation}" = "debug" ]; then
     set -x
-fi
-
-# Checking the folder
-if [ ! -d input-files ]; then
-    echo
-    echo -e " * Error: This script has to be run in the root folder. Exiting..."
-    echo
-    echo
-
-    false
 fi
 
 # Checking if the variable HQ_ROOT is set
 if [[ -z "${HQ_HOME}" ]]; then
     echo -e "\n * Error: The environment variable HQ_ROOT is not set. Exiting...\n\n"
     exit 1
+fi
+
+# Checking if we are in the root folder
+if [ ! -d input-files ]; then
+
+    # Since the input-folder might not exist yet, we inform the user that this has to be the root folder and give him a chance to abort
+    echo -e "\n"
+    read -p "This script has to be run in the root folder of the workflow. Press key to continue... "
+    echo- d "\n"
 fi
 
 # Asking the user if the input-folder should be prepared
