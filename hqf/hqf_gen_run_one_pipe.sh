@@ -73,6 +73,9 @@ error_response_std() {
     echo "Exiting..."
     echo
     echo
+
+    # Error flag file for the batchsystem module
+    touch runtime/${HQ_STARTDATE}/error
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -109,7 +112,7 @@ cleanup_exit() {
     done
 
     # Removing remaining socket files
-    rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.* 2>&1 > /dev/null
+    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.* 2>&1 > /dev/null
 
     # Terminating all remaining processes
     # Get our process group id
@@ -170,7 +173,8 @@ if [ ! -d input-files ]; then
     echo -e " * Error: This script has to be run in the root folder. Exiting..."
     echo
     echo
-    exit 1
+
+    false
 fi
 
 # Verbosity
@@ -181,9 +185,9 @@ if [ "${HQ_VERBOSITY}" == "debug" ]; then
 fi
 
 # Internal start startdate_hr
-if [ -z "${HQF_STARTDATE}" ]; then
-    HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-    export HQF_STARTDATE
+if [ -z "${HQ_STARTDATE}" ]; then
+    HQ_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+    export HQ_STARTDATE
 fi
 
 # Variables
@@ -197,11 +201,6 @@ command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pi
 startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"                          # human readable format
 logfile_folder_root="log-files/${startdate_hr}/${msp_name}_${subsystem}"
 
-# Removing old file
-if [ -f runtime/error ]; then
-    rm runtime/error || true
-fi
-
 # TDS Range
 if [ "${#}" == "4" ]; then
     tds_range="${4}"
@@ -211,7 +210,7 @@ fi
 
 # Folders
 mkdir -p ${logfile_folder_root}
-mkdir -p runtime
+mkdir -p runtime/${HQ_STARTDATE}
 
 # Checking if we are the session leader
 pgid=$(pgid_from_pid $$)

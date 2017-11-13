@@ -22,8 +22,11 @@ fi
 # Basic variables
 starting_time="$(date)"
 start_time_seconds="$(date +%s)"
-export HQF_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQ_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+
+# Creating the runtime error
+mkdir -p runtime/${HQ_STARTDATE}
 
 # Checking the version of BASH, we need at least 4.3 (wait -n)
 bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
@@ -267,7 +270,7 @@ print_job_infos_end() {
 sync_control_parameters
 
 # Standard internal error response
-error_response_std() {
+internal_error_response() {
 
     # Printing basic error information
     echo
@@ -305,7 +308,7 @@ error_response_std() {
     # Exiting (only reached if signal response is not 'ignore')
     exit 1
 }
-trap 'error_response_std $LINENO' ERR
+trap 'internal_error_response $LINENO' ERR
 
 
 # Type 1 signal handling
@@ -482,8 +485,16 @@ wait
 # Sleeping some time because sometimes the processes/tasks of this job might respond to job signals earlier than this script, which might be interpreted by the script as successful completion of the job (happened on the HLRN)
 sleep 60
 
+# Checking if the job was successful
+if [ -f runtime/${HQ_STARTDATE}/error ]; then
 
-### Finalizing the job ###
+    # There was an internal HQ error not propagated by the tasks, causing the error response now
+    false
+
+fi
+
+
+### Finalizing the job (success case) ###
 
 # Syncing the control parameters
 sync_control_parameters

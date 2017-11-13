@@ -38,9 +38,9 @@ error_response_std() {
     if [ "${HQ_TASK_ERROR_RESPONSE}" == "internal_error" ]; then
 
         # Printing some information
-        echo -e " * The entire subjob will be terminated, and an internal job error raised..."
+        echo -e " * The entire subjob will be terminated with exit code 1."
 
-        # Exiting
+        # Exiting, exit code propagation is not ensured due to the subjob command (therefore we have our internal error handling backup mechanism in HQ)
         exit 1
     else
 

@@ -22,7 +22,7 @@ if [ "$#" -ne "0" ]; then
     echo -e "$usage"
     echo
     echo
-    echo "" > runtime/error
+    echo "" > runtime/${HQ_STARTDATE}
     exit 1
 fi
 
@@ -41,8 +41,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..

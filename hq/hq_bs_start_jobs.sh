@@ -55,8 +55,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..
@@ -67,7 +66,7 @@ error_response_std() {
     echo "Error: Cannot find the input-files directory..."
     exit 1
 }
-trap 'error_response_nonstd $LINENO' ERR
+trap 'error_response_std $LINENO' ERR
 
 # Bash options
 set -o pipefail

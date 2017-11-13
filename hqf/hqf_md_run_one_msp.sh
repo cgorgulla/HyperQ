@@ -57,8 +57,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..
@@ -85,7 +84,7 @@ clean_exit() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -93,7 +92,7 @@ clean_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating the main processes
         kill ${pids[*]} 1>/dev/null 2>&1 || true
@@ -102,7 +101,7 @@ clean_exit() {
 
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${workflow_id}.${HQF_STARTDATE}.md.* 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.* 1>/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true

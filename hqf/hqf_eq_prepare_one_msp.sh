@@ -50,8 +50,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..
@@ -143,7 +142,7 @@ fi
 if  [ ! "${lambdavalue_count}" -ge "1" ]; then
     echo "Check failed"
     echo -e "\n * Error: The CP2K equilibration input file does not contain the lambda_value variable. Exiting...\n\n"
-    echo "" > runtime/error
+    echo "" > runtime/${HQ_STARTDATE}
     exit 1
 fi
 echo "OK"

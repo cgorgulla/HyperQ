@@ -47,8 +47,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..

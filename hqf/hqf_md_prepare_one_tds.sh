@@ -46,8 +46,7 @@ error_response_std() {
     for i in {1..10}; do
         if [ -d input-files ]; then
             # Setting the error flag
-            mkdir -p runtime
-            echo "" > runtime/error
+            echo "" > runtime/${HQ_STARTDATE}
             exit 1
         else
             cd ..
@@ -218,7 +217,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             sed -i "s/GMAX *cell_dimensions_scaled_rounded/GMAX ${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/GMAX *cell_dimensions_scaled_odd_rounded/GMAX ${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s|subsystem_folder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQF_STARTDATE}.md.cp2k.${bead_configuration}|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE}.md.cp2k.${bead_configuration}|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -286,7 +285,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     if  [ ! "${lambdavalue_count}" -ge "1" ]; then
         echo "Check failed"
         echo -e "\n * Error: The CP2K equilibration input file does not contain the lambda_value variable. Exiting...\n\n"
-        echo "" > runtime/error
+        echo "" > runtime/${HQ_STARTDATE}
         exit 1
     fi
     echo "OK"
