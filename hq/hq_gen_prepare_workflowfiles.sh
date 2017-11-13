@@ -220,6 +220,9 @@ if [ "${answer}" = "true" ]; then
     # Printing some information
     echo -e "\n\n *** Preparing the batchsystem folder ***\n"
 
+    # Preparing the batchsystem directory if not yet there
+    mkdir -p batchsystem
+
     ### Tasks folder ###
     # Asking if the tasks folder should be prepared
     echo
@@ -236,7 +239,7 @@ if [ "${answer}" = "true" ]; then
     if [ "${answer}" = "true" ]; then
 
         # Printing some information
-        echo -e " * Preparing the batchsystem/tasks folder"
+        echo -e " * Preparing the batchsystem/task-lists folder"
 
         # Removing the old files and folders
         rm -r batchsystem/task-lists &> /dev/null || true
