@@ -78,8 +78,7 @@ if [ ! -d input-files ]; then
 
     # Since the input-folder might not exist yet, we inform the user that this has to be the root folder and give him a chance to abort
     echo -e "\n"
-    read -p "This script has to be run in the root folder of the workflow. Press key to continue... "
-    echo- d "\n"
+    read -p "This script has to be run in the root folder of the workflow. Press Enter to continue... "
 fi
 
 # Asking the user if the input-folder should be prepared
