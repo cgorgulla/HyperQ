@@ -170,7 +170,7 @@ task_counter=1                                                              # Co
 while IFS='' read -r command_task; do
 
     # Printing some information
-    echo -e " * Preparing task ${task_ID} of job ${jid}, subjob ${sjid}"
+    echo -e " * Preparing task ${task_ID} of subjob ${sjid} of job ${jid}"
 
     # Variables
     job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"

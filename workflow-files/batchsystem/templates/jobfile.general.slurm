@@ -5,10 +5,10 @@
 
 #SBATCH --job-name=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 #SBATCH --partition=main
-#SBATCH --time=00-01:00:00
-#SBATCH --nodes=1
+#SBATCH --time=07-00:00:00
+#SBATCH --nodes=1       # Todo: extension to multiple tasks (-n option) (we don't need it personally)
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=300                                                   # Should be at least 60 seconds. Recommended value: 300 seconds
+#SBATCH --mem-per-cpu=500                                                   # Should be at least 60 seconds. Recommended value: 300 seconds
 #SBATCH --signal=10@300
 ##SBATCH --constraint="scratch2"
 ##SBATCH --constraint="holyib"

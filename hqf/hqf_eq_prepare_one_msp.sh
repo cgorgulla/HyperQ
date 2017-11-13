@@ -183,7 +183,7 @@ elif [[ "${eq_continue^^}" == "FALSE" ]] || ( [[ "${eq_continue^^}" == "TRUE" ]]
             false
         fi
         if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ]; then
-            cp../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true
         else
             # Printing some error message
             echo "Error: An required input-file does not exist. Exiting...\n\n"

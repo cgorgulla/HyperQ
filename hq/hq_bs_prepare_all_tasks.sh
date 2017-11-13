@@ -110,7 +110,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     fi
 
     # Preparing the corresponding tasks for this MSP
-    echo -e " * Preparing the tasks for the MSP ${msp}"
+    echo -e " * Preparing the tasks for MSP ${msp}..."
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo "   * Preparing one task for each TDS..."
         for i in $(seq 1 ${tds_count}); do
