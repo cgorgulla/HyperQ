@@ -86,19 +86,20 @@ echo
 while true; do
     echo
     read -p "Should everything be prepared/cleaned up? " answer_cleanup_all
+    echo
     case ${answer_cleanup_all} in
         [Yy]* ) answer_cleanup_all=true; break;;
         [Nn]* ) answer_cleanup_all=false; break;;
-        * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        * ) echo -e "Unsupported answer. Possible answers are 'yes' or 'no'";;
     esac
 done
 
 # Asking the user if the input-folder should be prepared
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the input-files folder be prepared? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -116,10 +117,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Config files ###
     # Asking if the config-files should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the config files of the input-files folder be prepared (replacing existing files)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -140,10 +141,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### CP2K input-files folder ###
     # Asking if the CP2K folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the input-files/cp2k folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -167,10 +168,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### i-PI input-files folder ###
     # Asking if the i-PI folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the input-files/ipi folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -194,10 +195,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### i-QI input-files folder ###
     # Asking if the i-QI folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the input-files/iqi folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -222,10 +223,10 @@ fi
 
 # Asking the user if the batchsystem-folder should be prepared
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the batchsystem folder be prepared? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -247,6 +248,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         while true; do
             echo
             read -p "Should the batchsystem/task-lists folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -270,10 +272,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Template files folder ###
     # Asking if the templates folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/templates folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -297,10 +299,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### bin folder ###
     # Asking if the bin folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/bin folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -324,10 +326,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Control folder ###
     # Asking if the control folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/control folder be prepared (replacing existing files & folders)? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -351,10 +353,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Jobfiles folder ###
     # Asking if the control folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/job-files folder be deleted if it exists? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -375,10 +377,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Output-files folder ###
     # Asking if the output-files folder should be removed
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/output-files folder be removed if it exists? " answer
+            echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
                 [Nn]* ) answer=false; break;;
@@ -399,10 +401,10 @@ fi
 
 # Asking if the log-files folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the log-files folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -422,10 +424,10 @@ fi
 
 # Asking if the runtime folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the runtime folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -445,10 +447,10 @@ fi
 
 # Asking if the opt folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the opt folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -468,10 +470,10 @@ fi
 
 # Asking if the eq folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the eq folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -491,10 +493,10 @@ fi
 
 # Asking if the md folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the md folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -514,10 +516,10 @@ fi
 
 # Asking if the ce folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the ce folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;
@@ -537,10 +539,10 @@ fi
 
 # Asking if the fec folder should be removed
 if [ ${answer_cleanup_all} == "false" ]; then
-    echo
     while true; do
         echo
         read -p "Should the fec folder be removed if existent? " answer
+        echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
             [Nn]* ) answer=false; break;;

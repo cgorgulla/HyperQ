@@ -403,5 +403,6 @@ tasks_parallel_delay_time=10
 minimum_task_time=10
 # Possible values: Positive integer
 # Unit: Seconds
-# If the length of a task is less than the minimum_task_time, an internal error is raised
+# If the runtime of the tasks of a subjob is less than the minimum_task_time for at least one of the tasks, an internal error is raised.
+# The task_parallel_delay_time is not counted as runtime of the tasks
 # Recommended value: 10 seconds

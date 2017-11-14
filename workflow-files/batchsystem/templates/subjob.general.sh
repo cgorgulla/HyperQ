@@ -73,7 +73,6 @@ exit_response() {
 
     # Terminating remaining processes
     terminate_processes
-
 }
 trap 'exit_response' EXIT
 
@@ -85,8 +84,17 @@ echo "                                                    *** Task Output ***   
 echo "*********************************************************************************************************************************"
 echo
 
+# Variables
+task_starting_time=$(date +%s)
+tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+minimum_task_time=$(grep -m 1 "^minimum_task_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+waiting_time=0
+task_count=0
+
+
 # List of tasks
 #task_placeholder
+
 
 # Waiting for each process separately to be able to respond to the exit code of everyone of them (only needed for the parallel tasks mode, but does not interfere with the serial mode)
 # We could use a simple wait as well due to the recent change that tasks always produce exit code 0, as we are capturing HQ errors with our own file-based error report mechanism
@@ -94,3 +102,11 @@ job_count=$(jobs | wc -l)
 for pid in $(seq 1 ${job_count}); do
     wait -n
 done
+
+
+# Checking the runtime
+task_ending_time=$(date +%s)
+if [ $((task_ending_time-task_starting_time-waiting_time)) -lt $((task_count*minimum_task_time)) ]; then
+    echo -e "Error: Task finished too early. Raising a task error..."
+    false
+fi
