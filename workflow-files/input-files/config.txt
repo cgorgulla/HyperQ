@@ -399,3 +399,9 @@ tasks_parallel_delay_time=10
 #           (usually common files for the same MSP) to avoid race conditions which can cause HyperQ to fail
 #           The value is used during the job creation with hq_bs_prepare_jobfiles.sh
 # Recommended value: At least 10 seconds
+
+minimum_task_time=10
+# Possible values: Positive integer
+# Unit: Seconds
+# If the length of a task is less than the minimum_task_time, an internal error is raised
+# Recommended value: 10 seconds

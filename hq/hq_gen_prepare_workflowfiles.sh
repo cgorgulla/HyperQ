@@ -131,7 +131,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
         # Printing some information
-        echo -e " * Preparing the input-files/iqi folder"
+        echo -e " * Preparing the input-files/config.* files"
 
         # Copying the files
         cp ${HQ_HOME}/workflow-files/input-files/config.* input-files/
@@ -395,7 +395,6 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         # Removing the old files and folders
         rm -r batchsystem/output-files &> /dev/null || true
     fi
-
 fi
 
 # Asking if the log-files folder should be removed
@@ -419,7 +418,6 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
     # Removing the old files and folders
     rm -r log-files &> /dev/null || true
-
 fi
 
 # Asking if the runtime folder should be removed
@@ -443,7 +441,121 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
     # Removing the old files and folders
     rm -r runtime &> /dev/null || true
+fi
 
+# Asking if the opt folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the opt folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the opt folder if existent"
+
+    # Removing the old files and folders
+    rm -r opt &> /dev/null || true
+fi
+
+# Asking if the eq folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the eq folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the eq folder if existent"
+
+    # Removing the old files and folders
+    rm -r eq &> /dev/null || true
+fi
+
+# Asking if the md folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the md folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the md folder if existent"
+
+    # Removing the old files and folders
+    rm -r md &> /dev/null || true
+fi
+
+# Asking if the ce folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the ce folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the ce folder if existent"
+
+    # Removing the old files and folders
+    rm -r ce &> /dev/null || true
+fi
+
+# Asking if the fec folder should be removed
+if [ ${answer_cleanup_all} == "false" ]; then
+    echo
+    while true; do
+        echo
+        read -p "Should the fec folder be removed if existent? " answer
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+fi
+# Checking the answer
+if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Printing some information
+    echo -e " * Removing the fec folder if existent"
+
+    # Removing the old files and folders
+    rm -r fec &> /dev/null || true
 fi
 
 # Displaying some information

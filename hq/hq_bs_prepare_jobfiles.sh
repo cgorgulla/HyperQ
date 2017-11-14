@@ -114,6 +114,7 @@ workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:
 command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '[=#]' '{print $2}')
 command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '[=#]' '{print $2}')
 tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+minimum_task_time=$(grep -m 1 "^minimum_task_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
@@ -176,7 +177,7 @@ while IFS='' read -r command_task; do
     job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"
     subjoblist_file="batchsystem/job-files/subjob-lists/jtl-${jtl}.jid-${jid}.sh"
     subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
-    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
+    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out || true"
 
     # Checking if this task is the first task of a new subjob
     if [ "${task_ID}" -eq "1" ]; then
@@ -220,20 +221,26 @@ while IFS='' read -r command_task; do
         echo "${command_subjob}" >> ${subjoblist_file}
     fi
 
-    # Adding the task to the subjob file
-    #echo "${command_prefix_bs_task} ${command_task}" >> ${subjob_file}
-
+    # Adding the task starting time
+    sed -i "s/#task_placeholder/task_starting_time=\$(date +%s)\n#task_placeholder/g" ${subjob_file}
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
-        sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task} \& \nsleep ${tasks_parallel_delay_time}\n\n#task_placeholder|g" ${subjob_file}
+        # || takes precedence over &, thus no parentheses are needed
+        sed -i "s%#task_placeholder%${command_prefix_bs_task} ${command_task} \& \nsleep ${tasks_parallel_delay_time}\n#task_placeholder%g" ${subjob_file}
     elif [ "${parallelize_tasks}" == "false" ]; then
-        sed -i "s|#task_placeholder|${command_prefix_bs_task} ${command_task} \& \nwait\n\n#task_placeholder|g" ${subjob_file}
+        sed -i "s%#task_placeholder%${command_prefix_bs_task} ${command_task} \& \nwait\n#task_placeholder%g" ${subjob_file}
     else
         # Printing an error message before exiting
         echo -e "\n * Error: The input argument 'parallelize_tasks' has an unsupported value (${parallelize_tasks}). Exiting...\n\n"
         exit 1
     fi
+    # Adding the task ending time
+    sed -i "s/#task_placeholder/task_ending_time=\$(date +%s)\n#task_placeholder/g" ${subjob_file}
+    # Adding the task time checking code
+    sed -i "s/#task_placeholder/if test \$((task_ending_time-task_starting_time)) -lt ${minimum_task_time}; then echo \"Error: Task failed immediately\"; false; fi\n\n#task_placeholder/g" ${subjob_file}
 
+
+    # Checking if last task
     if [ "${task_counter}" == "${tasks_total}" ]; then
 
         # Finalizing the subjob file

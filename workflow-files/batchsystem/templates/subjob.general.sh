@@ -89,6 +89,7 @@ echo
 #task_placeholder
 
 # Waiting for each process separately to be able to respond to the exit code of everyone of them (only needed for the parallel tasks mode, but does not interfere with the serial mode)
+# We could use a simple wait as well due to the recent change that tasks always produce exit code 0, as we are capturing HQ errors with our own file-based error report mechanism
 job_count=$(jobs | wc -l)
 for pid in $(seq 1 ${job_count}); do
     wait -n
