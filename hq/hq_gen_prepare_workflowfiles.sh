@@ -110,9 +110,6 @@ fi
 # Checking the answer
 if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
-    # Printing some information
-    echo -e "\n\n *** Preparing the input-files folder ***\n"
-
     # Preparing the input-files directory if not yet there
     mkdir -p input-files
 
@@ -239,9 +236,6 @@ fi
 
 # Checking the answer
 if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
-
-    # Printing some information
-    echo -e "\n\n *** Preparing the batchsystem folder ***\n"
 
     # Preparing the batchsystem directory if not yet there
     mkdir -p batchsystem
