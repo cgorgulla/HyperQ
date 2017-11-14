@@ -130,7 +130,7 @@ if [ "${check_active_jobs^^}" == "TRUE" ]; then
 
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
-        if ! grep -q "${workflow_id}:${jtl}\.${jid}" ${temp_folder}/jobs-all; then
+        if ! grep -q "${workflow_id}:${jtl}\.${jid} " ${temp_folder}/jobs-all; then                 # The whitespace in the grep expression is important
 
             # Printing some information
             echo "Adding job ${jid} to the list of jobs to be started."
