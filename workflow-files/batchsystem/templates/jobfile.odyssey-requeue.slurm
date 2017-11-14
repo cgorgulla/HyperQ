@@ -5,7 +5,7 @@
 
 #SBATCH --job-name=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 #SBATCH --partition=serial_requeue
-#SBATCH --time=00-01:00:00
+#SBATCH --time=07-00:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=300                                                   # Should be at least 60 seconds. Recommended value: 300 seconds

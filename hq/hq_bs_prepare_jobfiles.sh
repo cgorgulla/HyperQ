@@ -192,6 +192,9 @@ while IFS='' read -r command_task; do
             sed -i "s/jtl_placeholder/${jtl}/g" ${job_file}
             sed -i "s/jid_placeholder/${jid}/g" ${job_file}
             sed -i "s/jsn_placeholder/1/g" ${job_file}
+
+            # Creating the subjob-list file / clearing if already existent
+            echo -n "" > ${subjoblist_file}
         fi
 
         # Preparing the initial subjob file
