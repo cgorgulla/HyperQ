@@ -8,7 +8,7 @@
 #SBATCH --time=07-00:00:00
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=300                                                   # Should be at least 60 seconds. Recommended value: 300 seconds
+#SBATCH --mem-per-cpu=1000                                                   # Should be at least 60 seconds. Recommended value: 300 seconds
 #SBATCH --signal=10@300
 ##SBATCH --constraint="scratch2"
 ##SBATCH --constraint="holyib"

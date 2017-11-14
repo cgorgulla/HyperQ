@@ -148,6 +148,7 @@ exit_response() {
 }
 trap 'exit_response' EXIT
 
+
 #                                                                         Running the tasks
 #####################################################################################################################################################################
 echo
@@ -168,7 +169,6 @@ trap '' ERR
 
 # List of tasks
 #task_placeholder
-
 
 
 # Waiting for each process separately to be able to respond to the exit code of everyone of them (only needed for the parallel tasks mode, but does not interfere with the serial mode)

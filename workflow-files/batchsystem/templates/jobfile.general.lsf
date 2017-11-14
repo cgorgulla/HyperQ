@@ -7,7 +7,7 @@
 #BSUB -q mpi
 #BSUB -W 150:00
 #BSUB -n 1
-#BSUB -R "rusage[mem=1000]"
+#BSUB -R "rusage[mem=1000]"                                                              # Memory per job (!)
 #BSUB -R "select[scratch2]"
 ##BSUB -R "span[ptile=8]"
 ##BSUB -R "rusage[ngpus=0.5]"                                                            # Relevant for orchestra
