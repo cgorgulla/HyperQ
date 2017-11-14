@@ -82,7 +82,7 @@ sim_type=${6}
 sim_programs=${7}
 
 # Copying the kind files
-cp ../../../input-files/cp2k/cp2k.in.sub.* ./
+cp ../../../input-files/cp2k/cp2k.in.sub.* ./ || true    # Parallel robustness
 
 # Preparing the mapping files
 echo -e " * Preparing the cp2k mapping files"
@@ -112,7 +112,7 @@ hqh_fes_prepare_cp2k_psf_dummy.py system2.vmd.psf system2.dummy.psf
 # System 1
 echo -e " * Preparing the cp2k qm_kind file for system 1"
 hqh_gen_prepare_cp2k_qm_kind.sh ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.all.qatoms.elements.*
-mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1
+mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1 || true    # Parallel robustness
 # System 2
 echo -e " * Preparing the cp2k qm_kind file for system 2"
 # Copying and adjusting the qatoms indices
@@ -130,7 +130,7 @@ else
     for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.elements.*; do
         element=${file/.indices}
         element=${element/*.}
-        cp $file system1.nonsolvent.qatoms.elements.${element}.indices
+        cp $file system1.nonsolvent.qatoms.elements.${element}.indices || true    # Parallel robustness
     done
 fi
 
@@ -141,7 +141,7 @@ else
     for file in ../../../input-files/systems/${system_2_basename}/${subsystem}/system_complete.reduced.nonsolvent.qatoms.elements.*; do
         element=${file/.indices}
         element=${element/*.}
-        cp $file system2.nonsolvent.qatoms.elements.${element}.indices
+        cp $file system2.nonsolvent.qatoms.elements.${element}.indices || true    # Parallel robustness
     done
 fi
 
@@ -152,14 +152,14 @@ else
     for file in ../../../input-files/systems/${system_1_basename}/${subsystem}/system_complete.reduced.solvent.qatoms.elements.*; do
         element=${file/.indices}
         element=${element/*.}
-        cp $file system1.solvent.qatoms.elements.${element}.indices
+        cp $file system1.solvent.qatoms.elements.${element}.indices || true    # Parallel robustness
         cat system1.solvent.qatoms.elements.${element}.indices | tr " " "\n" | awk -v a="$atom_count_difference1" '{print $1 + a}' | tr "\n" " " > system2.solvent.qatoms.elements.${element}.indices
     done
 fi
 
 # Preparing the cp2k qm_kind input files
 hqh_gen_prepare_cp2k_qm_kind.sh system2.nonsolvent.qatoms.elements.* system2.solvent.qatoms.elements.*.indices
-mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system2
+mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system2 || true    # Parallel robustness
 
 # Preparing the QMMM files for CP2K
 hqh_gen_prepare_cp2k_qmmm.py "system1"

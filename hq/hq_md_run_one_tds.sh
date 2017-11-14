@@ -207,12 +207,12 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
             break
         else
             if [ "$iteration_no" -lt "$max_it" ]; then
-                echo " * The socket file for MD simulation ${system_name} ${system_name} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+                echo " * The socket file for MD simulation ${system_name} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
                 sleep 1
                 iteration_no=$((iteration_no+1))
             else
-                echo " * The socket file for MD simulation ${system_name} ${system_name} does not yet exist."
-                echo " * The maxium number of iterations ($max_it) MD simulation ${system_name} ${system_name} has been reached."
+                echo " * The socket file for MD simulation ${system_name} does not yet exist."
+                echo " * The maximum number of iterations ($max_it) MD simulation ${system_name} ${system_name} has been reached."
                 echo " * Exiting..."
                 exit 1
             fi

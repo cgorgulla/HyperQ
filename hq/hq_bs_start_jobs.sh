@@ -180,10 +180,13 @@ if [ -f ${temp_folder}/jobs-to-start ]; then
         # Preparing the new jobfile
         if [ "${increase_jsn^^}" == "TRUE" ]; then
             hqh_bs_jobfile_increase_jsn.sh ${jtl} ${jid}
+        else
+            # Formatting screen output
+            echo
         fi
 
         # Submitting the job
-        echo -e "\n * Starting job ${jid}"
+        echo -e " * Starting job ${jid}"
         hqh_bs_submit.sh batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
         # Sleeping

@@ -91,7 +91,7 @@ tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]
 tds_count="$((tdw_count + 1))"
 
 # Printing information
-echo -e "\n *** Preparing the optimization folder for fes ${msp_name} (hq_opt_prepare_one_fes) *** "
+echo -e "\n *** Preparing the optimization folder for fes ${msp_name} (hqf_opt_prepare_one_msp.sh) *** "
 
 # Setting the range indices
 tds_index_first=${tds_range/:*}
@@ -162,7 +162,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
 
     # Creating the main folder if not yet existing
     echo -e " * Preparing the main folder"
-    mkdir -p opt/${msp_name}/${subsystem} || true
+    mkdir -p opt/${msp_name}/${subsystem} || true   # Parallel robustness
 
     # Changing the pwd into the relevant folder
     cd opt/${msp_name}/${subsystem}
@@ -174,7 +174,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
 
         # Copying the required input files. Making sure the files exist, and copying them ignoring possible errors which can arise during parallel preparations of different TDS of the same MSP
         if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ]; then
-            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf || true
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf || true   # Parallel robustness
         else
             # Printing some error message
             echo "Error: An required input-file does not exist. Exiting...\n\n"
@@ -183,7 +183,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
             false
         fi
         if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ]; then
-            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true   # Parallel robustness
         else
             # Printing some error message
             echo "Error: An required input-file does not exist. Exiting...\n\n"
@@ -192,7 +192,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
             false
         fi
         if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ]; then
-            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm || true
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm || true   # Parallel robustness
         else
             # Printing some error message
             echo "Error: An required input-file does not exist. Exiting...\n\n"
@@ -201,7 +201,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
             false
         fi
         if [ -f ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ]; then
-            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx || true
+            cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx || true    # Parallel robustness
         else
             # Printing some error message
             echo "Error: An required input-file does not exist. Exiting...\n\n"
@@ -212,7 +212,7 @@ elif [[ "${opt_continue^^}" == "FALSE" ]] || ( [[ "${opt_continue^^}" == "TRUE" 
         (( system_ID += 1 ))
     done
     if [ -f ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ]; then
-        cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true
+        cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
         echo "Error: An required input-file does not exist. Exiting...\n\n"

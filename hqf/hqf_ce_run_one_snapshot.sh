@@ -184,7 +184,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 iteration_no=$((iteration_no+1))
             else
                 echo " * The socket file for snapshot ${snapshot_id} does not yet exist."
-                echo " * The maxium number of iterations ($max_it) for snapshot ${snapshot_id} has been reached. Skipping this snapshot..."
+                echo " * The maximum number of iterations ($max_it) for snapshot ${snapshot_id} has been reached. Skipping this snapshot..."
                 exit 1
             fi
         fi

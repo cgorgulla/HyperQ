@@ -101,7 +101,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo "   * Preparing one task for each TDS..."
         for i in $(seq 1 ${tds_count}); do
-            echo "     * Preparing the task for TDS ${i}/${tds_count}"
+            echo "     * Preparing the task for TDS ${i}/${tds_count}..."
             command_specific="${command_general// MSP / ${msp} }"
             command_specific="${command_specific//TDS/${i}:${i}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
@@ -111,6 +111,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
     fi
 
+    # Formatting screen output
+    echo
 done < ${msp_list_file}
 
 echo -e "\n * All tasks have been prepared.\n\n"

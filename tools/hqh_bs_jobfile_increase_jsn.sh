@@ -94,4 +94,4 @@ sed -i "s/^HQ_JSN=.*/HQ_JSN=$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.
 sed -i "s/^HQ_JOBNAME=.*/HQ_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
 # Printing final job information
-echo -e "\n * The JSN (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n\n"
+echo -e "\n * The JSN (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n"
