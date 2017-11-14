@@ -214,7 +214,7 @@ if [ -f "${temp_folder}/jobs-to-start" ]; then
 fi
 
 # Displaying some information
-echo -e "\n * The submission of the jobs has been completed"
-echo -e " * Total number of jobs which have specified: $((last_jid-first_jid+1))"
-echo -e " * Number of jobs which have been started: ${jobs_started}"
-echo -e " * Number of jobs which have been omitted: ${jobs_omitted}\n\n"
+echo -e "\n * The starting of the jobs has been completed"
+echo -e "   * Number of jobs processed: $((last_jid-first_jid+1))"
+echo -e "   * Number of jobs started: ${jobs_started}"
+echo -e "   * Number of jobs omitted: ${jobs_omitted}\n\n"

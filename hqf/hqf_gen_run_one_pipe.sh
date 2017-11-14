@@ -200,7 +200,7 @@ if [ "$$" != "${pgid}" ]; then
 
     # Changing the PGID of this process to our own PID (but out PID will remain the same - process replacement)
     # Exit traps will not be executed anymore, thus no need to suppress them (since they would kill the entire process group)
-    exec setsid $(readlink -f "$0") $@
+    exec setsid hqf_gen_run_one_pipe.sh $@
 
     # If the above command would have worked we would not have reached this line
     echo -e " * Failed to make this script a process group leader. Exiting..."

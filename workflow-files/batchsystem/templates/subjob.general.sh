@@ -86,14 +86,20 @@ echo
 
 # Variables
 task_starting_time=$(date +%s)
-tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 minimum_task_time=$(grep -m 1 "^minimum_task_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 waiting_time=0
 task_count=0
 
 
+# Deactivating the error trap
+trap '' ERR
+
 # List of tasks
 #task_placeholder
+
+
+# Reactivating the error trap
+trap 'error_response_std $LINENO' ERR
 
 
 # Waiting for each process separately to be able to respond to the exit code of everyone of them (only needed for the parallel tasks mode, but does not interfere with the serial mode)

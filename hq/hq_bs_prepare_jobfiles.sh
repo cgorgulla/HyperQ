@@ -176,7 +176,7 @@ while IFS='' read -r command_task; do
     job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"
     subjoblist_file="batchsystem/job-files/subjob-lists/jtl-${jtl}.jid-${jid}.sh"
     subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
-    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out || true"
+    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
 
     # Checking if this task is the first task of a new subjob
     if [ "${task_ID}" -eq "1" ]; then
@@ -225,7 +225,6 @@ while IFS='' read -r command_task; do
 
     # Checking the parallel flags
     if [ "${parallelize_tasks}" == "true" ]; then
-        # || takes precedence over &, thus no parentheses are needed
         sed -i "s%#task_placeholder%${command_prefix_bs_task} ${command_task} \& \nsleep ${tasks_parallel_delay_time}\n#task_placeholder%g" ${subjob_file}
     elif [ "${parallelize_tasks}" == "false" ]; then
         sed -i "s%#task_placeholder%${command_prefix_bs_task} ${command_task} \& \nwait\n#task_placeholder%g" ${subjob_file}
