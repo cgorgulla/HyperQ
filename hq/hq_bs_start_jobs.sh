@@ -108,6 +108,9 @@ if ! [[ "${jtl}" =~ [abcdefghij] ]]; then
     exit 1
 fi
 
+# Printing some information
+echo -e "\n\n *********************************************************    Starting the jobs    *********************************************************\n\n"
+
 # Preparing files and folders
 mkdir -p batchsystem/output-files
 mkdir -p ${temp_folder}

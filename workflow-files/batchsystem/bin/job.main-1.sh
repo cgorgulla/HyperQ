@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-### Basic setup ###
+################################################################################## Basic Setup ##################################################################################
 
 # Printing some information
 echo
@@ -39,9 +39,13 @@ if [ ${bash_version} -lt 43 ]; then
     echo
     exit 1
 fi
+# Preparing the output folder for the batchsystem log-files
+mkdir -p batchsystem/output-files
 
 
-### Functions ###
+################################################################################### Functions ###################################################################################
+
+### General Functions ###
 
 # Determining the control file
 determine_control_file() {
@@ -160,7 +164,7 @@ determine_control_file() {
     fi
 }
 
-# Syncing control variables
+# Syncing the control variables
 sync_control_parameters() {
 
     # Determining the control file responsible for us
@@ -220,7 +224,6 @@ sync_control_parameters() {
     done
 }
 
-
 # Preparing the new jobfile
 prepare_new_job() {
 
@@ -230,7 +233,6 @@ prepare_new_job() {
     # Updating the job file
     hqh_bs_jobfile_increase_jsn.sh ${new_job_jtl} ${HQ_JID}
 }
-
 
 # Start new job
 submit_new_job() {
@@ -256,6 +258,40 @@ submit_new_job() {
     fi
 }
 
+# Exit response
+exit_response() {
+
+    # Terminating remaining processes
+    terminate_processes
+
+    ## Cleaning up files and folders
+    #rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
+
+    # Printing final information
+    print_job_infos_end
+}
+
+# Function for terminating remaining processes
+terminate_processes() {
+
+    # Printing some information
+    echo " * Terminating remaining processes..."
+
+    # Trapping ERR and other signals to prevent errors and other traps
+    trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+
+    # Terminating remaining background jobs
+    kill $(jobs -p)
+
+    # Terminating everything else which is still running and which was started by this script
+    pkill -P $$ || true
+
+    # Terminating the entire process group
+    kill -SIGTERM -$$ || true
+
+    # Giving the processes some time to wrap up everything
+    sleep 10
+}
 
 # Printing final job information
 print_job_infos_end() {
@@ -270,10 +306,7 @@ print_job_infos_end() {
 }
 
 
-#### Traps ###
-
-# Syncing the control parameters here to get the signal types for the various traps
-sync_control_parameters
+### Signal and Error Functions ###
 
 # Job error response (default error response)
 errors_job_response() {
@@ -323,9 +356,8 @@ errors_job_response() {
         exit 0
     fi
 }
-trap 'errors_job_response $LINENO' ERR
 
-# Job error response (default error response)
+# Subjob error response
 errors_subjob_response() {
 
     # If subjob errors are ignored, we should not reach this point, except if the setting was changed during runtime
@@ -443,10 +475,6 @@ signals_type1_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
-    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
-fi
-
 
 # Type 2 signal handling
 signals_type2_response() {
@@ -473,10 +501,6 @@ signals_type2_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
-    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
-fi
-
 
 # Type 3 signal handling
 signals_type3_response() {
@@ -503,9 +527,6 @@ signals_type3_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
-    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
-fi
 
 # Function to check signals and errors
 check_past_signals_errors() {
@@ -548,47 +569,30 @@ check_past_signals_errors() {
     fi
 }
 
-# Function for terminating remaining processes
-terminate_processes() {
 
-    # Printing some information
-    echo " * Terminating remaining processes..."
+### Traps ###
 
-    # Trapping ERR and other signals to prevent errors and other traps
-    trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+# Syncing the control parameters to get the signal types for the various traps
+sync_control_parameters
 
-    # Terminating remaining background jobs
-    kill $(jobs -p)
-
-    # Terminating everything else which is still running and which was started by this script
-    pkill -P $$ || true
-
-    # Terminating the entire process group
-    kill -SIGTERM -$$ || true
-
-    # Giving the processes some time to wrap up everthing
-    sleep 15
-}
-
-# Exit trap
-exit_response() {
-
-    # Terminating remaining processes
-    terminate_processes
-
-    ## Cleaning up files and folders
-    #rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
-
-    # Printing final information
-    print_job_infos_end
-}
+# Setting the traps
+trap 'errors_job_response $LINENO' ERR
 trap 'exit_response' EXIT
+if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
+    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
+fi
+if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
+    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
+fi
+if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
+    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
+fi
 
-### Preparing folders ###
-# Preparing the output folder for the batchsystem log files
-mkdir -p batchsystem/output-files
 
-###  Random sleep
+
+##################################################################################### Body #####################################################################################
+
+### Random Sleep ###
 # Sleeping a random amount of time to avoid race conditions when jobs are started simultaneously
 # Relevant if the batchsystem starts pending jobs simultaneously. Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner
 job_initial_sleeping_time_max="$(grep -m 1 "^job_initial_sleeping_time_max=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
@@ -596,8 +600,7 @@ dispersion_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n1)
 sleep ${dispersion_time}
 
 
-### Running the subjobs ###
-
+### Running the Subjobs ###
 source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 
 # Waiting for the subjobs to finish

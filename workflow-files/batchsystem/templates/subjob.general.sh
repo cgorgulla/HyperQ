@@ -100,7 +100,7 @@ signals_type2_response() {
     exit 0
 }
 if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
-    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE2//:/ }
+    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
 fi
 
 # Type 3 signal handling
@@ -119,7 +119,7 @@ signals_type3_response() {
     exit 0
 }
 if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
-    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE3//:/ }
+    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
 fi
 
 terminate_processes() {
@@ -175,7 +175,7 @@ trap '' ERR
 # We could use a simple wait as well due to the recent change that tasks always produce exit code 0, as we are capturing HQ errors with our own file-based error report mechanism
 job_count=$(jobs | wc -l)
 for pid in $(seq 1 ${job_count}); do
-    wait -n
+    wait -n || true
 done
 
 
