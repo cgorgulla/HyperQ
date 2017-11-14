@@ -56,20 +56,7 @@ error_response_std() {
     echo
     echo
 
-    # Changing to the root folder
-    for i in {1..10}; do
-        if [ -d input-files ]; then
-
-            # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error
-            exit 1
-        else
-            cd ..
-        fi
-    done
-
-    # Printing some information
-    echo "Error: Cannot find the input-files directory..."
+    # Exiting
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -77,12 +64,8 @@ trap 'error_response_std $LINENO' ERR
 # Cleanup function before exiting
 cleanup_exit() {
 
-    # Printing some information
-    echo
-    echo " * Cleaning up..."
-
     # Removing the temp-folder
-    rm -r ${temp_folder} || true
+    rm -r ${temp_folder} &>/dev/null || true
 }
 trap 'cleanup_exit' EXIT
 

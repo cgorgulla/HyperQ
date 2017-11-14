@@ -42,20 +42,7 @@ error_response_std() {
     echo
     echo
 
-    # Changing to the root folder
-    for i in {1..10}; do
-        if [ -d input-files ]; then
-
-            # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error
-            exit 1
-        else
-            cd ..
-        fi
-    done
-
-    # Printing some information
-    echo "Error: Cannot find the input-files directory..."
+    # Exiting
     exit 1
 }
 trap 'error_response_std $LINENO' ERR

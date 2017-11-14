@@ -50,7 +50,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error
+            touch runtime/${HQ_STARTDATE}/error.hq
             exit 1
         else
             cd ..

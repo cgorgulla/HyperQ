@@ -25,8 +25,8 @@ if [ "${HQ_VERBOSITY}" = "debug" ]; then
     set -x
 fi
 
-# Standard error response
-error_response_std() {
+# Subjob error response (default error response)
+errors_subjob_response() {
 
     # Printing basic error information
     echo
@@ -35,20 +35,92 @@ error_response_std() {
     echo "Error on line $1" 1>&2
     echo
 
-    if [ "${HQ_TASK_ERROR_RESPONSE}" == "internal_error" ]; then
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the job error response. Exiting..."; exit 1' ERR
+
+    # Checking if the error should be ignored
+    if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
+
+        # Restoring the default error response
+        trap 'errors_subjob_response $LINENO' ERR
 
         # Printing some information
-        echo -e " * The entire subjob will be terminated with exit code 1."
+        echo -e " * The subjob error will be ignored, and the remaining tasks are allowed to continue to run."
 
-        # Exiting, exit code propagation is not ensured due to the subjob command (therefore we have our internal error handling backup mechanism in HQ)
-        exit 1
+        # Nothing to do, continuing script execution
+        return
+
+    # Error will not be ignored, leading to the script termination
     else
 
-        # Printing some information
-        echo -e " * The error will be ignored, and the remaining tasks are allowed to continue to run."
+        # Deactivating further signals responses
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+        # Creating signal flag file
+        touch runtime/${HQ_STARTDATE}/error.subjob
+
+        # Exiting
+        exit 0
     fi
 }
-trap 'error_response_std $LINENO' ERR
+trap 'errors_subjob_response $LINENO' ERR
+
+# Type 1 signal handling
+signals_type1_response() {
+
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
+
+    # Creating signal flag file
+    touch runtime/${HQ_STARTDATE}/signal.type1
+
+    # Exiting
+    exit 0
+}
+if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
+    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
+fi
+
+# Type 2 signal handling
+signals_type2_response() {
+
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
+
+    # Creating signal flag file
+    touch runtime/${HQ_STARTDATE}/signal.type2
+
+    # Exiting
+    exit 0
+}
+if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
+    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE2//:/ }
+fi
+
+# Type 3 signal handling
+signals_type3_response() {
+
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
+
+    # Creating signal flag file
+    touch runtime/${HQ_STARTDATE}/signal.type3
+
+    # Exiting
+    exit 0
+}
+if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
+    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE3//:/ }
+fi
 
 terminate_processes() {
 
@@ -108,7 +180,7 @@ done
 
 
 # Reactivating the error trap
-trap 'error_response_std $LINENO' ERR
+trap 'errors_subjob_response $LINENO' ERR
 
 
 # Checking the runtime

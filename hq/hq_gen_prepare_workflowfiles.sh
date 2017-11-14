@@ -40,20 +40,7 @@ error_response_std() {
     echo
     echo
 
-    # Changing to the root folder
-    for i in {1..10}; do
-        if [ -d input-files ]; then
-
-            # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error
-            exit 1
-        else
-            cd ..
-        fi
-    done
-
-    # Printing some information
-    echo "Error: Cannot find the input-files directory..."
+    # Exiting
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -244,7 +231,6 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     ### Tasks folder ###
     # Asking if the tasks folder should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
-        echo
         while true; do
             echo
             read -p "Should the batchsystem/task-lists folder be prepared (replacing existing files & folders)? " answer

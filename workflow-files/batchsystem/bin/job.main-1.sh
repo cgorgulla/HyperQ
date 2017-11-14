@@ -169,25 +169,31 @@ sync_control_parameters() {
     # Getting the control parameters
     job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     prevent_new_job_submissions="$(grep -m 1 "^prevent_new_job_submissions=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-    signals_type1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    signals_type2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    signals_type3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_SIGNAL_TYPE1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_SIGNAL_TYPE2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_SIGNAL_TYPE3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type1_response="$(grep -m 1 "^signals_type1_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    internal_error_response="$(grep -m 1 "^internal_error_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    HQ_TASK_ERROR_RESPONSE="$(grep -m 1 "^task_error_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-    internal_error_new_job_jtl="$(grep -m 1 "^internal_error_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_hq_response="$(grep -m 1 "^errors_hq_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_ERRORS_SUBJOB_RESPONSE="$(grep -m 1 "^errors_subjob_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+    errors_job_response="$(grep -m 1 "^errors_job_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_hq_new_job_jtl="$(grep -m 1 "^errors_hq_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_subjob_new_job_jtl="$(grep -m 1 "^errors_subjob_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_job_new_job_jtl="$(grep -m 1 "^errors_job_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Exporting relevant parameters
-    export HQ_TASK_ERROR_RESPONSE
+    export HQ_SIGNAL_TYPE1
+    export HQ_SIGNAL_TYPE2
+    export HQ_SIGNAL_TYPE3
+    export HQ_ERRORS_SUBJOB_RESPONSE
 
-    # Checking and adjusting the new job type letters
-    for jtl_name in internal_error_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
+    # Checking and adjusting the new job type letters (also replacing terms like 'same' or 'next' with the corresponding numerical value)
+    for jtl_name in errors_job_new_job_jtl errors_subjob_new_job_jtl errors_hq_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
 
         # Variables
         jtl_value=${!jtl_name}                              # indirect variable expansion
@@ -269,8 +275,8 @@ print_job_infos_end() {
 # Syncing the control parameters here to get the signal types for the various traps
 sync_control_parameters
 
-# Standard internal error response
-internal_error_response() {
+# Job error response (default error response)
+errors_job_response() {
 
     # Printing basic error information
     echo
@@ -279,11 +285,17 @@ internal_error_response() {
     echo "Error on line $1" 1>&2
     echo
 
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the job error response. Exiting..."; exit 1' ERR
+
     # Syncing the control parameters
     sync_control_parameters
 
     # Checking if the error should be ignored
-    if [[ "${internal_error_response}" == *"ignore"* ]]; then
+    if [[ "${errors_job_response}" == *"ignore"* ]]; then
+
+        # Restoring the default error response
+        trap 'errors_job_response $LINENO' ERR
 
         # Nothing to do, continuing script execution
         return
@@ -291,155 +303,252 @@ internal_error_response() {
     # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal and error responses
-        trap '' 1 2 3 9 10 12 15 18 ERR
+        # Deactivating further signals responses
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
 
         #  Variables
-        new_job_jtl="${internal_error_new_job_jtl}"
+        new_job_jtl="${errors_job_new_job_jtl}"
 
-        if [[ "${internal_error_response}" == *"prepare_new_job"* ]]; then
+        # Checking if the next job should be prepared
+        if [[ "${errors_job_response}" == *"prepare_new_job"* ]]; then
             prepare_new_job ${new_job_jtl}
         fi
-        if [[ "${internal_error_response}" == *"submit_new_job"* ]]; then
+
+        # Checking if the next job should be submitted
+        if [[ "${errors_job_response}" == *"submit_new_job"* ]]; then
             submit_new_job ${new_job_jtl}
         fi
+
+        # Exiting
+        exit 0
     fi
-
-    # Exiting (only reached if signal response is not 'ignore')
-    exit 1
 }
-trap 'internal_error_response $LINENO' ERR
+trap 'errors_job_response $LINENO' ERR
 
+# Job error response (default error response)
+errors_subjob_response() {
 
-# Type 1 signal handling
-signals_type1_response() {
+    # If subjob errors are ignored, we should not reach this point, except if the setting was changed during runtime
 
-    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' ${signals_type1//:/ }
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the subjob error response. Exiting..."; exit 1' ERR
 
     # Syncing the control parameters
     sync_control_parameters
 
     # Checking if the error should be ignored
-    if [[ "${signals_type1_response}" == *"ignore"* ]]; then
+    if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
 
-        # Restoring the original signal trap trap
-        trap 'signals_type1_response' ${signals_type1//:/ }
+        # Restoring the default error response
+        trap 'errors_job_response $LINENO' ERR
 
-        # Continuing job execution
+        # Nothing to do, continuing script execution
         return
 
     # Error will not be ignored, leading to the script termination
     else
 
-        # Deactivating further signal and error responses
-        trap '' 1 2 3 9 10 12 15 18 ERR
+        # Deactivating further signals responses
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
 
         #  Variables
-        new_job_jtl="${signals_type1_new_job_jtl}"
+        new_job_jtl="${errors_subjob_new_job_jtl}"
 
-        if [[ "${signals_type1_response}" == *"prepare_new_job"* ]]; then
+        # Checking if the next job should be prepared
+        if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"prepare_new_job"* ]]; then
             prepare_new_job ${new_job_jtl}
         fi
-        if [[ "${signals_type1_response}" == *"submit_new_job"* ]]; then
+
+        # Checking if the next job should be submitted
+        if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"submit_new_job"* ]]; then
             submit_new_job ${new_job_jtl}
         fi
+
+        # Exiting
+        exit 0
+    fi
+}
+
+# HQ error response
+errors_hq_response() {
+
+    # Printing basic error information
+    echo
+    echo "Error was trapped" 1>&2
+    echo "Error in bash script $0" 1>&2
+    echo "Error on line $1" 1>&2
+    echo
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the hq error response. Exiting..."; exit 1' ERR
+
+    # Syncing the control parameters
+    sync_control_parameters
+
+    # Checking if the error should be ignored
+    if [[ "${errors_hq_response}" == *"ignore"* ]]; then
+
+        # Restoring the default error response
+        trap 'errors_job_response $LINENO' ERR
+
+        # Nothing to do, continuing script execution
+        return
+
+    # Error will not be ignored, leading to the script termination
+    else
+
+        # Deactivating further signals responses
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+        #  Variables
+        new_job_jtl="${errors_hq_new_job_jtl}"
+
+        # Checking if the next job should be prepared
+        if [[ "${errors_hq_response}" == *"prepare_new_job"* ]]; then
+            prepare_new_job ${new_job_jtl}
+        fi
+
+        # Checking if the next job should be submitted
+        if [[ "${errors_hq_response}" == *"submit_new_job"* ]]; then
+            submit_new_job ${new_job_jtl}
+        fi
+
+        # Exiting
+        exit 0
+    fi
+}
+
+# Type 1 signal handling
+signals_type1_response() {
+
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
+
+    # Syncing the control parameters
+    sync_control_parameters
+
+    #  Variables
+    new_job_jtl="${signals_type1_new_job_jtl}"
+
+    if [[ "${signals_type1_response}" == *"prepare_new_job"* ]]; then
+        prepare_new_job ${new_job_jtl}
+    fi
+    if [[ "${signals_type1_response}" == *"submit_new_job"* ]]; then
+        submit_new_job ${new_job_jtl}
     fi
 
-    # Exiting (only reached if signal response is not 'ignore')
+    # Exiting
     exit 0
 }
-if [[ -n "${signals_type1}" ]]; then
-    trap 'signals_type1_response' ${signals_type1//:/ }
+if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
+    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
 fi
 
 
 # Type 2 signal handling
 signals_type2_response() {
 
-    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' ${signals_type2//:/ }
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
 
     # Syncing the control parameters
     sync_control_parameters
 
-    # Checking if the error should be ignored
-    if [[ "${signals_type2_response}" == *"ignore"* ]]; then
+    #  Variables
+    new_job_jtl="${signals_type2_new_job_jtl}"
 
-        # Restoring the original signal trap trap
-        trap 'signals_type2_response' ${signals_type2//:/ }
-
-        # Continuing job execution
-        return
-
-    # Error will not be ignored, leading to the script termination
-    else
-
-        # Deactivating further signal and error responses
-        trap '' 1 2 3 9 10 12 15 18 ERR
-
-        #  Variables
-        new_job_jtl="${signals_type2_new_job_jtl}"
-
-        if [[ "${signals_type2_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job ${new_job_jtl}
-        fi
-        if [[ "${signals_type2_response}" == *"submit_new_job"* ]]; then
-            submit_new_job ${new_job_jtl}
-        fi
+    if [[ "${signals_type2_response}" == *"prepare_new_job"* ]]; then
+        prepare_new_job ${new_job_jtl}
+    fi
+    if [[ "${signals_type2_response}" == *"submit_new_job"* ]]; then
+        submit_new_job ${new_job_jtl}
     fi
 
-    # Exiting (only reached if signal response is not 'ignore')
+    # Exiting
     exit 0
 }
-if [[ -n "${signals_type2}" ]]; then
-    trap 'signals_type2_response' ${signals_type2//:/ }
+if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
+    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
 fi
 
 
 # Type 3 signal handling
 signals_type3_response() {
 
-    # Immediately deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' ${signals_type3//:/ }
+    # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+
+    # Setting up a new minimal ERR trap
+    trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
 
     # Syncing the control parameters
     sync_control_parameters
 
-    # Checking if the error should be ignored
-    if [[ "${signals_type3_response}" == *"ignore"* ]]; then
+    #  Variables
+    new_job_jtl="${signals_type3_new_job_jtl}"
 
-        # Restoring the original signal trap trap
-        trap 'signals_type3_response' ${signals_type3//:/ }
-
-        # Continuing job execution
-        return
-
-    # Error will not be ignored, leading to the script termination
-    else
-
-        # Deactivating further signal and error responses
-        trap '' 1 2 3 9 10 12 15 18 ERR
-
-        #  Variables
-        new_job_jtl="${signals_type3_new_job_jtl}"
-
-        if [[ "${signals_type3_response}" == *"prepare_new_job"* ]]; then
-            prepare_new_job ${new_job_jtl}
-        fi
-        if [[ "${signals_type3_response}" == *"submit_new_job"* ]]; then
-            submit_new_job ${new_job_jtl}
-        fi
+    if [[ "${signals_type3_response}" == *"prepare_new_job"* ]]; then
+        prepare_new_job ${new_job_jtl}
+    fi
+    if [[ "${signals_type3_response}" == *"submit_new_job"* ]]; then
+        submit_new_job ${new_job_jtl}
     fi
 
-    # Exiting (only reached if signal response is not 'ignore')
+    # Exiting
     exit 0
 }
-if [[ -n "${signals_type3}" ]]; then
-    trap 'signals_type3_response' ${signals_type3//:/ }
+if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
+    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
 fi
 
-# Function for terminating remaining processess
+# Function to check signals and errors
+check_past_signals_errors() {
+
+    # Order of precedence: signal_type1, signal_type2, signal_type3, internal errors
+
+    # Checking for signals of type 1
+    if [ -f runtime/${HQ_STARTDATE}/signal.type1 ]; then
+
+        # Calling the corresponding function
+        signals_type1_response
+    fi
+
+    # Checking for signals of type 2
+    if [ -f runtime/${HQ_STARTDATE}/signal.type2 ]; then
+
+        # Calling the corresponding function
+        signals_type2_response
+    fi
+
+    # Checking for signals of type 3
+    if [ -f runtime/${HQ_STARTDATE}/signal.type3 ]; then
+
+        # Calling the corresponding function
+        signals_type3_response
+    fi
+
+    # Checking for subjob errors
+    if [ -f runtime/${HQ_STARTDATE}/error.subjob ]; then
+
+        # Calling the corresponding function
+        errors_subjob_response
+    fi
+
+    # Checking for hq errors
+    if [ -f runtime/${HQ_STARTDATE}/error.hq ]; then
+
+        # Calling the corresponding function
+        errors_hq_response
+    fi
+}
+
+# Function for terminating remaining processes
 terminate_processes() {
 
     # Printing some information
@@ -467,8 +576,8 @@ exit_response() {
     # Terminating remaining processes
     terminate_processes
 
-    # Cleaning up files and folders
-    rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
+    ## Cleaning up files and folders
+    #rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
 
     # Printing final information
     print_job_infos_end
@@ -483,8 +592,8 @@ mkdir -p batchsystem/output-files
 # Sleeping a random amount of time to avoid race conditions when jobs are started simultaneously
 # Relevant if the batchsystem starts pending jobs simultaneously. Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner
 job_initial_sleeping_time_max="$(grep -m 1 "^job_initial_sleeping_time_max=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-disperson_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n1)
-sleep ${disperson_time}
+dispersion_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n1)
+sleep ${dispersion_time}
 
 
 ### Running the subjobs ###
@@ -494,16 +603,11 @@ source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
 # Waiting for the subjobs to finish
 wait
 
-# Sleeping some time because sometimes the processes/tasks of this job might respond to job signals earlier than this script, which might be interpreted by the script as successful completion of the job (happened on the HLRN)
-sleep 60
+# Sleeping some time to give the filesystem enough time to create possible error/signal files before checking them
+sleep 5
 
-# Checking if the job was successful
-if [ -f runtime/${HQ_STARTDATE}/error ]; then
-
-    # There was an internal HQ error not propagated by the tasks, causing the error response now
-    false
-
-fi
+# Checking if there were errors or signals during the job
+check_past_signals_errors
 
 
 ### Finalizing the job (success case) ###

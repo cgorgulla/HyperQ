@@ -75,7 +75,7 @@ error_response_std() {
     echo
 
     # Setting the file-based error flag for the batchsystem module
-    touch runtime/${HQ_STARTDATE}/error
+    touch runtime/${HQ_STARTDATE}/error.hq
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
