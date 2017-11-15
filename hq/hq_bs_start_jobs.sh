@@ -151,7 +151,7 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
     echo -e " *** Checking which jobs are already in the batchsystem\n"
 
     # Checking if there are JTLs specified
-    if [[ ! "${jtls_to_check}" == *":"* || -z "${jtls_to_check}" ]] ; then
+    if [[ ! "${check_active_jobs}" == *":"* || -z "${jtls_to_check}" ]] ; then
 
         # Printing some information
         echo -e "\n * Error: Checking for active compounds was requested, but no JTLs for the cross checks have been supplied.  Exiting...\n\n"
