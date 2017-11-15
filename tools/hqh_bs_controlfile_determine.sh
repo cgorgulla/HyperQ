@@ -57,9 +57,9 @@ fi
 error_response_std() {
     # Printing some information
     echo 1>&2
-    echo "An error was trapped" 1>&2 1>&2
-    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2 1>&2
-    echo "The error occurred on line $1" 1>&2 1>&2
+    echo "An error was trapped" 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "The error occurred on line $1" 1>&2
     echo "Exiting..." 1>&2
     echo 1>&2
     echo 1>&2

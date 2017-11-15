@@ -36,6 +36,7 @@ error_response_std() {
     echo "An error was trapped" 1>&2
     echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
     echo "The error occurred on line $1" 1>&2
+    echo "Working directory: $PWD"
     echo "Exiting..."
     echo
     echo

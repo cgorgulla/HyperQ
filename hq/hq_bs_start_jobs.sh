@@ -54,6 +54,7 @@ error_response_std() {
     echo "An error was trapped" 1>&2
     echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
     echo "The error occurred on line $1" 1>&2
+    echo "Working directory: $PWD"
     echo "Exiting..."
     echo
     echo
@@ -149,11 +150,11 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
     # Printing some information
     echo -e " *** Checking which jobs are already in the batchsystem\n"
 
-    # Checking if there are jtls specified
-    if [ -z "${jtls_to_check}" ]; then
+    # Checking if there are JTLs specified
+    if [[ ! "${jtls_to_check}" == *":"* || -z "${jtls_to_check}" ]] ; then
 
         # Printing some information
-        echo -e "\n * Error: The input argument 'job type letter' has an unsupported value (${jtl}). Exiting...\n\n"
+        echo -e "\n * Error: Checking for active compounds was requested, but no JTLs for the cross checks have been supplied.  Exiting...\n\n"
         exit 1
     fi
 
