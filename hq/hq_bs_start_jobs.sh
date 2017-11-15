@@ -11,8 +11,8 @@ Arguments:
 
     <job-type-letter>: The job-type-letter corresponding to the jobs to be started (a lower case letter)
 
-    <check for active jobs>: Checks if jobs of the same WFID, JTL and JID are already in the batchsystem and skips them.
-                             Possible values: true, false
+    <check for active jobs>: Checks if jobs of the same WFID and JID and the specified JTLs are already in the batchsystem and skips them.
+                             Possible values: false, true:JTLs (e.g. true:abc)
 
     <delay time>: Time in seconds between the submission of two consecutive jobs.
 
@@ -104,6 +104,8 @@ temp_folder=/tmp/${USER}/hq_bs_start_jobs/${time_nanoseconds}
 
 # Checking if the job type letter is valid
 if ! [[ "${jtl}" =~ [abcdefghij] ]]; then
+
+    # Printing some information
     echo -e "\n * Error: The input argument 'job type letter' has an unsupported value (${jtl}). Exiting...\n\n"
     exit 1
 fi
@@ -120,17 +122,28 @@ touch ${temp_folder}/jobs-to-start
 # Checking if we should check for already active jobs
 jobs_started=0
 jobs_omitted=0
-if [ "${check_active_jobs^^}" == "TRUE" ]; then
+if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
     # Printing some information
     echo -e "\nChecking which jobs are already in the batchsystem"
+
+    # Variables
+    jtls_to_check=${check_active_jobs/*:}
+
+    # Checking if there are jtls specified
+    if [ -z "${jtls_to_check}" ]; then
+
+        # Printing some information
+        echo -e "\n * Error: The input argument 'job type letter' has an unsupported value (${jtl}). Exiting...\n\n"
+        exit 1
+    fi
 
     # Getting the active jobs
     hqh_bs_sqs.sh > ${temp_folder}/jobs-all 2>/dev/null || true
 
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
-        if ! grep -q "${workflow_id}:${jtl}\.${jid} " ${temp_folder}/jobs-all; then                 # The whitespace in the grep expression is important
+        if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid} " ${temp_folder}/jobs-all; then                 # The whitespace in the grep expression is important
 
             # Printing some information
             echo "Adding job ${jid} to the list of jobs to be started."
