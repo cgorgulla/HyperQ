@@ -25,7 +25,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 

@@ -21,7 +21,7 @@ echo
 set -m                  # Allowing each task to be in its own process group (HQ assumes that, though it will check and work around if this should not be the case)
 
 # Verbosity
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
@@ -57,7 +57,7 @@ errors_subjob_response() {
         trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
 
         # Creating signal flag file
-        touch runtime/${HQ_BS_STARTDATE}/error.subjob
+        touch runtime/${HQ_STARTDATE_BS}/error.subjob
 
         # Exiting
         exit 0
@@ -75,7 +75,7 @@ signals_type1_response() {
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
 
     # Creating signal flag file
-    touch runtime/${HQ_BS_STARTDATE}/signal.type1
+    touch runtime/${HQ_STARTDATE_BS}/signal.type1
 
     # Exiting
     exit 0
@@ -94,7 +94,7 @@ signals_type2_response() {
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
 
     # Creating signal flag file
-    touch runtime/${HQ_BS_STARTDATE}/signal.type2
+    touch runtime/${HQ_STARTDATE_BS}/signal.type2
 
     # Exiting
     exit 0
@@ -113,7 +113,7 @@ signals_type3_response() {
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
 
     # Creating signal flag file
-    touch runtime/${HQ_BS_STARTDATE}/signal.type3
+    touch runtime/${HQ_STARTDATE_BS}/signal.type3
 
     # Exiting
     exit 0

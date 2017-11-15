@@ -75,7 +75,7 @@ error_response_std() {
     echo
 
     # Setting the file-based error flag for the batchsystem module
-    touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+    touch runtime/${HQ_STARTDATE_BS}/error.pipeline
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -103,7 +103,7 @@ cleanup_exit() {
     echo "Cleaning up..."
 
     # Removing remaining socket files
-    rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.* 2>&1 > /dev/null
+    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.* 2>&1 > /dev/null
 
     # Terminating all remaining processes
     # Getting our process group id
@@ -157,22 +157,22 @@ if [ ! -d input-files ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" == "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
     set -x
 fi
 
 # Setting the start date of this pipeline
-HQ_PIPE_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-export HQ_PIPE_STARTDATE
+HQ_STARTDATE_ONEPIPE="$(date +%Y%m%d%m%S-%N)"
+export HQ_STARTDATE_ONEPIPE
 
 # Checking if the batchsystem job startdate is set, which is the case only if HQ is run in the batchsystem mode
-if [ -z "${HQ_BS_STARTDATE}" ]; then
+if [ -z "${HQ_STARTDATE_BS}" ]; then
 
-    # Setting the HQ_BS_STARTDATE to the HQ_PIPE_STARTDATE
-    HQ_BS_STARTDATE=${HQ_PIPE_STARTDATE}
-    export HQ_BS_STARTDATE
+    # Setting the HQ_STARTDATE_BS to the HQ_STARTDATE_ONEPIPE
+    HQ_STARTDATE_BS=${HQ_STARTDATE_ONEPIPE}
+    export HQ_STARTDATE_BS
 fi
 
 # Human readable start date
@@ -186,7 +186,7 @@ system1="${msp_name/_*}"
 system2="${msp_name/*_}"
 workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
-logfile_folder_root="log-files/${HQ_BS_STARTDATE}/${msp_name}_${subsystem}"
+logfile_folder_root="log-files/${HQ_STARTDATE_BS}/${msp_name}_${subsystem}"
 
 # TDS Range
 if [ "${#}" == "4" ]; then
@@ -197,7 +197,7 @@ fi
 
 # Folders
 mkdir -p ${logfile_folder_root}
-mkdir -p runtime/${HQ_BS_STARTDATE}/
+mkdir -p runtime/${HQ_STARTDATE_BS}/
 
 # Checking if we are the session leader
 pgid=$(pgid_from_pid $$)

@@ -43,7 +43,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+            touch runtime/${HQ_STARTDATE_BS}/error.pipeline
             exit 1
         else
             cd ..
@@ -70,7 +70,7 @@ clean_up() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.* >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* >/dev/null 2>&1 || true
 
         # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
@@ -82,9 +82,9 @@ clean_up() {
 trap 'clean_up' EXIT
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 

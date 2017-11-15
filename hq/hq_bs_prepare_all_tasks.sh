@@ -58,9 +58,22 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-if [ "${verbosity_preparation}" = "debug" ]; then
-    set -x
+# Checking if standalone mode (-> non-runtime)
+if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
+
+    # Variables
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+
+    # Checking the value
+    if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
+        set -x
+    fi
+
+# It seems the script was called by another script (non-standalone mode)
+else
+    if [[ "${HQ_VERBOSITY_RUNTIME}" == "debug" || "${HQ_VERBOSITY_NONRUNTIME}" == "debug" ]]; then
+        set -x
+    fi
 fi
 
 # Checking the version of BASH, we need at least 4.3 (wait -n)

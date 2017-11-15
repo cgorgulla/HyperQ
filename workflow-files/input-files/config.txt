@@ -14,7 +14,7 @@ verbosity_runtime=debug
 # Possible values: standard, debug
 # This option mainly effects the screen output and the logfiles
 
-verbosity_preparation=standard
+verbosity_nonruntime=standard
 # Possible values: standard, debug
 # This option affects the preparation scripts for setting up the basic workflow files (before the workflow is running)
 

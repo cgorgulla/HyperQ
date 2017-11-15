@@ -43,7 +43,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+            touch runtime/${HQ_STARTDATE_BS}/error.pipeline
             exit 1
         else
             cd ..
@@ -63,7 +63,7 @@ cleanup_exit() {
     echo " * Cleaning up..."
 
     # Terminating all processes
-    if [ "${HQ_VERBOSITY}" = "debug" ]; then
+    if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 
         echo -e "\n * Information about all jobs of the user: \n"
         ps -fu $USER
@@ -112,9 +112,9 @@ trap "cleanup_exit" EXIT
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
@@ -177,7 +177,7 @@ sleep 5
 while true; do
 
     # Printing some information
-    if [ "${HQ_VERBOSITY}" == "debug" ]; then
+    if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
         echo " * Checking if the simulation running in folder ${PWD} has completed."
     fi
 

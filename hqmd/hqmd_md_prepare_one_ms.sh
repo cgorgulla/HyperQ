@@ -44,7 +44,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+            touch runtime/${HQ_STARTDATE_BS}/error.pipeline
             exit 1
         else
             cd ..
@@ -58,9 +58,9 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 

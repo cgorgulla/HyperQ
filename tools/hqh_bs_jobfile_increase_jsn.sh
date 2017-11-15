@@ -37,9 +37,22 @@ if [ "$#" -ne "2" ]; then
 fi
 
 # Verbosity
-verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-if [ "${verbosity_preparation}" = "debug" ]; then
-    set -x
+# Checking if standalone mode (-> non-runtime)
+if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
+
+    # Variables
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+
+    # Checking the value
+    if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
+        set -x
+    fi
+
+# It seems the script was called by another script (non-standalone mode)
+else
+    if [[ "${HQ_VERBOSITY_RUNTIME}" == "debug" || "${HQ_VERBOSITY_NONRUNTIME}" == "debug" ]]; then
+        set -x
+    fi
 fi
 
 # Standard error response 
@@ -69,7 +82,7 @@ workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space
 jsn=$(grep -m 1 "^HQ_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 
 # Checking if the job type letter is valid
-if [[ "${jtl}" != [[:lower:]] ]]; then
+if ! [[ "${jtl}" =~ ^[abcdefghij]$ ]]; then
     echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n"
     exit 1
 fi

@@ -49,7 +49,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+            touch runtime/${HQ_STARTDATE_BS}/error.pipeline
             exit 1
         else
             cd ..
@@ -66,7 +66,7 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 

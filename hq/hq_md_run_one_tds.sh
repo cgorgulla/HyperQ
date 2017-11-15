@@ -43,7 +43,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_BS_STARTDATE}/error.pipeline
+            touch runtime/${HQ_STARTDATE_BS}/error.pipeline
             exit 1
         else
             cd ..
@@ -63,7 +63,7 @@ cleanup_exit() {
     echo " * Cleaning up..."
 
     # Terminating all processes
-    if [ "${HQ_VERBOSITY}" = "debug" ]; then
+    if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 
         echo -e "\n * Information about all jobs of the user: \n"
         ps -fu $USER
@@ -96,7 +96,7 @@ cleanup_exit() {
         kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -104,7 +104,7 @@ cleanup_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -118,9 +118,9 @@ trap "cleanup_exit" EXIT
 set -o pipefail
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
@@ -148,11 +148,11 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|<address>.*ipi.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.md.iqi.${tds_folder//tds.}</address>|g" ipi.in.*
-    sed -i "s|<address>.*cp2k.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.}</address>|g" ipi.in.*
+    sed -i "s|<address>.*ipi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.iqi.${tds_folder//tds.}</address>|g" ipi.in.*
+    sed -i "s|<address>.*cp2k.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.cp2k.${tds_folder//tds.}</address>|g" ipi.in.*
 
     # Removing the socket files if still existent from previous runs
-    rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
     # Starting ipi
     echo " * Starting ipi"
@@ -176,7 +176,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Loop for waiting until the socket file exists
     while true; do
-        if [ -e /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.} ]; then
+        if [ -e /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.cp2k.${tds_folder//tds.} ]; then
             for bead_folder in $(ls -v cp2k/); do
 
                 # Preparing files and folder
@@ -187,7 +187,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
+                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
@@ -232,7 +232,7 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
     rm iqi.out.run${run}* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.md.iqi.${tds_folder//tds.}</address>|g" iqi.in.*
+    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.iqi.${tds_folder//tds.}</address>|g" iqi.in.*
 
     # Starting i-QI
     echo " * Starting iqi"
@@ -262,7 +262,7 @@ stop_flag="false"
 while true; do
 
     # Printing some information
-    if [ "${HQ_VERBOSITY}" == "debug" ]; then
+    if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
         echo " * Checking if the simulation running in folder ${PWD} has completed."
     fi
 

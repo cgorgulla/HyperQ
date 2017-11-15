@@ -49,8 +49,8 @@ trap 'error_response_std $LINENO' ERR
 set -o pipefail
 
 # Verbosity
-verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt &>/dev/null | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')" &>/dev/null || true      # the config file might not exist yet since this script might just prepare it
-if [ "${verbosity_preparation}" = "debug" ]; then
+HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt &>/dev/null | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')" &>/dev/null || true      # the config file might not exist yet since this script might just prepare it
+if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
     set -x
 fi
 

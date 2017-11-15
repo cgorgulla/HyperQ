@@ -31,8 +31,22 @@ fi
 set -o pipefail
 
 # Verbosity
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
-    set -x
+# Checking if standalone mode (-> non-runtime)
+if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
+
+    # Variables
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+
+    # Checking the value
+    if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
+        set -x
+    fi
+
+# It seems the script was called by another script (non-standalone mode)
+else
+    if [[ "${HQ_VERBOSITY_RUNTIME}" == "debug" || "${HQ_VERBOSITY_NONRUNTIME}" == "debug" ]]; then
+        set -x
+    fi
 fi
 
 # Standard error response

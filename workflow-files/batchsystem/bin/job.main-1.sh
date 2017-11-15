@@ -13,20 +13,20 @@ echo
 shopt -s nullglob       # Required for our code
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
 # Basic variables
 starting_time="$(date)"
 start_time_seconds="$(date +%s)"
-export HQ_BS_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQ_STARTDATE_BS="$(date +%Y%m%d%m%S-%N)"
 batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
 
 # Creating the runtime error
-mkdir -p runtime/${HQ_BS_STARTDATE}
+mkdir -p runtime/${HQ_STARTDATE_BS}
 
 # Checking the version of BASH, we need at least 4.3 (wait -n)
 bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
@@ -39,6 +39,7 @@ if [ ${bash_version} -lt 43 ]; then
     echo
     exit 1
 fi
+
 # Preparing the output folder for the batchsystem log-files
 mkdir -p batchsystem/output-files
 
@@ -47,128 +48,11 @@ mkdir -p batchsystem/output-files
 
 ### General Functions ###
 
-# Determining the control file
-determine_control_file() {
-
-    # Variables
-    controlfile=""
-
-    # Loop for each file of priority 1 (highest priority)
-    for file in batchsystem/control/*-*:*-*.ctrl; do
-
-        # Variables
-        file_basename=$(basename $file)
-        jtl_range=$(echo ${file_basename} | awk -F '[:.]' '{print $1}')
-        jtl_range_start=${jtl_range/-*}
-        jtl_range_end=${jtl_range/*-}
-        jid_range=$(echo ${file_basename} | awk -F '[:.]' '{print $2}')
-        jid_range_start=${jid_range/-*}
-        jid_range_end=${jid_range/*-}
-
-        # Checking if the jtl range values are valid using Base36 to compare the characters
-        if ! [ "$((36#${jtl_range_start}))" -le "$((36#${jtl_range_end}))" ]; then
-
-            # The filename seems to be of an invalid format
-            echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
-            continue
-        fi
-
-        # Checking if the jid range values are valid
-        if ! [ "${jid_range_start}" -le "${jid_range_end}" ]; then
-
-            # The file seems to be of an invalid format
-            echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
-            continue
-        fi
-
-        # Checking if our jid is contained in the specified jid range of the file
-        if [[ "${jid_range_start}" -le "${HQ_JID}" && "${HQ_JID}" -le "${jid_range_end}" ]]; then
-
-            # Checking if our jtl is contained in the specified jtl range of the file
-            if [[ "$((36#${jtl_range_start}))" -le "$((36#${HQ_JTL}))" && "$((36#${HQ_JTL}))" -le "$((36#${jtl_range_end}))" ]]; then
-
-                # Setting the control file
-                controlfile=${file}
-
-                # We are all set
-                return
-            fi
-        fi
-    done
-
-    # Loop for each file of priority 2
-    for file in batchsystem/control/all:*-*.ctrl; do
-
-        # Variables
-        file_basename=$(basename $file)
-        jid_range=$(echo ${file_basename} | awk -F '[:.]' '{print $2}')
-        jid_range_start=${jid_range/-*}
-        jid_range_end=${jid_range/*-}
-
-        # Checking if the jid range values are valid
-        if ! [ "${jid_range_start}" -le "${jid_range_end}" ]; then
-
-            # The file seems to be of an invalid format
-            echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
-            continue
-        fi
-
-        # Checking if our jid is contained in the specified jid range of the file
-        if [[ "${jid_range_start}" -le "${HQ_JID}" && "${HQ_JID}" -le "${jid_range_end}" ]]; then
-
-            # Setting the control file
-            controlfile=${file}
-
-            # We are all set
-            return
-        fi
-    done
-
-    # Loop for each file of priority 3
-    for file in batchsystem/control/*-*.all.ctrl; do
-
-        # Variables
-        file_basename=$(basename $file)
-        jtl_range=$(echo ${file_basename} | awk -F '[:.]' '{print $1}')
-        jtl_range_start=${jtl_range/-*}
-        jtl_range_end=${jtl_range/*-}
-
-        # Checking if the jtl range values are valid using Base36 to compare the characters
-        if ! [ "$((36#${jtl_range_start}))" -le "$((36#${jtl_range_end}))" ]; then
-
-            # The filename seems to be of an invalid format
-            echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
-            continue
-        fi
-
-        # Checking if our jtl is contained in the specified jtl range of the file
-        if [[ "$((36#${jtl_range_start}))" -le "$((36#${HQ_JTL}))" && "$((36#${HQ_JTL}))" -le "$((36#${jtl_range_end}))" ]]; then
-
-            # Setting the control file
-            controlfile=${file}
-
-            # We are all set
-            return
-        fi
-    done
-
-    # If we have still not found any control file, then the general all:all.ctrl file is responsible for us
-    # Checking if it is there
-    if [ -f batchsystem/control/all:all.ctrl ]; then
-        controlfile="batchsystem/control/all:all.ctrl"
-    else
-
-        # Printing some information before exiting...
-        echo -e "Error: No control file could be found. Exiting...\n\n"
-        exit 1
-    fi
-}
-
 # Syncing the control variables
 sync_control_parameters() {
 
     # Determining the control file responsible for us
-    determine_control_file
+    controlfile="$(hqh_bs_determine_controlfile.sh ${HQ_JTL} ${HQ_JID})"
 
     # Getting the control parameters
     job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -265,7 +149,7 @@ exit_response() {
     terminate_processes
 
     ## Cleaning up files and folders
-    #rm -r runtime/${HQ_PIPE_STARTDATE} &>/dev/null || true
+    #rm -r runtime/${HQ_STARTDATE_ONEPIPE} &>/dev/null || true
 
     # Printing final information
     print_job_infos_end
@@ -527,35 +411,35 @@ check_past_signals_errors() {
     # Order of precedence: signal_type1, signal_type2, signal_type3, internal errors
 
     # Checking for signals of type 1
-    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type1 ]; then
+    if [ -f runtime/${HQ_STARTDATE_BS}/signal.type1 ]; then
 
         # Calling the corresponding function
         signals_type1_response
     fi
 
     # Checking for signals of type 2
-    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type2 ]; then
+    if [ -f runtime/${HQ_STARTDATE_BS}/signal.type2 ]; then
 
         # Calling the corresponding function
         signals_type2_response
     fi
 
     # Checking for signals of type 3
-    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type3 ]; then
+    if [ -f runtime/${HQ_STARTDATE_BS}/signal.type3 ]; then
 
         # Calling the corresponding function
         signals_type3_response
     fi
 
     # Checking for subjob errors
-    if [ -f runtime/${HQ_BS_STARTDATE}/error.subjob ]; then
+    if [ -f runtime/${HQ_STARTDATE_BS}/error.subjob ]; then
 
         # Calling the corresponding function
         errors_subjob_response
     fi
 
     # Checking for hq errors
-    if [ -f runtime/${HQ_BS_STARTDATE}/error.pipeline ]; then
+    if [ -f runtime/${HQ_STARTDATE_BS}/error.pipeline ]; then
 
         # Calling the corresponding function
         errors_pipeline_response
