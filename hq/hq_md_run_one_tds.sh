@@ -43,7 +43,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error.hq
+            touch runtime/${HQ_BS_STARTDATE}/error.hq
             exit 1
         else
             cd ..
@@ -96,7 +96,7 @@ cleanup_exit() {
         kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -104,7 +104,7 @@ cleanup_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -148,11 +148,11 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.}|g" ipi.in.*
-    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" ipi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.md.iqi.${tds_folder//tds.}|g" ipi.in.*
+    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" ipi.in.*
 
     # Removing the socket files if still existent from previous runs
-    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+    rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
     # Starting ipi
     echo " * Starting ipi"
@@ -176,7 +176,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Loop for waiting until the socket file exists
     while true; do
-        if [ -e /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.} ]; then
+        if [ -e /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.} ]; then
             for bead_folder in $(ls -v cp2k/); do
 
                 # Preparing files and folder
@@ -187,7 +187,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                 rm cp2k.out.run${run}* > /dev/null 2>&1 || true
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
+                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.md.cp2k.${tds_folder//tds.}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
@@ -232,7 +232,7 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
     rm iqi.out.run${run}* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.md.iqi.${tds_folder//tds.}|g" iqi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.md.iqi.${tds_folder//tds.}|g" iqi.in.*
 
     # Starting i-QI
     echo " * Starting iqi"
@@ -273,12 +273,12 @@ while true; do
         time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
 
         # Checking the time diff
-        if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+10))" ]]; then
+        if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+30))" ]]; then
             
             # Printing some information
             echo " * i-PI seems to have completed the MD simulation."
             break
-        elif [[ "${time_diff}" -ge "$((md_timeout+10))" ]]; then
+        elif [[ "${time_diff}" -ge "$((md_timeout+30))" ]]; then
         
             # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
             touch ipi/ipi.out.run${run}.screen
@@ -392,5 +392,5 @@ while true; do
     fi
 
     # Sleeping before next round
-    sleep 1 || true   # true because the script might be terminated while sleeping, which would result in an error
+    sleep 10 || true   # true because the script might be terminated while sleeping, which would result in an error
 done

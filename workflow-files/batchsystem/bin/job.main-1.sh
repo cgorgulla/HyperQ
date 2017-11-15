@@ -22,11 +22,11 @@ fi
 # Basic variables
 starting_time="$(date)"
 start_time_seconds="$(date +%s)"
-export HQ_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQ_BS_STARTDATE="$(date +%Y%m%d%m%S-%N)"
 batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
 
 # Creating the runtime error
-mkdir -p runtime/${HQ_STARTDATE}
+mkdir -p runtime/${HQ_BS_STARTDATE}
 
 # Checking the version of BASH, we need at least 4.3 (wait -n)
 bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
@@ -265,7 +265,7 @@ exit_response() {
     terminate_processes
 
     ## Cleaning up files and folders
-    #rm -r runtime/${HQ_STARTDATE} &>/dev/null || true
+    #rm -r runtime/${HQ_PIPE_STARTDATE} &>/dev/null || true
 
     # Printing final information
     print_job_infos_end
@@ -534,35 +534,35 @@ check_past_signals_errors() {
     # Order of precedence: signal_type1, signal_type2, signal_type3, internal errors
 
     # Checking for signals of type 1
-    if [ -f runtime/${HQ_STARTDATE}/signal.type1 ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type1 ]; then
 
         # Calling the corresponding function
         signals_type1_response
     fi
 
     # Checking for signals of type 2
-    if [ -f runtime/${HQ_STARTDATE}/signal.type2 ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type2 ]; then
 
         # Calling the corresponding function
         signals_type2_response
     fi
 
     # Checking for signals of type 3
-    if [ -f runtime/${HQ_STARTDATE}/signal.type3 ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/signal.type3 ]; then
 
         # Calling the corresponding function
         signals_type3_response
     fi
 
     # Checking for subjob errors
-    if [ -f runtime/${HQ_STARTDATE}/error.subjob ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/error.subjob ]; then
 
         # Calling the corresponding function
         errors_subjob_response
     fi
 
     # Checking for hq errors
-    if [ -f runtime/${HQ_STARTDATE}/error.hq ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/error.hq ]; then
 
         # Calling the corresponding function
         errors_hq_response

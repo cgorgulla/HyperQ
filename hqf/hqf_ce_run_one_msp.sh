@@ -43,7 +43,7 @@ error_response_std() {
         if [ -d input-files ]; then
 
             # Setting the error flag
-            touch runtime/${HQ_STARTDATE}/error.hq
+            touch runtime/${HQ_BS_STARTDATE}/error.hq
             exit 1
         else
             cd ..
@@ -70,7 +70,7 @@ clean_up() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.ce.* >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.* >/dev/null 2>&1 || true
 
         # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime

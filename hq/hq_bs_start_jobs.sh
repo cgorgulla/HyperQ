@@ -100,7 +100,7 @@ delay_time=${6}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 time_nanoseconds="$(date +%Y%m%d%m%S-%N)"
-temp_folder=runtime/${time_nanoseconds}
+temp_folder=/tmp/${USER}/hq_bs_start_jobs/${time_nanoseconds}
 
 # Checking if the job type letter is valid
 if ! [[ "${jtl}" =~ [abcdefghij] ]]; then
@@ -153,7 +153,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
 
     # Loop for all JIDs
     for jid in $(seq ${first_jid} ${last_jid}); do
-
+1
         # Printing some information
         echo "Adding job ${jid} to the list of jobs to be started."
 

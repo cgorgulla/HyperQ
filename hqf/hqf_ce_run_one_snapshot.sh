@@ -60,7 +60,7 @@ cleanup_exit() {
         kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -68,7 +68,7 @@ cleanup_exit() {
         pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -121,11 +121,11 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
 
     # Removing the socket files if still existent from previous runs
-    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+    rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
+    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
 
     # Starting ipi
     stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
@@ -149,7 +149,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
 
     # Loop for waiting until the socket file exists
     while true; do
-        if [ -e "/tmp/ipi_${workflow_id}.${HQ_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}" ]; then # -e for any fail, -f is only for regular files
+        if [ -e "/tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}" ]; then # -e for any fail, -f is only for regular files
             echo " * The socket file for snapshot ${snapshot_id} has been detected. Starting CP2K..."
 
             # Loop for each bead
@@ -160,7 +160,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 rm cp2k.out* > /dev/null 2>&1 || true
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
+                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
@@ -198,7 +198,7 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
     cd iqi
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_STARTDATE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" iqi.in.*
+    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" iqi.in.*
 
     # Starting iqi
     echo -e " * Starting iqi"

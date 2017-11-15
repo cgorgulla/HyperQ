@@ -75,7 +75,7 @@ error_response_std() {
     echo
 
     # Setting the file-based error flag for the batchsystem module
-    touch runtime/${HQ_STARTDATE}/error.hq
+    touch runtime/${HQ_BS_STARTDATE}/error.hq
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -103,7 +103,7 @@ cleanup_exit() {
     echo "Cleaning up..."
 
     # Removing remaining socket files
-    rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE}.* 2>&1 > /dev/null
+    rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.* 2>&1 > /dev/null
 
     # Terminating all remaining processes
     # Getting our process group id
@@ -163,11 +163,20 @@ if [ "${HQ_VERBOSITY}" == "debug" ]; then
     set -x
 fi
 
-# Internal start startdate_hr
-if [ -z "${HQ_STARTDATE}" ]; then
-    HQ_STARTDATE="$(date +%Y%m%d%m%S-%N)"
-    export HQ_STARTDATE
+# Setting the start date of this pipeline
+HQ_PIPE_STARTDATE="$(date +%Y%m%d%m%S-%N)"
+export HQ_PIPE_STARTDATE
+
+# Checking if the batchsystem job startdate is set, which is the case only if HQ is run in the batchsystem mode
+if [ -z "${HQ_BS_STARTDATE}" ]; then
+
+    # Setting the HQ_BS_STARTDATE to the HQ_PIPE_STARTDATE
+    HQ_BS_STARTDATE=${HQ_PIPE_STARTDATE}
+    export HQ_BS_STARTDATE
 fi
+
+# Human readable start date
+#startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"
 
 # Variables
 msp_name="${1}"
@@ -177,8 +186,7 @@ system1="${msp_name/_*}"
 system2="${msp_name/*_}"
 workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
-startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"                          # human readable format
-logfile_folder_root="log-files/${startdate_hr}/${msp_name}_${subsystem}"
+logfile_folder_root="log-files/${HQ_BS_STARTDATE}/${msp_name}_${subsystem}"
 
 # TDS Range
 if [ "${#}" == "4" ]; then
@@ -189,7 +197,7 @@ fi
 
 # Folders
 mkdir -p ${logfile_folder_root}
-mkdir -p runtime/${HQ_STARTDATE}/
+mkdir -p runtime/${HQ_BS_STARTDATE}/
 
 # Checking if we are the session leader
 pgid=$(pgid_from_pid $$)
