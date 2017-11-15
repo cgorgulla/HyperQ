@@ -105,8 +105,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     # Asking if the config-files should be prepared
     if [ ${answer_cleanup_all} == "false" ]; then
         while true; do
-            echo
-            read -p "Should the config files of the input-files folder be prepared (replacing existing files)? " answer
+            read -p "Should the input-files/config* files be prepared (replacing existing files)? " answer
             echo
             case ${answer} in
                 [Yy]* ) answer=true; break;;
@@ -210,6 +209,8 @@ fi
 
 # Asking the user if the batchsystem-folder should be prepared
 if [ ${answer_cleanup_all} == "false" ]; then
+
+    echo
     while true; do
         echo
         read -p "Should the batchsystem folder be prepared? " answer

@@ -97,7 +97,7 @@ if [ ${bash_version} -lt 43 ]; then
 fi
 
 # Printing some information
-echo -e "\n ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
+echo -e "\n\n                                   ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
 
 # Variables
 task_list=$1

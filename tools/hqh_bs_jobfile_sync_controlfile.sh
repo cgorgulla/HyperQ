@@ -6,7 +6,7 @@ usage="Usage: hqh_bs_jobfile_sync_controlfile.sh <job-type-letter> <job ID>
 Determines the responsible control file and syncs the settings with the corresponding jobfile in the batchsystem/job-files/main/ folder.
 
 Arguments:
-    <job-type-letter>: The job-type-letter corresponding to the jobs to be started (a lower case letter)
+    <job-type-letter>: The job-type-letter (JTL) corresponding to the jobs to be started (a lower case letter between a and j)
 
     <job ID>: Natural number
 

@@ -185,10 +185,10 @@ while true; do
     if [ -n "${HQ_BS_JOBNAME}" ]; then
 
         # Determining the control file responsible for us
+        cd ../../../../
         controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
 
         # Getting the relevant value
-        cd ../../../../
         terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
         cd -
 
