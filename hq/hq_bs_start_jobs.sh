@@ -119,16 +119,20 @@ mkdir -p ${temp_folder}
 touch ${temp_folder}/jobs-all
 touch ${temp_folder}/jobs-to-start
 
+
+# Printing some information
+echo -e "\n\nChecking which jobs should be started...\n"
+
 # Checking if we should check for already active jobs
 jobs_started=0
 jobs_omitted=0
 if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
-    # Printing some information
-    echo -e "\nChecking which jobs are already in the batchsystem"
-
     # Variables
     jtls_to_check=${check_active_jobs/*:}
+
+    # Printing some information
+    echo -e " *** Checking which jobs are already in the batchsystem\n"
 
     # Checking if there are jtls specified
     if [ -z "${jtls_to_check}" ]; then
@@ -143,10 +147,10 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
     # Determining which jobs which have to be restarted
     for jid in $(seq ${first_jid} ${last_jid}); do
-        if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid} " ${temp_folder}/jobs-all; then                 # The whitespace in the grep expression is important
+        if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid}\." ${temp_folder}/jobs-all; then
 
             # Printing some information
-            echo "Adding job ${jid} to the list of jobs to be started."
+            echo "   * Adding job ${jid} to the list of jobs to be started."
 
             # Adding the JID
             echo ${jid} >> ${temp_folder}/jobs-to-start
@@ -156,7 +160,7 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
         else
 
             # Printing some information
-            echo "Omitting the job ${jtl}.${jid} because it was found to be already in the batchsystem."
+            echo "   * Omitting the job ${jtl}.${jid} because it was found to be already in the batchsystem."
 
             # Increasing the counter
             jobs_omitted=$((jobs_omitted+1))
@@ -168,7 +172,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
     for jid in $(seq ${first_jid} ${last_jid}); do
 
         # Printing some information
-        echo "Adding job ${jid} to the list of jobs to be started."
+        echo " * Adding job ${jid} to the list of jobs to be started."
 
         # Adding the JID
         echo ${jid} >> ${temp_folder}/jobs-to-start
@@ -178,6 +182,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
     done
 else
 
+    # Printing some information before exiting
     echo -e "\n * Error: The input argument 'check_active_jobs' has an unsupported value (${check_active_jobs}). Exiting...\n\n"
     exit 1
 fi

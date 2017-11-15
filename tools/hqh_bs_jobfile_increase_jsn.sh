@@ -37,9 +37,8 @@ if [ "$#" -ne "2" ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY
-if [ "${HQ_VERBOSITY}" = "debug" ]; then
+verbosity_preparation="$(grep -m 1 "^verbosity_preparation=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+if [ "${verbosity_preparation}" = "debug" ]; then
     set -x
 fi
 
