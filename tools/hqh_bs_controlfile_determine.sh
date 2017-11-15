@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hqh_bs_determine_controlfile.sh <job-type-letter> <job ID>
+usage="Usage: hqh_bs_controlfile_determine.sh <job-type-letter> <job ID>
 
 Determines which controlfile is responsible for the given JTL and JID, and prints the filename.
 
@@ -21,16 +21,16 @@ if [ "${1}" == "-h" ]; then
     exit 0
 fi
 if [ "$#" -ne "2" ]; then
-    echo
-    echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 2"
-    echo "Number of provided arguments: ${#}"
-    echo "Provided arguments: $@"
-    echo
-    echo -e "$usage"
-    echo
-    echo
+    echo 1>&2
+    echo -e "Error in script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "Reason: The wrong number of arguments was provided when calling the script." 1>&2
+    echo "Number of expected arguments: 2" 1>&2
+    echo "Number of provided arguments: ${#}" 1>&2
+    echo "Provided arguments: $@" 1>&2
+    echo 1>&2
+    echo -e "$usage" 1>&2
+    echo 1>&2
+    echo 1>&2
     exit 1
 fi
 
@@ -56,13 +56,13 @@ fi
 # Standard error response 
 error_response_std() {
     # Printing some information
-    echo
-    echo "An error was trapped" 1>&2
-    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occurred on line $1" 1>&2
-    echo "Exiting..."
-    echo
-    echo
+    echo 1>&2
+    echo "An error was trapped" 1>&2 1>&2
+    echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2 1>&2
+    echo "The error occurred on line $1" 1>&2 1>&2
+    echo "Exiting..." 1>&2
+    echo 1>&2
+    echo 1>&2
 
     # Exiting
     exit 1
@@ -82,7 +82,7 @@ controlfile=""
 if ! [[ "${jtl}" =~ ^[abcdefghij]$ ]]; then
 
     # Printing some information
-    echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n"
+    echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n" 1>&2
     exit 1
 fi
 
@@ -90,7 +90,7 @@ fi
 if ! [ -d batchsystem ]; then
 
     # Printing some information
-    echo -e "\n * Error: The script has to be run in the root folder and the batchsystem folder has to be prepared already. Exiting...\n\n"
+    echo -e "\n * Error: The script has to be run in the root folder and the batchsystem folder has to be prepared already. Exiting...\n\n" 1>&2
     exit 1
 fi
 
@@ -112,7 +112,7 @@ for file in batchsystem/control/*-*:*-*.ctrl; do
     if ! [ "$((36#${jtl_range_start}))" -le "$((36#${jtl_range_end}))" ] &>/dev/null; then
 
         # The filename seems to be of an invalid format
-        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
+        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..." 1>&2
         continue
     fi
 
@@ -120,7 +120,7 @@ for file in batchsystem/control/*-*:*-*.ctrl; do
     if ! [ "${jid_range_start}" -le "${jid_range_end}" ]; then
 
         # The file seems to be of an invalid format
-        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
+        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..." 1>&2
         continue
     fi
 
@@ -153,7 +153,7 @@ for file in batchsystem/control/all:*-*.ctrl; do
     if ! [ "${jid_range_start}" -le "${jid_range_end}" ] 2>/dev/null; then
 
         # The file seems to be of an invalid format
-        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
+        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..." 1>&2
         continue
     fi
 
@@ -182,7 +182,7 @@ for file in batchsystem/control/*-*:all.ctrl; do
     if ! [ "$((36#${jtl_range_start}))" -le "$((36#${jtl_range_end}))" ] 2>/dev/null; then
 
         # The filename seems to be of an invalid format
-        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..."
+        echo "Warning: The control file $file seems to have an unsupported filename. Ignoring this file..." 1>&2
         continue
     fi
 

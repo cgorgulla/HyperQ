@@ -52,7 +52,7 @@ mkdir -p batchsystem/output-files
 sync_control_parameters() {
 
     # Determining the control file responsible for us
-    controlfile="$(hqh_bs_determine_controlfile.sh ${HQ_JTL} ${HQ_JID})"
+    controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_JTL} ${HQ_JID})"
 
     # Getting the control parameters
     job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
