@@ -23,16 +23,16 @@ if [ "${1}" == "-h" ]; then
     exit 0
 fi
 if [ "$#" -ne "2" ]; then
-    echo
-    echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 2"
-    echo "Number of provided arguments: ${#}"
-    echo "Provided arguments: $@"
-    echo
-    echo -e "$usage"
-    echo
-    echo
+    echo 1>&2
+    echo -e "Error in script $(basename ${BASH_SOURCE[0]})" 1>&2
+    echo "Reason: The wrong number of arguments was provided when calling the script." 1>&2
+    echo "Number of expected arguments: 2" 1>&2
+    echo "Number of provided arguments: ${#}" 1>&2
+    echo "Provided arguments: $@" 1>&2
+    echo 1>&2
+    echo -e "$usage" 1>&2
+    echo 1>&2
+    echo 1>&2
     exit 1
 fi
 
@@ -58,13 +58,13 @@ fi
 # Standard error response 
 error_response_std() {
     # Printing some information
-    echo
+    echo 1>&2
     echo "An error was trapped" 1>&2
     echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
     echo "The error occurred on line $1" 1>&2
-    echo "Exiting..."
-    echo
-    echo
+    echo "Exiting..." 1>&2
+    echo 1>&2
+    echo 1>&2
 
     # Exiting
     exit 1
@@ -79,11 +79,11 @@ jtl=${1}
 jid=${2}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
-jsn=$(grep -m 1 "^HQ_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+jsn=$(grep -m 1 "^HQ_BS_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 
 # Checking if the job type letter is valid
 if ! [[ "${jtl}" =~ ^[abcdefghij]$ ]]; then
-    echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n"
+    echo -e "\n * Error: The input argument 'job type letter' has an unsupported value. Exiting...\n\n" 1>&2
     exit 1
 fi
 
@@ -102,8 +102,8 @@ fi
 sed -i "s/jsn\-${jsn}/jsn-$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
 # Adjusting the HyperQ variables
-sed -i "s/^HQ_JSN=.*/HQ_JSN=$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
-sed -i "s/^HQ_JOBNAME=.*/HQ_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
+sed -i "s/^HQ_BS_JSN=.*/HQ_BS_JSN=$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
+sed -i "s/^HQ_BS_JOBNAME=.*/HQ_BS_JOBNAME=${workflow_id}:${jtl}.${jid}.$((jsn+1))/g" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}
 
 # Printing final job information
 echo -e "\n * The JSN (job serial number) of the file batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} has been updated.\n"

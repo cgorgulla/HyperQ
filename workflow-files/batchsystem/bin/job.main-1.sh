@@ -52,19 +52,19 @@ mkdir -p batchsystem/output-files
 sync_control_parameters() {
 
     # Determining the control file responsible for us
-    controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_JTL} ${HQ_JID})"
+    controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
 
     # Getting the control parameters
     job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     prevent_new_job_submissions="$(grep -m 1 "^prevent_new_job_submissions=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-    HQ_SIGNAL_TYPE1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    HQ_SIGNAL_TYPE2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    HQ_SIGNAL_TYPE3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_BS_SIGNAL_TYPE1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_BS_SIGNAL_TYPE2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    HQ_BS_SIGNAL_TYPE3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type1_response="$(grep -m 1 "^signals_type1_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     errors_pipeline_response="$(grep -m 1 "^errors_pipeline_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    HQ_ERRORS_SUBJOB_RESPONSE="$(grep -m 1 "^errors_subjob_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+    HQ_BS_ERRORS_SUBJOB_RESPONSE="$(grep -m 1 "^errors_subjob_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
     errors_job_response="$(grep -m 1 "^errors_job_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -75,10 +75,10 @@ sync_control_parameters() {
     job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Exporting relevant parameters
-    export HQ_SIGNAL_TYPE1
-    export HQ_SIGNAL_TYPE2
-    export HQ_SIGNAL_TYPE3
-    export HQ_ERRORS_SUBJOB_RESPONSE
+    export HQ_BS_SIGNAL_TYPE1
+    export HQ_BS_SIGNAL_TYPE2
+    export HQ_BS_SIGNAL_TYPE3
+    export HQ_BS_ERRORS_SUBJOB_RESPONSE
 
     # Checking and adjusting the new job type letters (also replacing terms like 'same' or 'next' with the corresponding numerical value)
     for jtl_name in errors_job_new_job_jtl errors_subjob_new_job_jtl errors_pipeline_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
@@ -94,11 +94,11 @@ sync_control_parameters() {
         elif [[ "${jtl_value}" == "same" ]]; then
 
             # Setting the new jtl
-            eval ${jtl_name}=${HQ_JTL}
+            eval ${jtl_name}=${HQ_BS_JTL}
         elif [[ "${jtl_value}" == "next" ]]; then
 
             # Increasing the new jtl to the next letter in the alphabet
-            eval ${jtl_name}=$(echo ${HQ_JTL} | tr abcdefghi 012345678 | awk '{print $1+1}' | tr 0123456789 abcdefghij)              #$((36#${HQ_JTL}-9))    https://stackoverflow.com/questions/27489170/assign-number-value-to-alphabet-in-shell-bash
+            eval ${jtl_name}=$(echo ${HQ_BS_JTL} | tr abcdefghi 012345678 | awk '{print $1+1}' | tr 0123456789 abcdefghij)              #$((36#${HQ_BS_JTL}-9))    https://stackoverflow.com/questions/27489170/assign-number-value-to-alphabet-in-shell-bash
         else
 
             # Printing some error message before exiting
@@ -115,7 +115,7 @@ prepare_new_job() {
     new_job_jtl=${1}
 
     # Updating the job file
-    hqh_bs_jobfile_increase_jsn.sh ${new_job_jtl} ${HQ_JID}
+    hqh_bs_jobfile_increase_jsn.sh ${new_job_jtl} ${HQ_BS_JID}
 }
 
 # Start new job
@@ -138,7 +138,7 @@ submit_new_job() {
         fi
 
         # Submitting the next job
-        hq_bs_start_jobs.sh ${new_job_jtl} ${HQ_JID} ${HQ_JID} false false 1
+        hq_bs_start_jobs.sh ${new_job_jtl} ${HQ_BS_JID} ${HQ_BS_JID} false false true 1
     fi
 }
 
@@ -221,7 +221,7 @@ errors_job_response() {
     else
 
         # Deactivating further signals responses
-        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
         #  Variables
         new_job_jtl="${errors_job_new_job_jtl}"
@@ -253,7 +253,7 @@ errors_subjob_response() {
     sync_control_parameters
 
     # Checking if the error should be ignored
-    if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
+    if [[ "${HQ_BS_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
 
         # Restoring the default error response
         trap 'errors_job_response $LINENO' ERR
@@ -265,18 +265,18 @@ errors_subjob_response() {
     else
 
         # Deactivating further signals responses
-        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
         #  Variables
         new_job_jtl="${errors_subjob_new_job_jtl}"
 
         # Checking if the next job should be prepared
-        if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"prepare_new_job"* ]]; then
+        if [[ "${HQ_BS_ERRORS_SUBJOB_RESPONSE}" == *"prepare_new_job"* ]]; then
             prepare_new_job ${new_job_jtl}
         fi
 
         # Checking if the next job should be submitted
-        if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"submit_new_job"* ]]; then
+        if [[ "${HQ_BS_ERRORS_SUBJOB_RESPONSE}" == *"submit_new_job"* ]]; then
             submit_new_job ${new_job_jtl}
         fi
 
@@ -307,7 +307,7 @@ errors_pipeline_response() {
     else
 
         # Deactivating further signals responses
-        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
         #  Variables
         new_job_jtl="${errors_pipeline_new_job_jtl}"
@@ -331,7 +331,7 @@ errors_pipeline_response() {
 signals_type1_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -357,7 +357,7 @@ signals_type1_response() {
 signals_type2_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -383,7 +383,7 @@ signals_type2_response() {
 signals_type3_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -455,14 +455,14 @@ sync_control_parameters
 # Setting the traps
 trap 'errors_job_response $LINENO' ERR
 trap 'exit_response' EXIT
-if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
-    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE1}" ]]; then
+    trap 'signals_type1_response' ${HQ_BS_SIGNAL_TYPE1//:/ }
 fi
-if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
-    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE2}" ]]; then
+    trap 'signals_type2_response' ${HQ_BS_SIGNAL_TYPE2//:/ }
 fi
-if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
-    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE3}" ]]; then
+    trap 'signals_type3_response' ${HQ_BS_SIGNAL_TYPE3//:/ }
 fi
 
 
@@ -478,7 +478,7 @@ sleep ${dispersion_time}
 
 
 ### Running the Subjobs ###
-source batchsystem/job-files/subjob-lists/jtl-${HQ_JTL}.jid-${HQ_JID}.sh
+source batchsystem/job-files/subjob-lists/jtl-${HQ_BS_JTL}.jid-${HQ_BS_JID}.sh
 
 # Waiting for the subjobs to finish
 wait

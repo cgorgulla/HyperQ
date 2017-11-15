@@ -20,20 +20,20 @@
 ####################################################################################################################################################################
 
 # Definition
-HQ_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
+HQ_BS_JOBNAME=workflow_id_placeholder:jtl_placeholder.jid_placeholder.jsn_placeholder
 HQ_WORKFLOW_ID=workflow_id_placeholder
-HQ_JTL=jtl_placeholder
-HQ_JID=jid_placeholder
-HQ_JSN=jsn_placeholder
-HQ_BID=${JOB_ID}
+HQ_BS_JTL=jtl_placeholder
+HQ_BS_JID=jid_placeholder
+HQ_BS_JSN=jsn_placeholder
+HQ_BS_BID=${JOB_ID}
 
 # Exportation
-export HQ_JOBNAME
+export HQ_BS_JOBNAME
 export HQ_WORKFLOW_ID
-export HQ_JTL
-export HQ_JID
-export HQ_JSN
-export HQ_BID
+export HQ_BS_JTL
+export HQ_BS_JID
+export HQ_BS_JSN
+export HQ_BS_BID
 
 
 #                                                                  Printing Basic Job Information

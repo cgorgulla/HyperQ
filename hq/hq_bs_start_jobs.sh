@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <first job ID> <last job ID> <increase job serial number> <check for active jobs> <delay time>
+usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <first job ID> <last job ID> <increase job serial number> <check for active jobs> <sync with controlfile> <delay time>
 
 Starts the job files in batchsystem/job-files/main/jtl-<jtl>.jid-<jid>.<batchsystem>
 The variable <batchsystem> is determined by the corresponding setting in the file input-files/config.txt
@@ -16,6 +16,8 @@ Arguments:
 
     <delay time>: Time in seconds between the submission of two consecutive jobs.
 
+    <sync with control file>: Possible values: true, false. Will determine the responsible control file and sync the job file with it before starting the job.
+
 Has to be run in the root folder."
 
 # Checking the input parameters
@@ -28,13 +30,13 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "6" ]; then
+if [ "$#" -ne "7" ]; then
 
     # Printing some information
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 6"
+    echo "Number of expected arguments: 7"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -109,7 +111,8 @@ first_jid=${2}
 last_jid=${3}
 increase_jsn=${4}
 check_active_jobs=${5}
-delay_time=${6}
+sync_job_file=${6}
+delay_time=${7}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 time_nanoseconds="$(date +%Y%m%d%m%S-%N)"
@@ -213,6 +216,11 @@ if [ -f ${temp_folder}/jobs-to-start ]; then
         else
             # Formatting screen output
             echo
+        fi
+
+        # Syncing the job file
+        if [ "${sync_job_file^^}" == "TRUE" ]; then
+            hqh_bs_jobfile_sync_controlfile.sh ${jtl} ${jid}
         fi
 
         # Submitting the job

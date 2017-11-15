@@ -142,6 +142,30 @@ pgid_from_pid() {
     echo "${pgid_tmp}"
 }
 
+# Checking if the current batchsystem job should be terminated
+bs_check_termination_request() {
+
+    # Checking if the workflow is run by the BS module
+    if [ -n "${HQ_BS_JOBNAME}" ]; then
+
+        # Determining the control file responsible for us
+        controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
+
+        # Getting the relevant value
+        terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+
+        # Checking the value
+        if [ "${terminate_current_job^^}" == "TRUE" ]; then
+
+            # Printing some information
+            echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+
+            # Exiting
+            exit 0
+        fi
+    fi
+}
+
 # Bash options
 set -o pipefail
 set +m                      # Making sure job control is deactivated so that everything remains in our PGID
@@ -228,9 +252,11 @@ sleep 10                # Indicates a successful run of this script. The batchsy
 exec &> >(tee ${logfile_folder_root}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
 # Preparing the optimizations
+bs_check_termination_request
 if [[ "${pipeline_type}" == *"_pro_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_opt_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_opt_prepare_one_msp_${tds_range}
 fi
+bs_check_termination_request
 
 # Running the optimizations
 if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -238,6 +264,7 @@ if [[ ${pipeline_type} == *"_rop_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* 
     ${command_prefix_gen_run_one_pipe_sub} hqf_opt_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_opt_run_one_msp_${tds_range}
     cd ../../../
 fi
+bs_check_termination_request
 
 # Postprocessing the optimizations
 if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -245,11 +272,13 @@ if [[ ${pipeline_type} == *"_ppo_"* ]] || [[ "${pipeline_type}" == *"_allopt_"* 
     ${command_prefix_gen_run_one_pipe_sub} hqf_opt_pp_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_opt_pp_one_msp_${tds_range}
     cd ../../../
 fi
+bs_check_termination_request
 
 # Preparing the equilibrations
 if [[ "${pipeline_type}" == *"_pre_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_eq_prepare_one_msp_${tds_range}
 fi
+bs_check_termination_request
 
 # Running the equilibrations
 if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -257,6 +286,7 @@ if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_run_one_msp_${tds_range}
     cd ../../../
 fi
+bs_check_termination_request
 
 # Postprocessing the equilibrations
 if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -264,11 +294,13 @@ if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_pp_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_pp_one_msp_${tds_range}
     cd ../../../
 fi
+bs_check_termination_request
 
 # Preparing the MD simulations
 if [[ ${pipeline_type} == *"_prm_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_md_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_md_prepare_one_msp_${tds_range}
 fi
+bs_check_termination_request
 
 # Running the MD simulations
 if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -276,11 +308,13 @@ if [[ ${pipeline_type} == *"_rmd_"* ]] || [[ "${pipeline_type}" == *"_allmd_"* ]
     ${command_prefix_gen_run_one_pipe_sub} hqf_md_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_md_run_one_msp_${tds_range}
     cd ../../../
 fi
+bs_check_termination_request
 
 # Preparing the crossevaluations
 if [[ ${pipeline_type} == *"_prc_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_ce_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee ${logfile_folder_root}/hqf_ce_prepare_one_msp
 fi
+bs_check_termination_request
 
 # Running the crossevaluations
 if [[ ${pipeline_type} == *"_rce_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -288,11 +322,13 @@ if [[ ${pipeline_type} == *"_rce_"* ]] || [[ "${pipeline_type}" == *"_allce_"* ]
     ${command_prefix_gen_run_one_pipe_sub} hqf_ce_run_one_msp.sh 2>&1 | tee ../../../${logfile_folder_root}/hqf_ce_run_one_msp
     cd ../../../
 fi
+bs_check_termination_request
 
 # Preparing the fec
 if [[ ${pipeline_type} == *"_prf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_fec_prepare_one_msp.sh ${system1} ${system2} ${subsystem} 2>&1 | tee ${logfile_folder_root}/hqf_fec_prepare_one_msp
 fi
+bs_check_termination_request
 
 # Running the fec
 if [[ ${pipeline_type} == *"_rfe_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
@@ -300,6 +336,7 @@ if [[ ${pipeline_type} == *"_rfe_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* 
     ${command_prefix_gen_run_one_pipe_sub} hqf_fec_run_one_msp.sh 2>&1 | tee ../../../../${logfile_folder_root}/hqf_fec_run_one_msp
     cd ../../../../
 fi
+bs_check_termination_request
 
 # Postprocessing the fec
 if [[ ${pipeline_type} == *"_ppf_"* ]] || [[ "${pipeline_type}" == *"_allfec_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then

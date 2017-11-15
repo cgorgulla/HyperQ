@@ -181,6 +181,28 @@ while true; do
         echo " * Checking if the simulation running in folder ${PWD} has completed."
     fi
 
+    # Checking if the workflow is run by the BS module
+    if [ -n "${HQ_BS_JOBNAME}" ]; then
+
+        # Determining the control file responsible for us
+        controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
+
+        # Getting the relevant value
+        cd ../../../../
+        terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+        cd -
+
+        # Checking the value
+        if [ "${terminate_current_job^^}" == "TRUE" ]; then
+
+            # Printing some information
+            echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+
+            # Exiting
+            exit 0
+        fi
+    fi
+
     # Checking for errors
     if [[ -s cp2k/cp2k.out.err ]] ; then
         if [ -f cp2k/cp2k.out.trajectory.pdb ]; then

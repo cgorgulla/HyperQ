@@ -176,7 +176,7 @@ while IFS='' read -r command_task; do
     job_file="batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem}"
     subjoblist_file="batchsystem/job-files/subjob-lists/jtl-${jtl}.jid-${jid}.sh"
     subjob_file="batchsystem/job-files/subjobs/jtl-${jtl}.jid-${jid}.sjid-${sjid}.sh"
-    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BID}.out"
+    command_task="${command_task} \&>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_BS_JSN}.sjid-${sjid}.task-${task_ID}.bid-\${HQ_BS_BID}.out"
 
     # Checking if this task is the first task of a new subjob
     if [ "${task_ID}" -eq "1" ]; then
@@ -186,6 +186,9 @@ while IFS='' read -r command_task; do
 
             # Copying the job file
             cp ${job_template} ${job_file}
+
+            # Syncing the job file already, even though it can be synced again when starting it with hq_bs_start_jobs.sh
+            hqh_bs_jobfile_sync_controlfile.sh ${jtl} ${jid}
 
             # Adjusting the job file
             sed -i "s/workflow_id_placeholder/${workflow_id}/g" ${job_file}
@@ -202,13 +205,13 @@ while IFS='' read -r command_task; do
 
         # Preparing the subjob command for the subjob file
         if [ ${batchsystem^^} == "SLURM" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_BS_JSN}.sjid-${sjid}.bid-\${HQ_BS_BID}.out"
         elif [ ${batchsystem^^} == "MTP" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_BS_JSN}.sjid-${sjid}.bid-\${HQ_BS_BID}.out"
         elif [ ${batchsystem^^} == "LSF" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_BS_JSN}.sjid-${sjid}.bid-\${HQ_BS_BID}.out"
         elif [ ${batchsystem^^} == "SGE" ]; then
-            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_JSN}.sjid-${sjid}.bid-\${HQ_BID}.out"
+            command_subjob="${command_prefix_bs_subjob} ${subjob_file} &>> batchsystem/output-files/jtl-${jtl}.jid-${jid}.jsn-\${HQ_BS_JSN}.sjid-${sjid}.bid-\${HQ_BS_BID}.out"
         else
             echo -e "\n * Error: The specified batchsystem (${batchsystem}) is not supported. Exiting...\n\n"
             exit 1
@@ -233,8 +236,10 @@ while IFS='' read -r command_task; do
         echo -e "\n * Error: The input argument 'parallelize_tasks' has an unsupported value (${parallelize_tasks}). Exiting...\n\n"
         exit 1
     fi
+
     # Increasing the waiting time
     sed -i "s|#task_placeholder|waiting_time=\$((waiting_time+${tasks_parallel_delay_time}))\n#task_placeholder|g" ${subjob_file}
+
     # Increasing the task_count
     sed -i "s|#task_placeholder|task_count=\$((task_count+1))\n\n#task_placeholder|g" ${subjob_file}
 

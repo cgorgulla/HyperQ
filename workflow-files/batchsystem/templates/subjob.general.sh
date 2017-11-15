@@ -39,7 +39,7 @@ errors_subjob_response() {
     trap 'echo "Error during the job error response. Exiting..."; exit 1' ERR
 
     # Checking if the error should be ignored
-    if [[ "${HQ_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
+    if [[ "${HQ_BS_ERRORS_SUBJOB_RESPONSE}" == *"ignore"* ]]; then
 
         # Restoring the default error response
         trap 'errors_subjob_response $LINENO' ERR
@@ -54,7 +54,7 @@ errors_subjob_response() {
     else
 
         # Deactivating further signals responses
-        trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+        trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
         # Creating signal flag file
         touch runtime/${HQ_STARTDATE_BS}/error.subjob
@@ -69,7 +69,7 @@ trap 'errors_subjob_response $LINENO' ERR
 signals_type1_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -80,15 +80,15 @@ signals_type1_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE1}" ]]; then
-    trap 'signals_type1_response' ${HQ_SIGNAL_TYPE1//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE1}" ]]; then
+    trap 'signals_type1_response' ${HQ_BS_SIGNAL_TYPE1//:/ }
 fi
 
 # Type 2 signal handling
 signals_type2_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -99,15 +99,15 @@ signals_type2_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE2}" ]]; then
-    trap 'signals_type2_response' ${HQ_SIGNAL_TYPE2//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE2}" ]]; then
+    trap 'signals_type2_response' ${HQ_BS_SIGNAL_TYPE2//:/ }
 fi
 
 # Type 3 signal handling
 signals_type3_response() {
 
     # Deactivating further signal responses since some batchsystems send an abundance of the same signal which would bring us into trouble when responding to every one of them in a recursive fashion (happened on the HLRN)
-    trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
+    trap '' 1 2 3 9 10 12 15 18 ${HQ_BS_SIGNAL_TYPE1//:/ } ${HQ_BS_SIGNAL_TYPE2//:/ } ${HQ_BS_SIGNAL_TYPE3//:/ }
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the signal response. Exiting..."; exit 1' ERR
@@ -118,8 +118,8 @@ signals_type3_response() {
     # Exiting
     exit 0
 }
-if [[ -n "${HQ_SIGNAL_TYPE3}" ]]; then
-    trap 'signals_type3_response' ${HQ_SIGNAL_TYPE3//:/ }
+if [[ -n "${HQ_BS_SIGNAL_TYPE3}" ]]; then
+    trap 'signals_type3_response' ${HQ_BS_SIGNAL_TYPE3//:/ }
 fi
 
 terminate_processes() {

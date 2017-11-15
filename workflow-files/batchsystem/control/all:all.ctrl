@@ -1,5 +1,5 @@
 *****************************************************************************************************************************************************************
-**************************************************************************   General   **************************************************************************
+*************************************************************************    General    *************************************************************************
 *****************************************************************************************************************************************************************
 
 # The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
@@ -13,7 +13,7 @@ job_initial_sleeping_time_max=120
 
 
 *****************************************************************************************************************************************************************
-**********************************************************************   Job Termination   **********************************************************************
+*********************************************************************    Job Termination    *********************************************************************
 *****************************************************************************************************************************************************************
 
 **************************************************************************   General   **************************************************************************
@@ -27,9 +27,16 @@ job_initial_sleeping_time_max=120
 # 6) errors_pipeline
 # 7) job_success
 
+terminate_current_job=false
+# Possible values: true, false
+# If true, the job current job will be terminated without failure as soon as possible.
+# Running simulations will be terminated, and pipelines will not progress to the next step.
+# The behavior at the end of the job is not influenced.
+# This setting can be changed during runtime.
+
 prevent_new_job_submissions=false
 # Possible values: true, false
-# This option takes precedence over other options which specify if new jobs should be started at the end of a job
+# This option takes precedence over other options which specify if new jobs should be started at the end of a job (i.e. it overrides them)
 # Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
 # Can be changed during runtime
 
@@ -96,3 +103,39 @@ errors_pipeline_new_job_jtl=same
 # When set to 'same' the current jtl will be retained
 # When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.
 # Can be changed during runtime
+
+
+
+*****************************************************************************************************************************************************************
+****************************************************************    Job Resource Configuration    ***************************************************************
+*****************************************************************************************************************************************************************
+
+partition=shared
+# also called queue
+
+walltime=07-00:00:00
+# format for slurm: dd-hh:mm:ss
+# format for MTP: hh:mm:ss
+# format for SGE: hh:mm:ss
+# format for LSF: hh:mm
+# for all: always fill up with two digits per field (used be the job scripts)
+
+nodes_per_job=1
+# Not available for LSF and SGE (is always set to 1)
+# It is not recommended to change this value during runtime
+
+cpus_per_subjob=1
+# SLURM: sets the cpus-per-task variable (task = step)
+# In LSF this corresponds to the number of slots per node
+# Not yet available for SGE (always set to 1)
+# Can be changed during runtime
+
+memory_per_cpu=1000M
+# Used by SLURM, SGE
+# Format for SLURM: <size[units:M/G/T]> (default units are M)
+# Format for SGE: size[K/M/G]
+
+memory_per_job=2000MB
+# Used by LSF, MTP. Not needed for the HLRN (since always entire nodes will be allocated)
+# Format for LSF: <size in MB>
+# Format for MTP:<size><unit:MB/GB>

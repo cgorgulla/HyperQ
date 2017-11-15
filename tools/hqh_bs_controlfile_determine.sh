@@ -86,8 +86,8 @@ if ! [[ "${jtl}" =~ ^[abcdefghij]$ ]]; then
     exit 1
 fi
 
-# Checking if the job type letter is valid
-if ! [ -d batchsystem ]; then
+# Checking if the batchsystem/control folder is present
+if ! [ -d batchsystem/control ]; then
 
     # Printing some information
     echo -e "\n * Error: The script has to be run in the root folder and the batchsystem folder has to be prepared already. Exiting...\n\n" 1>&2

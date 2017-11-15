@@ -102,15 +102,15 @@ command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snap
 
 # Getting the energy eval folders
 if [ "${tdcycle_type}" == "hq" ]; then
-    crosseval_folder="$(ls -vrd */)"
+    crosseval_folders="$(ls -vrd */)"
 elif [ "${tdcycle_type}" == "lambda" ]; then
-    crosseval_folder="$(ls -vd */)"
+    crosseval_folders="$(ls -vd */)"
 fi
-crosseval_folder=${crosseval_folder//\/}
+crosseval_folders=${crosseval_folders//\/}
 
 # Running the MD simulations
 i=0
-for crosseval_folder in ${crosseval_folder}; do
+for crosseval_folder in ${crosseval_folders}; do
 
     cd ${crosseval_folder}
     echo -e "\n ** Running the cross evaluations of folder ${crosseval_folder}"
@@ -118,6 +118,28 @@ for crosseval_folder in ${crosseval_folder}; do
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
         for snapshot_folder in $(ls -v); do
+
+            # Checking if the workflow is run by the BS module
+            if [ -n "${HQ_BS_JOBNAME}" ]; then
+
+                # Determining the control file responsible for us
+                controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
+
+                # Getting the relevant value
+                cd ../../../../
+                terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+                cd -
+
+                # Checking the value
+                if [ "${terminate_current_job^^}" == "TRUE" ]; then
+
+                    # Printing some information
+                    echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+
+                    # Exiting
+                    exit 0
+                fi
+            fi
 
             # Checking if the snapshot was computed already
             if [ "${ce_continue^^}" == "TRUE" ]; then
