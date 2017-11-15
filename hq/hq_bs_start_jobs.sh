@@ -119,7 +119,6 @@ mkdir -p ${temp_folder}
 touch ${temp_folder}/jobs-all
 touch ${temp_folder}/jobs-to-start
 
-
 # Printing some information
 echo -e "\n\nChecking which jobs should be started...\n"
 

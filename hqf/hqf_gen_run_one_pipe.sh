@@ -220,6 +220,10 @@ if [ "$$" != "${pgid}" ]; then
     exit 0
 fi
 
+# Sleeping some time
+sleep 10                # Indicates a successful run of this script. The batchsystem module recognizes tasks which finish within a few seconds and classifies them as having failed to start.
+
+
 # Logging the output of this script
 exec &> >(tee ${logfile_folder_root}/hqf_gen_run_one_pipe.sh_${pipeline_type})
 
