@@ -69,27 +69,46 @@ cleanup_exit() {
 
     # Terminating all processes
     echo " * Terminating remaining processes..."
-    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
-    setsid nohup bash -c "
 
-        # Trapping signals
-        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+   # Trapping signals
+    trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
-        # Terminating the main processes
-        kill ${pids[*]} 1>/dev/null 2>&1 || true
-        sleep 6 || true
-        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
+    # Terminating the main processes
+    kill ${pids[*]} || true
+    sleep 6 || true
+    kill -9 ${pids[*]} || true
 
-        # Terminating the child processes of the main processes
-        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
-        sleep 1 || true
-        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
+    # Terminating the child processes of the main processes
+    pkill -P ${pids[*]} || true
+    sleep 1 || true
+    pkill -9 -P ${pids[*]} || true
 
-        # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
-        pkill -P $$ || true
-        sleep 1
-        pkill -9 -P $$ || true
-    " &> /dev/null || true
+    # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
+    pkill -P $$ || true
+    sleep 1
+    pkill -9 -P $$ || true
+
+#    # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
+#    setsid nohup bash -c "
+#
+#        # Trapping signals
+#        trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
+#
+#        # Terminating the main processes
+#        kill ${pids[*]} 1>/dev/null 2>&1 || true
+#        sleep 6 || true
+#        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
+#
+#        # Terminating the child processes of the main processes
+#        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
+#        sleep 1 || true
+#        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
+#
+#        # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
+#        pkill -P $$ || true
+#        sleep 1
+#        pkill -9 -P $$ || true
+#    " &> /dev/null || true
 }
 trap "cleanup_exit" EXIT
 
