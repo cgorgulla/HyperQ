@@ -153,7 +153,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
 
     # Loop for all JIDs
     for jid in $(seq ${first_jid} ${last_jid}); do
-1
+
         # Printing some information
         echo "Adding job ${jid} to the list of jobs to be started."
 
