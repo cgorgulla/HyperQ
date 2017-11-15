@@ -179,13 +179,13 @@ sync_control_parameters() {
     signals_type1_response="$(grep -m 1 "^signals_type1_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_response="$(grep -m 1 "^signals_type2_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type3_response="$(grep -m 1 "^signals_type3_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    errors_hq_response="$(grep -m 1 "^errors_hq_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_pipeline_response="$(grep -m 1 "^errors_pipeline_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     HQ_ERRORS_SUBJOB_RESPONSE="$(grep -m 1 "^errors_subjob_response=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
     errors_job_response="$(grep -m 1 "^errors_job_response=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type1_new_job_jtl="$(grep -m 1 "^signals_type1_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type2_new_job_jtl="$(grep -m 1 "^signals_type2_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     signals_type3_new_job_jtl="$(grep -m 1 "^signals_type3_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    errors_hq_new_job_jtl="$(grep -m 1 "^errors_hq_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    errors_pipeline_new_job_jtl="$(grep -m 1 "^errors_pipeline_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     errors_subjob_new_job_jtl="$(grep -m 1 "^errors_subjob_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     errors_job_new_job_jtl="$(grep -m 1 "^errors_job_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     job_success_new_job_jtl="$(grep -m 1 "^job_success_new_job_jtl=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -197,7 +197,7 @@ sync_control_parameters() {
     export HQ_ERRORS_SUBJOB_RESPONSE
 
     # Checking and adjusting the new job type letters (also replacing terms like 'same' or 'next' with the corresponding numerical value)
-    for jtl_name in errors_job_new_job_jtl errors_subjob_new_job_jtl errors_hq_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
+    for jtl_name in errors_job_new_job_jtl errors_subjob_new_job_jtl errors_pipeline_new_job_jtl signals_type1_new_job_jtl signals_type2_new_job_jtl signals_type3_new_job_jtl job_success_new_job_jtl; do
 
         # Variables
         jtl_value=${!jtl_name}                              # indirect variable expansion
@@ -402,14 +402,7 @@ errors_subjob_response() {
 }
 
 # HQ error response
-errors_hq_response() {
-
-    # Printing basic error information
-    echo
-    echo "Error was trapped" 1>&2
-    echo "Error in bash script $0" 1>&2
-    echo "Error on line $1" 1>&2
-    echo
+errors_pipeline_response() {
 
     # Setting up a new minimal ERR trap
     trap 'echo "Error during the hq error response. Exiting..."; exit 1' ERR
@@ -418,7 +411,7 @@ errors_hq_response() {
     sync_control_parameters
 
     # Checking if the error should be ignored
-    if [[ "${errors_hq_response}" == *"ignore"* ]]; then
+    if [[ "${errors_pipeline_response}" == *"ignore"* ]]; then
 
         # Restoring the default error response
         trap 'errors_job_response $LINENO' ERR
@@ -433,15 +426,15 @@ errors_hq_response() {
         trap '' 1 2 3 9 10 12 15 18 ${HQ_SIGNAL_TYPE1//:/ } ${HQ_SIGNAL_TYPE2//:/ } ${HQ_SIGNAL_TYPE3//:/ }
 
         #  Variables
-        new_job_jtl="${errors_hq_new_job_jtl}"
+        new_job_jtl="${errors_pipeline_new_job_jtl}"
 
         # Checking if the next job should be prepared
-        if [[ "${errors_hq_response}" == *"prepare_new_job"* ]]; then
+        if [[ "${errors_pipeline_response}" == *"prepare_new_job"* ]]; then
             prepare_new_job ${new_job_jtl}
         fi
 
         # Checking if the next job should be submitted
-        if [[ "${errors_hq_response}" == *"submit_new_job"* ]]; then
+        if [[ "${errors_pipeline_response}" == *"submit_new_job"* ]]; then
             submit_new_job ${new_job_jtl}
         fi
 
@@ -562,10 +555,10 @@ check_past_signals_errors() {
     fi
 
     # Checking for hq errors
-    if [ -f runtime/${HQ_BS_STARTDATE}/error.hq ]; then
+    if [ -f runtime/${HQ_BS_STARTDATE}/error.pipeline ]; then
 
         # Calling the corresponding function
-        errors_hq_response
+        errors_pipeline_response
     fi
 }
 

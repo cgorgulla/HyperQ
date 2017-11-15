@@ -24,7 +24,7 @@ job_initial_sleeping_time_max=120
 # 3) signals_type3
 # 4) errors_job (but they are deactivated during other error and signal responses)
 # 5) errors_subjob
-# 6) errors_hq
+# 6) errors_pipeline
 # 7) job_success
 
 prevent_new_job_submissions=false
@@ -82,7 +82,7 @@ signals_type3_new_job_jtl=same
 
 errors_job_response=exit
 errors_subjob_response=exit
-errors_hq_response=exit
+errors_pipeline_response=exit
 # Possible values: exit, ignore, prepare_new_job, submit_new_job
 # The 'exit' action has no effect, can be used a s placeholder
 # If no action is specified, the job will simply exit
@@ -91,7 +91,7 @@ errors_hq_response=exit
 
 errors_job_new_job_jtl=same
 errors_subjob_new_job_jtl=same
-errors_hq_new_job_jtl=same
+errors_pipeline_new_job_jtl=same
 # Possible values: same, next, [a-j]
 # When set to 'same' the current jtl will be retained
 # When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.

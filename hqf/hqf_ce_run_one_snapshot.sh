@@ -124,8 +124,8 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     rm /tmp/ipi_${workflow_id}.${HQ_PIPE_STARTDATE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" ipi.in.*
+    sed -i "s|<address>.*cp2k.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
+    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
 
     # Starting ipi
     stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
@@ -160,7 +160,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 rm cp2k.out* > /dev/null 2>&1 || true
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-                sed -i "s|address_cp2k_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
+                sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_PIPE_STARTDATE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
 
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
@@ -179,7 +179,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
             break
         else
             if [ "$iteration_no" -lt "$max_it" ]; then
-                echo " * The socket file for snapshot ${snapshot_id} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+                echo " * The socket file for the CE running in ${PWD} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
                 sleep 1
                 iteration_no=$((iteration_no+1))
             else
@@ -198,7 +198,7 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
     cd iqi
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|address_iqi_placeholder|${workflow_id}.${HQ_PIPE_STARTDATE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}|g" iqi.in.*
+    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_PIPE_STARTDATE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" iqi.in.*
 
     # Starting iqi
     echo -e " * Starting iqi"
