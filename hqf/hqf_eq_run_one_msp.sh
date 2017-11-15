@@ -70,6 +70,28 @@ cleanup_exit() {
     # Terminating all processes
     echo " * Terminating remaining processes..."
 
+    # Printing some information
+    if [ "${HQ_VERBOSITY}" = "debug" ]; then
+
+        echo -e "\n * Information about all jobs of the user: \n"
+        ps -fu $USER
+
+        echo -e "\n * The following jobs processes will be terminated: \n"
+        echo
+        pgrep ${pids[*]} | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep ${pids[*]} | xargs pwdx
+        echo
+        pgrep -P ${pids[*]} | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep -P ${pids[*]} | xargs pwdx
+        echo
+        pgrep -P $$ | xargs ps -o pid,pgid,ppid,command
+        echo
+        pgrep -P $$ | xargs pwdx
+        echo
+    fi
+
    # Trapping signals
     trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 

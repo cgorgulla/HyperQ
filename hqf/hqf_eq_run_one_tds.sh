@@ -64,11 +64,11 @@ cleanup_exit() {
 
     # Terminating all processes
     if [ "${HQ_VERBOSITY}" = "debug" ]; then
-        echo " * The following jobs processes will be terminated:"
-        echo
-        ps
-        echo
-        ps -aux
+
+        echo -e "\n * Information about all jobs of the user: \n"
+        ps -fu $USER
+
+        echo -e "\n * The following jobs processes will be terminated: \n"
         echo
         pgrep ${pids[*]} | xargs ps -o pid,pgid,ppid,command
         echo
