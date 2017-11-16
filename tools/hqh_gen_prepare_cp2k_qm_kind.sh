@@ -66,8 +66,18 @@ fi
 # Checking if the file already exists
 outputfile="cp2k.in.qm_kinds"
 if [ -f "${outputfile}" ]; then
-    rm ${outputfile} || true
+
+    # If we cannot remove the file, some other process has already removed it in the meantime (on clusters there can be a delay of seconds)
+    # In this case most likely a parallel running instance of this script of another single-TDS pipe
+    if ! rm ${outputfile}; then
+
+        # Sleeping sometime to disperse the possible parallel running processes
+        sleep "$(shuf -i 1-120 -n 1)"
+    fi
 fi
+
+# Creating/wiping the output file
+echo /dev/null > ${outputfile}
 
 # Loop for each element index file
 for file in $@; do
