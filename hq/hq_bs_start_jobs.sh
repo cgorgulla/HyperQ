@@ -166,7 +166,7 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
         if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid}\." ${temp_folder}/jobs-all; then
 
             # Printing some information
-            echo "   * Adding job ${jid} to the list of jobs to be started."
+            echo "   * Adding job ${jtl}.${jid} to the list of jobs to be started."
 
             # Adding the JID
             echo ${jid} >> ${temp_folder}/jobs-to-start
@@ -188,7 +188,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
     for jid in $(seq ${first_jid} ${last_jid}); do
 
         # Printing some information
-        echo " * Adding job ${jid} to the list of jobs to be started."
+        echo " * Adding job ${jtl}.${jid} to the list of jobs to be started."
 
         # Adding the JID
         echo ${jid} >> ${temp_folder}/jobs-to-start

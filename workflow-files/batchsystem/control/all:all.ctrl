@@ -67,7 +67,7 @@ signals_type3=
 # Changes of this setting will have no effect during the runtime of the jobs (only the initial value will be used)
 
 signals_type1_response=prepare_new_job:submit_new_job
-signals_type2_response=exit
+signals_type2_response=prepare_new_job
 signals_type3_response=exit
 # Possible values: exit, prepare_new_job, submit_new_job
 # Can be unset (i.e. having no values)
@@ -89,7 +89,7 @@ signals_type3_new_job_jtl=same
 
 errors_job_response=exit
 errors_subjob_response=exit
-errors_pipeline_response=exit
+errors_pipeline_response=prepare_new_job:submit_new_job
 # Possible values: exit, ignore, prepare_new_job, submit_new_job
 # The 'exit' action has no effect, can be used a s placeholder
 # If no action is specified, the job will simply exit
