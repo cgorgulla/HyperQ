@@ -400,10 +400,10 @@ tasks_parallel_delay_time=10
 #           The value is used during the job creation with hq_bs_prepare_jobfiles.sh
 # Recommended value: At least 10 seconds
 
-minimum_task_time=10
+minimum_task_time=5
 # Possible values: Positive integer
 # Unit: Seconds
 # If the runtime of the tasks of a subjob is less than the minimum_task_time for at least one of the tasks, an internal error is raised.
 # The task_parallel_delay_time is not counted as runtime of the tasks
 # Useful for detecting immediate failures (preventing of the start of the task at all). We cannot rely on the exit codes of the tasks.
-# Recommended value: 5 seconds (each hqf_gen_run_one_pipe.sh runs at least for 10 seconds due to a short initial sleep)
+# Recommended value: 5 seconds (each hqf_gen_run_one_pipe.sh runs at least for 15 seconds due to a short initial sleep)

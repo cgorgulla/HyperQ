@@ -40,7 +40,7 @@ Arguments:
       * If unset, 1:K will be used for the commands which need a range argument
 
 The script has to be run in the root folder."
-set -x
+
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
     echo
@@ -65,11 +65,15 @@ fi
 
 # Standard error response 
 error_response_std() {
+
+    # Variables
+    line_number=$1
+
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
     echo "The error occurred in bash script $(basename ${BASH_SOURCE[0]})" 1>&2
-    echo "The error occurred on line $1" 1>&2
+    echo "The error occurred on line ${line_number}" 1>&2
     echo "Working directory: $PWD"
     echo "Exiting..."
     echo
@@ -99,8 +103,12 @@ trap 'user_abort' SIGINT
 # Exit cleanup
 cleanup_exit() {
 
+    # Variables
+    line_number=$1
+
     # Printing some information
-    echo
+    echo " * The current Bash script is: $(basename ${BASH_SOURCE[0]})"
+    echo -e " * The last line before the exit trap was line $line_number"
     echo "Cleaning up..."
 
     # Removing remaining socket files
@@ -128,7 +136,7 @@ cleanup_exit() {
         kill -9 -$pgid 2>&1 1>/dev/null || true
     " || true &> /dev/null
 }
-trap "cleanup_exit" EXIT
+trap "cleanup_exit $LINENO" EXIT
 
 # Convert pid to pgid
 pgid_from_pid() {
@@ -173,11 +181,11 @@ set +m                      # Making sure job control is deactivated so that eve
 
 # Checking the folder
 if [ ! -d input-files ]; then
-    echo
-    echo -e " * Error: This script has to be run in the root folder. Exiting..."
-    echo
-    echo
 
+    # Printing an error message
+    echo -e "\n * Error: This script has to be run in the root folder. Exiting...\n"
+
+    # Raising an internal error
     false
 fi
 
@@ -213,6 +221,19 @@ workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:spac
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
 logfile_folder_root="log-files/${HQ_STARTDATE_BS}/${msp_name}_${subsystem}"
 
+# Checking the pipeline type
+if [[ "${pipeline_type}" != *"_pro_"* && "${pipeline_type}" != *"_rop_"* && "${pipeline_type}" != *"_ppo_"* && "${pipeline_type}" != *"_pre_"* && "${pipeline_type}" != *"_req_"* \
+     && "${pipeline_type}" != *"_ppe_"* && "${pipeline_type}" != *"_prm_"* && "${pipeline_type}" != *"_rmd_"* \&& "${pipeline_type}" != *"_prc_"* && "${pipeline_type}" != *"_rce_"* \
+     && "${pipeline_type}" != *"_prf_"* && "${pipeline_type}" != *"_rfe_"* && "${pipeline_type}" != *"_ppf_"* && "${pipeline_type}" != *"_allopt_" && "${pipeline_type}" != *"_alleq_"* \
+     && "${pipeline_type}" != *"_allmd_"* && "${pipeline_type}" != *"_allce_"* && "${pipeline_type}" != *"_allfec_"* && "${pipeline_type}" != *"_all_"* ]]; then
+
+    # Printing an error message
+    echo -e "\n * Error: This script has to be run in the root folder. Exiting...\n"
+
+    # Raising an internal error
+    false
+fi
+
 # TDS Range
 if [ "${#}" == "4" ]; then
     tds_range="${4}"
@@ -246,8 +267,7 @@ if [ "$$" != "${pgid}" ]; then
 fi
 
 # Sleeping some time
-sleep 10                # Indicates a successful run of this script. The batchsystem module recognizes tasks which finish within a few seconds and classifies them as having failed to start.
-
+sleep 15                # Indicates a successful run of this script. The batchsystem module recognizes tasks which finish within a few seconds and classifies them as having failed to start.
 
 # Logging the output of this script
 exec &> >(tee ${logfile_folder_root}/hqf_gen_run_one_pipe.sh_${pipeline_type})
