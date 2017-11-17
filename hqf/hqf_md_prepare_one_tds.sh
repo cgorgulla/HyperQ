@@ -135,10 +135,20 @@ if [ "${tdcycle_type}" == "hq" ]; then
     # Checking if the MD folder already exists
     if [[ "${md_continue^^}" == "TRUE" ]]; then
         if [ -d "${tds_folder}" ]; then
+
+            # Printing some information
             echo " * The folder ${tds_folder} already exists. Checking its contents..."
+
+            # Changing into the TDS directory
             cd ${tds_folder}
+
+            # Removing empty restart files
+            find ipi -iname "*restart*" -type f -empty -delete
+
+            # Variables
             restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
-            restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
+
+            # Checking the number of restart files
             if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
 
                 echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
@@ -339,17 +349,32 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     # Checking if the MD folder already exists
     if [[ "${md_continue^^}" == "TRUE" ]]; then
         if [ -d "${tds_folder}" ]; then
+
+            # Printing some information
             echo " * The folder ${tds_folder} already exists. Checking its contents..."
+
+            # Changing into the TDS directory
             cd ${tds_folder}
+
+            # Removing empty restart files
+            find ipi -iname "*restart*" -type f -empty -delete
+
+            # Variables
             restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
+
+            # Checking the number of restart files
             if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
 
+                # Printing some information
                 echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
 
                 # Variables
                 restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
+                restart_file_ID=${restart_file//*_}
                 run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
                 run_new=$((run_old + 1))
+
+                # Todo: Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
 
                 # Editing the ipi input file
                 sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
