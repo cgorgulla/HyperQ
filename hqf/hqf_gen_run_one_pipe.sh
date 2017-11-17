@@ -223,7 +223,7 @@ logfile_folder_root="log-files/${HQ_STARTDATE_BS}/${msp_name}_${subsystem}"
 
 # Checking the pipeline type
 if [[ "${pipeline_type}" != *"_pro_"* && "${pipeline_type}" != *"_rop_"* && "${pipeline_type}" != *"_ppo_"* && "${pipeline_type}" != *"_pre_"* && "${pipeline_type}" != *"_req_"* \
-     && "${pipeline_type}" != *"_ppe_"* && "${pipeline_type}" != *"_prm_"* && "${pipeline_type}" != *"_rmd_"* \&& "${pipeline_type}" != *"_prc_"* && "${pipeline_type}" != *"_rce_"* \
+     && "${pipeline_type}" != *"_ppe_"* && "${pipeline_type}" != *"_prm_"* && "${pipeline_type}" != *"_rmd_"* && "${pipeline_type}" != *"_prc_"* && "${pipeline_type}" != *"_rce_"* \
      && "${pipeline_type}" != *"_prf_"* && "${pipeline_type}" != *"_rfe_"* && "${pipeline_type}" != *"_ppf_"* && "${pipeline_type}" != *"_allopt_" && "${pipeline_type}" != *"_alleq_"* \
      && "${pipeline_type}" != *"_allmd_"* && "${pipeline_type}" != *"_allce_"* && "${pipeline_type}" != *"_allfec_"* && "${pipeline_type}" != *"_all_"* ]]; then
 
