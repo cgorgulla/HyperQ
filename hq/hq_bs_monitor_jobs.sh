@@ -90,14 +90,14 @@ update_time=${2}
 
 # Body
 while true; do
-    echo; printf "*%.0s" {0..100}
+    echo; printf "*%.0s" {0..80}
     echo; sqs > /tmp/cgorgulla.sqs
-    printf "%10s %10s %10s %10s\n" "WFID" "Jobs in batchsystem" "Jobs running" "Jobs duplicate"
+    printf "%8s %20s %20s %20s\n" "  WFID  " "Jobs in batchsystem " "Jobs running    " "Jobs duplicate    "
     for letter in ${wfids//:/ }; do
         job_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:.*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
-        printf "%10s %20s %20s %20s\n" "${letter}" "${job_count}" "${running_jobs_count}" "${duplicated_jobs_count}"
+        printf "%10s %20s %20s %20s\n" "${letter}   " "${job_count}          " "${running_jobs_count}         " "${duplicated_jobs_count}         "
     done
     sleep ${update_time}
 done
