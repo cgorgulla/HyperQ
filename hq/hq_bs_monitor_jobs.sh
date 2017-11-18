@@ -63,7 +63,7 @@ cleanup_exit() {
 trap 'cleanup_exit' EXIT
 
 # Bash options
-set -o pipefail
+shopt -s nullglob
 
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
