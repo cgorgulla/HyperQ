@@ -77,7 +77,7 @@ if [ -f "${outputfile}" ]; then
 fi
 
 # Creating/wiping the output file
-echo /dev/null > ${outputfile}
+echo -n "" > ${outputfile}
 
 # Loop for each element index file
 for file in $@; do
