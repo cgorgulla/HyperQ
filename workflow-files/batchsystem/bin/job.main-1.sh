@@ -473,7 +473,9 @@ fi
 # Sleeping a random amount of time to avoid race conditions when jobs are started simultaneously
 # Relevant if the batchsystem starts pending jobs simultaneously. Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner
 job_initial_sleeping_time_max="$(grep -m 1 "^job_initial_sleeping_time_max=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
-dispersion_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n 1)
+#dispersion_time=$(shuf -i 0-${job_initial_sleeping_time_max} -n 1)
+job_initial_sleeping_time_min=1
+dispersion_time=$((RANDOM % (job_initial_sleeping_time_max - job_initial_sleeping_time_min + 1 ) + job_initial_sleeping_time_min ))
 sleep ${dispersion_time}
 
 

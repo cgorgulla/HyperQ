@@ -299,11 +299,11 @@ inputfile_iqi_constraints_L=
 # Normally not needed because iqi is usually not used for L only simulations
 
 # Ligand, solvent (LS) input files
-inputfile_iqi_md_LS=iqi.in.LS.xml
+inputfile_iqi_md_LS=iqi.in.main.LS.xml
 inputfile_iqi_constraints_LS=iqi.in.sub.constraints.LS.xml
 
 # Protein, ligand, solvent (RLS) input files
-inputfile_iqi_md_RLS=iqi.in.RLS.xml
+inputfile_iqi_md_RLS=iqi.in.main.RLS.xml
 inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 
