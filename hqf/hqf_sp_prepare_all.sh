@@ -398,6 +398,7 @@ done
 # Preparing the molecule pairings via MCS searches using Lomap
 if [ "${lomap}" == "true" ]; then
     hqh_sp_prepare_td_pairings.sh
+    awk '{print $3"_"$4}' input-files/mappings/td.pairings > input-files/msp.all
 fi
 
 echo -e " * The structures of all the molecules has been prepared\n\n"

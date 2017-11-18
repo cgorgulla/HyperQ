@@ -48,6 +48,7 @@ trap 'error_response_std $LINENO' ERR
 
 # Bash options
 set -o pipefail
+shopt -s nullglob
 
 # Verbosity
 HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt &>/dev/null | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')" &>/dev/null || true      # the config file might not exist yet since this script might just prepare it
@@ -98,6 +99,29 @@ fi
 
 # Checking the answer
 if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+    # Asking if the input-files folder should be removed if existent
+    if [ ${answer_cleanup_all} == "false" ]; then
+        while true; do
+            echo
+            read -p "Should the input-files folder be removed if existent? " answer
+            echo
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
+
+        # Printing some information
+        echo -e " * Removing the input-files folder if existent"
+
+        # Removing the old files and folders
+        rm -r input-files &> /dev/null || true
+    fi
 
     # Preparing the input-files directory if not yet there
     mkdir -p input-files
@@ -205,8 +229,114 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         # Copying the files
         cp -r ${HQ_HOME}/workflow-files/input-files/iqi input-files/
     fi
-fi
 
+    # Copying the system-related input files from another run
+    while true; do
+        echo
+        read -p "Should system-related input files (ligands, receptor, systems, mappings, config.*atoms*) be copied from another run? " answer
+        echo
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] ; then
+
+        # Loop for getting the user input
+        while true; do
+
+            # Printing some information
+            echo
+            read -p " Please specify the relative path of the run which contains the files to be copied: " source_run_folder
+            echo
+
+            # Checking if the path exists
+            echo -n " * Checking if path exists... "
+            if [ -d ${source_run_folder} ]; then
+                echo "OK"
+                break;
+            else
+                echo "failed"
+            fi
+        done
+
+        # Printing some information
+        echo -e " * Copying the input files of the specified run..."
+
+        # Copying the files
+        if [ -d ${source_run_folder}/input-files/ligands ]; then
+            cp -vr ${source_run_folder}/input-files/ligands input-files/
+        else
+            echo " * Info: The folder ${source_run_folder}/input-files/ligands does not exist, skipping..."
+        fi
+        if [ -d ${source_run_folder}/input-files/receptor ]; then
+            cp -vr ${source_run_folder}/input-files/receptor input-files/
+        else
+            echo " * Info: The folder ${source_run_folder}/input-files/receptor does not exist, skipping..."
+        fi
+        if [ -d ${source_run_folder}/input-files/systems ]; then
+            cp -vr ${source_run_folder}/input-files/systems input-files/
+        else
+            echo " * Info: The folder ${source_run_folder}/input-files/systems does not exist, skipping..."
+        fi
+        if [ -d ${source_run_folder}/input-files/mappings ]; then
+            cp -vr ${source_run_folder}/input-files/mappings input-files/
+        else
+            echo " * Info: The folder ${source_run_folder}/input-files/mappings does not exist, skipping..."
+        fi
+        if [ -f ${source_run_folder}/input-files/msp.all ]; then
+            cp -vr ${source_run_folder}/input-files/ligands input-files/
+        else
+            echo " * Info: The file ${source_run_folder}/input-files/msp.all does not exist, skipping..."
+        fi
+        for file in ${source_run_folder}/input-files/config.*atoms*; do
+            cp $file input-files/$(basename $file)
+        done
+        echo
+    fi
+
+    # Copying the config file from another run
+    while true; do
+        echo
+        read -p "Should the input file config.txt be copied from another run? " answer
+        echo
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] ; then
+
+        # Loop for getting the user input
+        while true; do
+
+            # Printing some information
+            echo
+            read -p " Please specify the relative path of the run which contains the file to be copied: " source_run_folder
+            echo
+
+            # Checking if the path exists
+            echo -n " * Checking if path exists... "
+            if [ -d ${source_run_folder} ]; then
+                echo "OK"
+                break;
+            else
+                echo "failed"
+            fi
+        done
+
+        # Printing some information
+        echo -e " * Copying the input files of the specified run..."
+
+        # Copying the files
+        cp ${source_run_folder}/input-files/config.txt input-files/
+        echo
+    fi
+fi
 
 # Asking the user if the batchsystem-folder should be prepared
 if [ ${answer_cleanup_all} == "false" ]; then
@@ -495,12 +625,12 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
             # Printing some information
             echo
-            read -p " Please specify the relative path of the run which contains the files to be copied: " source_path
+            read -p " Please specify the relative path of the run which contains the files to be copied: " source_run_folder
             echo
 
             # Checking if the path exists
             echo -n " * Checking if path exists... "
-            if [ -d ${source_path} ]; then
+            if [ -d ${source_run_folder} ]; then
                 echo "OK"
                 break;
             else
@@ -512,7 +642,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         echo -e " * Copying the optimization output files of the specified run..."
 
         # Copying the files
-        for msp_folder in ${source_path}/opt/*; do
+        for msp_folder in ${source_run_folder}/opt/*; do
             msp=$(basename ${msp_folder})
             for subsystem_folder in ${msp_folder}/*; do
                 subsystem=$(basename ${subsystem_folder});
@@ -586,12 +716,12 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
             # Printing some information
             echo
-            read -p " Please specify the relative path of the run which contains the files to be copied: " source_path
+            read -p " Please specify the relative path of the run which contains the files to be copied: " source_run_folder
             echo
 
             # Checking if the path exists
             echo -n " * Checking if path exists... "
-            if [ -d ${source_path} ]; then
+            if [ -d ${source_run_folder} ]; then
                 echo "OK"
                 break;
             else
@@ -603,7 +733,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         echo -e " * Copying the equilibration output files of the specified run..."
 
         # Copying the files
-        for msp_folder in ${source_path}/eq/*; do
+        for msp_folder in ${source_run_folder}/eq/*; do
             msp=$(basename ${msp_folder})
             for subsystem_folder in ${msp_folder}/*; do
                 subsystem=$(basename ${subsystem_folder});
