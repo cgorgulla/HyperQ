@@ -374,7 +374,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
                 run_new=$((run_old + 1))
 
-                # Todo: Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
+                # Todo: (Maybe) Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
 
                 # Editing the ipi input file
                 sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml

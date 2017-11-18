@@ -26,7 +26,7 @@ Arguments:
 
      Macro components:
       _allopt_: equals _pro_rop_ppo_
-      _alleq_: equals _pre_req_ppe_
+      _alleq_ : equals _pre_req_ppe_
       _allmd_ : equals _prd_rmd_
       _allce_ : equals _prc_rce_
       _allfec_: equals _prf_rfe_ppf_

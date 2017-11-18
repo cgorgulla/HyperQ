@@ -433,11 +433,14 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
     rm -r runtime &> /dev/null || true
 fi
 
-# Asking if the opt folder should be removed
+
+# Asking the user if the opt-folder should be prepared
 if [ ${answer_cleanup_all} == "false" ]; then
+
+    echo
     while true; do
         echo
-        read -p "Should the opt folder be removed if existent? " answer
+        read -p "Should the optimization folder be prepared? " answer
         echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
@@ -446,21 +449,89 @@ if [ ${answer_cleanup_all} == "false" ]; then
         esac
     done
 fi
+
 # Checking the answer
 if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
-    # Printing some information
-    echo -e " * Removing the opt folder if existent"
+    # Asking if the opt folder should be removed
+    if [[ ${answer_cleanup_all} == "false" ]]; then
+        while true; do
+            echo
+            read -p "Should the opt folder be removed if existent? " answer
+            echo
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
-    # Removing the old files and folders
-    rm -r opt &> /dev/null || true
-fi
+        # Printing some information
+        echo -e " * Removing the opt folder if existent"
 
-# Asking if the eq folder should be removed
-if [ ${answer_cleanup_all} == "false" ]; then
+        # Removing the old files and folders
+        rm -r opt &> /dev/null || true
+    fi
+
+    # Copying the optimization files
     while true; do
         echo
-        read -p "Should the eq folder be removed if existent? " answer
+        read -p "Should the relevant optimization output files be copied from another run? " answer
+        echo
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] ; then
+
+        # Loop for getting the user input
+        while true; do
+
+            # Printing some information
+            echo
+            read -p " Please specify the relative path of the run which contains the files to be copied: " source_path
+            echo
+
+            # Checking if the path exists
+            echo -n " * Checking if path exists... "
+            if [ -d ${source_path} ]; then
+                echo "OK"
+                break;
+            else
+                echo "failed"
+            fi
+        done
+
+        # Printing some information
+        echo -e " * Copying the optimization output files of the specified run..."
+
+        # Copying the files
+        for msp_folder in ${source_path}/opt/*; do
+            msp=$(basename ${msp_folder})
+            for subsystem_folder in ${msp_folder}/*; do
+                subsystem=$(basename ${subsystem_folder});
+                mkdir -p opt/${msp}/${subsystem}/
+                cp -v ${subsystem_folder}/*opt.pdb opt/${msp}/${subsystem}/
+            done
+        done
+        echo
+    fi
+fi
+
+
+# Asking the user if the eq-folder should be prepared
+if [ ${answer_cleanup_all} == "false" ]; then
+
+    echo
+    while true; do
+        echo
+        read -p "Should the equilibration folder be prepared? " answer
         echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
@@ -469,14 +540,79 @@ if [ ${answer_cleanup_all} == "false" ]; then
         esac
     done
 fi
+
 # Checking the answer
 if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
-    # Printing some information
-    echo -e " * Removing the eq folder if existent"
+    # Asking if the eq folder should be removed
+    if [[ ${answer_cleanup_all} == "false" ]]; then
+        while true; do
+            echo
+            read -p "Should the eq folder be removed if existent? " answer
+            echo
+            case ${answer} in
+                [Yy]* ) answer=true; break;;
+                [Nn]* ) answer=false; break;;
+                * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+            esac
+        done
+    fi
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
-    # Removing the old files and folders
-    rm -r eq &> /dev/null || true
+        # Printing some information
+        echo -e " * Removing the eq folder if existent"
+
+        # Removing the old files and folders
+        rm -r eq &> /dev/null || true
+    fi
+
+    # Copying the equilibration files
+    while true; do
+        echo
+        read -p "Should the relevant equilibration output files be copied from another run? " answer
+        echo
+        case ${answer} in
+            [Yy]* ) answer=true; break;;
+            [Nn]* ) answer=false; break;;
+            * ) echo -e "\nUnsupported answer. Possible answers are 'yes' or 'no'";;
+        esac
+    done
+    # Checking the answer
+    if [[ "${answer}" = "true" ]] ; then
+
+        # Loop for getting the user input
+        while true; do
+
+            # Printing some information
+            echo
+            read -p " Please specify the relative path of the run which contains the files to be copied: " source_path
+            echo
+
+            # Checking if the path exists
+            echo -n " * Checking if path exists... "
+            if [ -d ${source_path} ]; then
+                echo "OK"
+                break;
+            else
+                echo "failed"
+            fi
+        done
+
+        # Printing some information
+        echo -e " * Copying the equilibration output files of the specified run..."
+
+        # Copying the files
+        for msp_folder in ${source_path}/eq/*; do
+            msp=$(basename ${msp_folder})
+            for subsystem_folder in ${msp_folder}/*; do
+                subsystem=$(basename ${subsystem_folder});
+                mkdir -p eq/${msp}/${subsystem}/
+                cp -v ${subsystem_folder}/*eq.pdb eq/${msp}/${subsystem}/
+            done
+        done
+        echo
+    fi
 fi
 
 # Asking if the md folder should be removed
