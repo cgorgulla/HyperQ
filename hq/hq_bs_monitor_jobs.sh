@@ -97,7 +97,7 @@ while true; do
         job_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:.*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
-        printf "%10s %20s %20s %20s\n" "${letter}   " "${job_count}          " "${running_jobs_count}         " "${duplicated_jobs_count}         "
+        printf "%8s %20s %20s %20s\n" "${letter}   " "${job_count}        " "${running_jobs_count}         " "${duplicated_jobs_count}           "
     done
     sleep ${update_time}
 done
