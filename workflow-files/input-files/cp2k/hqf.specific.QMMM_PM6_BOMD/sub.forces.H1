@@ -2,6 +2,7 @@
   STRESS_TENSOR analytical 
   METHOD qmmm
   &DFT
+    LSD
     &QS
       METHOD PM6
       &SE
