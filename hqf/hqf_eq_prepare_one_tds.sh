@@ -279,7 +279,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 rm -r ${tds_folder}
             fi
         fi
-    elif [[ "${tds_folder^^}" == "FALSE" ]]; then
+    elif [[ "${eq_continue^^}" == "FALSE" ]]; then
         if [ -d "${tds_folder}" ]; then
             rm -r "${tds_folder}"
         fi

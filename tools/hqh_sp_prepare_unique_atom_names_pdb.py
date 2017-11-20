@@ -33,7 +33,7 @@ def main(pdbFilenameIn, pdbFilenameOut, atomNameChar):
 
 
 def help():
-    print "\nUsage: hqh_sp_prepare_unique_atom_names_pdb.py <pdb filename> <atom name character> <output filename>"
+    print "\nUsage: hqh_sp_prepare_unique_atom_names_pdb.py <pdb filename> <output filename> <atom name character>"
     print "<atom name character>: Is a letter which is used in the atom names to make them unique."
     print "                       J and Q are quite unique in the context of the CGFF, but this does not seem to matter since atom names are different from atom types.\n\n"
 
