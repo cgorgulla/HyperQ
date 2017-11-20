@@ -164,12 +164,12 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 rm -r ${tds_folder}
             fi
         fi
-    elif [[ "${tds_folder^^}" == "FALSE" ]]; then
+    elif [[ "${eq_continue^^}" == "FALSE" ]]; then
         if [ -d "${tds_folder}" ]; then
             rm -r "${tds_folder}"
         fi
     else
-        echo -e "Error: The variable opt_continue has an unsupported value (${tds_folder}). Exiting..."
+        echo -e "Error: The variable eq_continue has an unsupported value (${tds_folder}). Exiting..."
         exit 1
     fi
 
