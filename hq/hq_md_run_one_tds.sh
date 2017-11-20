@@ -149,7 +149,7 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     rm *RESTART* > /dev/null 2>&1 || true
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
-    sed -i "s|<address>.*ipi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.iqi.${tds_folder//tds.}</address>|g" ipi.in.*
+    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.iqi.${tds_folder//tds.}</address>|g" ipi.in.*
     sed -i "s|<address>.*cp2k.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.cp2k.${tds_folder//tds.}</address>|g" ipi.in.*
 
     # Removing the socket files if still existent from previous runs
