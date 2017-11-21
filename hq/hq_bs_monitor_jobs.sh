@@ -70,6 +70,9 @@ center_text(){
 
     # Centering the text
     text_centered="$(printf "%*s" $(( (${#text_to_center}+length_total) / 2)) "$text_to_center")"
+
+    # Returning the centered text
+    echo -n "${text_centered}"
 }
 
 # Bash options
@@ -104,10 +107,16 @@ while true; do
     echo; sqs > /tmp/cgorgulla.sqs
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
+
+        # Variables
         job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:.*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
+
+        # Printing status information
         printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
     done
+
+    # Sleeping
     sleep ${update_time}
 done
