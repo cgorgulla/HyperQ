@@ -104,6 +104,10 @@ if [ "${receptor_FFparameter_source}" == "MATCH" ]; then
     cc_match_pp_pdb.sh ${receptor_basename}_unique.pdb ${receptor_basename}_unique_match.pdb ${receptor_basename}_unique_typed.pdb
     rm top* 2>/dev/null || true
 
+    # Patching the prm file of MATCH
+    # MATCH does not add the END statement which is needed by CP2K (in particular when joining multiple parameter files)
+    echo "END" >> ${receptor_basename}_unique.prm
+
     # Renaming the output files
     mv ${receptor_basename}_unique.prm ${receptor_basename}_unique_typed.prm
     mv ${receptor_basename}_unique.rtf ${receptor_basename}_unique_typed.rtf

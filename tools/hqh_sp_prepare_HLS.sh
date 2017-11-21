@@ -146,7 +146,6 @@ sed -i "s/^IMPROPERS/IMPROPER/g" system_complete.prm
 # Removing any return statements (from Charmm stream files)
 sed -i "/return/d" system_complete.prm
 
-
 # Waterbox generation
 echo -e "\n *** Preparing the joint receptor-ligand-solvent system (hqh_sp_prepare_waterbox_HLS.sh) ***"
 hqh_sp_prepare_waterbox_HLS.sh receptor_unique_typed ${ligand_basename}_unique_typed system
