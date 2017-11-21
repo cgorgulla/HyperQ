@@ -62,6 +62,16 @@ cleanup_exit() {
 }
 trap 'cleanup_exit' EXIT
 
+center_text(){
+
+    # Variables
+    text_to_center="$1"
+    length_total="$2"
+
+    # Centering the text
+    text_centered="$(printf "%*s" $(( (${#text_to_center}+length_total) / 2)) "$text_to_center")"
+}
+
 # Bash options
 shopt -s nullglob
 
@@ -92,12 +102,12 @@ update_time=${2}
 while true; do
     echo; printf "*%.0s" {0..80}
     echo; sqs > /tmp/cgorgulla.sqs
-    printf "%20s %20s %20s %20s\n" "  WFID  " "Jobs in batchsystem " "Jobs running    " "Jobs duplicate    "
+    printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
         job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:.*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
-        printf "%20s %20s %20s %20s\n" "${wfid}    " "${job_count}        " "${running_jobs_count}         " "${duplicated_jobs_count}          "
+        printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
     done
     sleep ${update_time}
 done
