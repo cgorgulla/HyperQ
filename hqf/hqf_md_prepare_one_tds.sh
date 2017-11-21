@@ -95,8 +95,19 @@ echo -e "\n *** Preparing the simulation folder for TDS ${tds_index} (hqf_md_pre
 # Preparing the individual MD folders for each thermodynamic state
 if [ "${tdcycle_type}" == "hq" ]; then
 
+    # Checking if nbeads and tdw_count are compatible
+    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible..."
+    trap '' ERR
+    mod="$(expr ${nbeads} % ${tdw_count})"
+    trap 'error_response_std $LINENO' ERR
+    if [ "${mod}" != "0" ]; then
+        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
+        exit
+    fi
+    echo " OK"
+
     # Variables
-    bead_step_size=$(expr ${tdw_count} / ${nbeads})
+    bead_step_size=$(expr ${nbeads} / ${tdw_count})
     bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
     bead_count2="$(( (tds_index-1)*bead_step_size))"
     bead_configuration="k_${bead_count1}_${bead_count2}"

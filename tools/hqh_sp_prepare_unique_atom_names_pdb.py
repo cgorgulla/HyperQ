@@ -34,6 +34,7 @@ def main(pdbFilenameIn, pdbFilenameOut, atomNameChar):
 
 def help():
     print "\nUsage: hqh_sp_prepare_unique_atom_names_pdb.py <pdb filename> <output filename> <atom name character>"
+    print "The input file needs to have the element ID in columns 77-78 as defined in the official PDB format specifications."
     print "<atom name character>: Is a letter which is used in the atom names to make them unique."
     print "                       J and Q are quite unique in the context of the CGFF, but this does not seem to matter since atom names are different from atom types.\n\n"
 

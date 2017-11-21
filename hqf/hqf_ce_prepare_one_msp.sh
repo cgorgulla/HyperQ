@@ -327,6 +327,7 @@ cp ../../../eq/${msp_name}/${subsystem}/system.*.eq.pdb ./
 # Creating the list of intermediate states
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
 
+# Setting the bead_step_size if needed
 if [ "${tdcycle_type}" = "hq" ]; then
 
     # Checking if nbeads and tdw_count are compatible
@@ -342,7 +343,6 @@ if [ "${tdcycle_type}" = "hq" ]; then
 
     # Computing the bead step size
     bead_step_size=$((nbeads/tdw_count))
-
 fi
 
 # Loop for each TD window/step

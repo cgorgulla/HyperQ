@@ -114,10 +114,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     echo -e " * Preparing the tasks for MSP ${msp}..."
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo "   * Preparing one task for each TDS..."
-        for i in $(seq 1 ${tds_count}); do
-            echo "     * Preparing the task for TDS ${i}/${tds_count}..."
+        for tds_id in $(seq 1 ${tds_count}); do
+            echo "     * Preparing the task for TDS ${tds_id}/${tds_count}..."
             command_specific="${command_general// MSP / ${msp} }"
-            command_specific="${command_specific//TDS/${i}:${i}}"
+            command_specific="${command_specific//TDS/${tds_id}:${tds_id}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
         done
     else
