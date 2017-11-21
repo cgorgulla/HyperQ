@@ -51,16 +51,16 @@ if [ "$#" -ne "1" ]; then
     exit 1
 fi
 
-# Printing some information
-echo
-echo
-echo "   Preparing the entire system for ligand ${2} (hqh_sp_prepare_LS.sh)   "
-echo "************************************************************************************"
-
 # Variables
 ligand_basename=${1}
 dirname=$(dirname $0)
 ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+
+# Printing some information
+echo
+echo
+echo "   Preparing the entire system for ligand ${ligand_basename} (hqh_sp_prepare_LS.sh)   "
+echo "************************************************************************************"
 
 # Copying files, creating folders
 echo -e "\n * Copying files and folders"
@@ -72,7 +72,7 @@ cd input-files/systems/${ligand_basename}/LS
 cp ../../../ligands/pdb/${ligand_basename}.pdb ./${ligand_basename}.pdb
 
 
-if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
+if [ "${ligand_FFparameter_source^^}" == "MATCH" ]; then
 
     # Assigning uniqe atom names
     echo -e "\n *** Assigning unique atom names (uniqe_atom_names_pdb.py) ***"
@@ -93,7 +93,7 @@ if [ "${ligand_FFparameter_source}" == "MATCH" ]; then
     mv ${ligand_basename}_unique.prm ${ligand_basename}_unique_typed.prm
     mv ${ligand_basename}_unique.rtf ${ligand_basename}_unique_typed.rtf
     echo
-elif [ "${ligand_FFparameter_source}" == "folder" ]; then
+elif [ "${ligand_FFparameter_source^^}" == "FOLDER" ]; then
     cp ${ligand_basename}.pdb ${ligand_basename}_unique_typed.pdb
     cp ../../../ligands/FF/${ligand_basename}.rtf ${ligand_basename}_unique_typed.rtf
     cp ../../../ligands/FF/${ligand_basename}.prm ${ligand_basename}_unique_typed.prm

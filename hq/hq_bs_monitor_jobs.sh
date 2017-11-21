@@ -92,12 +92,12 @@ update_time=${2}
 while true; do
     echo; printf "*%.0s" {0..80}
     echo; sqs > /tmp/cgorgulla.sqs
-    printf "%8s %20s %20s %20s\n" "  WFID  " "Jobs in batchsystem " "Jobs running    " "Jobs duplicate    "
-    for letter in ${wfids//:/ }; do
-        job_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | wc -l)"
-        running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:.*RUNNING" | wc -l)"
-        duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${letter}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
-        printf "%8s %20s %20s %20s\n" "${letter}   " "${job_count}        " "${running_jobs_count}         " "${duplicated_jobs_count}          "
+    printf "%20s %20s %20s %20s\n" "  WFID  " "Jobs in batchsystem " "Jobs running    " "Jobs duplicate    "
+    for wfid in ${wfids//:/ }; do
+        job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | wc -l)"
+        running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:.*RUNNING" | wc -l)"
+        duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
+        printf "%20s %20s %20s %20s\n" "${wfid}    " "${job_count}        " "${running_jobs_count}         " "${duplicated_jobs_count}          "
     done
     sleep ${update_time}
 done
