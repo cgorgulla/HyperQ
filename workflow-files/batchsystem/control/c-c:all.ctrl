@@ -1,0 +1,141 @@
+*****************************************************************************************************************************************************************
+*************************************************************************    General    *************************************************************************
+*****************************************************************************************************************************************************************
+
+# The symbol '#' can be used in for line and trailing comments, but not in file/folder names or commands
+
+job_initial_sleeping_time_max=120
+# In seconds
+# Sleeping a random amount of time to avoid race conditions when jobs are starting and simultaneously
+# Relevant if the batchsystem starts pending jobs simultaneously
+# Not relevant for multiple tasks per subjob since we disperse them already in a controlled manner (see the tasks_parallel_delay_time option in HQ config file)
+
+
+
+*****************************************************************************************************************************************************************
+*********************************************************************    Job Termination    *********************************************************************
+*****************************************************************************************************************************************************************
+
+**************************************************************************   General   **************************************************************************
+
+# Order of precedence of job termination scenarios
+# 1) signals_type1
+# 2) signals_type2
+# 3) signals_type3
+# 4) errors_job (but they are deactivated during other error and signal responses)
+# 5) errors_subjob
+# 6) errors_pipeline
+# 7) job_success
+
+terminate_current_job=false
+# Possible values: true, false
+# If true, the job current job will be terminated without failure as soon as possible.
+# Running simulations will be terminated, and pipelines will not progress to the next step.
+# The behavior at the end of the job is not influenced.
+# This setting can be changed during runtime.
+
+prevent_new_job_submissions=false
+# Possible values: true, false
+# This option takes precedence over other options which specify if new jobs should be started at the end of a job (i.e. it overrides them)
+# Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
+# Can be changed during runtime
+
+job_success_actions=submit_new_job
+# Possible values: exit, prepare_new_job, submit_new_job
+# Can be unset (i.e. having no values)
+# Multiple values can be specified by using colons: value1:value2:...
+# The 'exit' action has no effect, can be used a s placeholder
+# If no action is specified, the job will simply exit
+# Can be changed during runtime
+
+job_success_new_job_jtl=same
+# Possible values: same, next, [a-j]
+# When set to 'same' the current jtl will be retained
+# When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.
+
+
+**********************************************************************   Signal Handling   **********************************************************************
+
+signals_type1=10                             # time signal
+signals_type2=1:2:3:9:12:15:18               # termination signal, slurm uses 15 and 18 for preempting jobs
+signals_type3=
+# Multiple signals can be specified by using colons as a delimiter: signal1:signal2:...
+# The signal can be anything which BASH can trap, i.e.
+#       * Signal numbers
+#       * Signal names
+# See kill -l for a complete list of signal numbers and names
+# Changes of this setting will have no effect during the runtime of the jobs (only the initial value will be used)
+
+signals_type1_response=prepare_new_job:submit_new_job
+signals_type2_response=prepare_new_job
+signals_type3_response=exit
+# Possible values: exit, prepare_new_job, submit_new_job
+# Can be unset (i.e. having no values)
+# Multiple values can be specified by using colons as delimiters
+# The 'exit' action has no effect, can be used a s placeholder
+# If no action is specified, the job will simply exit
+# Can be changed during runtime
+
+signals_type1_new_job_jtl=same
+signals_type2_new_job_jtl=same
+signals_type3_new_job_jtl=same
+# Possible values: same, next, [a-j]
+# When set to 'same' the current jtl will be retained
+# When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.
+# Can be changed during runtime
+
+
+***********************************************************************   Error Handling   **********************************************************************
+
+errors_job_response=exit
+errors_subjob_response=exit
+errors_pipeline_response=exit
+# Possible values: exit, ignore, prepare_new_job, submit_new_job
+# The 'exit' action has no effect, can be used a s placeholder
+# If no action is specified, the job will simply exit
+# If the 'ignore' action is specified, all other actions will be skipped and the error ignored. Otherwise the job will be terminated
+# Can be changed during runtime, except the errors_subjob_response
+
+errors_job_new_job_jtl=same
+errors_subjob_new_job_jtl=same
+errors_pipeline_new_job_jtl=same
+# Possible values: same, next, [a-j]
+# When set to 'same' the current jtl will be retained
+# When set to 'next' the current jtl will simply be changed to the next letter in the alphabet. The highest letter supported is j.
+# Can be changed during runtime
+
+
+
+*****************************************************************************************************************************************************************
+****************************************************************    Job Resource Configuration    ***************************************************************
+*****************************************************************************************************************************************************************
+
+partition=shared
+# also called queue
+
+walltime=07-00:00:00
+# format for slurm: dd-hh:mm:ss
+# format for MTP: hh:mm:ss
+# format for SGE: hh:mm:ss
+# format for LSF: hh:mm
+# for all: always fill up with two digits per field (used be the job scripts)
+
+nodes_per_job=1
+# Not available for LSF and SGE (is always set to 1)
+# It is not recommended to change this value during runtime
+
+cpus_per_subjob=1
+# SLURM: sets the cpus-per-task variable (task = step)
+# In LSF this corresponds to the number of slots per node
+# Not yet available for SGE (always set to 1)
+# Can be changed during runtime
+
+memory_per_cpu=1000M
+# Used by SLURM, SGE
+# Format for SLURM: <size[units:M/G/T]> (default units are M)
+# Format for SGE: size[K/M/G]
+
+memory_per_job=2000MB
+# Used by LSF, MTP. Not needed for the HLRN (since always entire nodes will be allocated)
+# Format for LSF: <size in MB>
+# Format for MTP:<size><unit:MB/GB>

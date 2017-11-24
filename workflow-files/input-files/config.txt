@@ -370,9 +370,9 @@ fes_eq_parallel_max_RLS=10
 fes_md_parallel_max_L=10
 fes_md_parallel_max_LS=10
 fes_md_parallel_max_RLS=10
-fes_ce_parallel_max_L=10
-fes_ce_parallel_max_LS=10
-fes_ce_parallel_max_RLS=10
+fes_ce_parallel_max_L=20
+fes_ce_parallel_max_LS=20
+fes_ce_parallel_max_RLS=20
 
 command_prefix_bs_subjob=srun -N 1 -n 1
 # Cray/HLRN: aprun -cc none -n 1
