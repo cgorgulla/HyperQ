@@ -107,17 +107,17 @@ refresh_time=${3}
 # Body
 while true; do
     hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
-    echo -e "\n\n                                    *** Job information for JTLs ${jtls//:/,} ***"
+    echo -e "\n\n                                    *** Job information (JTL: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
-    echo
+    echo -e "\n"
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
         # Variables
         job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)" # Todo: Fix to work for all batchsystems
-        duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
+        duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
         printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
