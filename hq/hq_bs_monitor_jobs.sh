@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hq_bs_monitor_jobs.sh <WFIDs> <JTL> <refresh_time>
+usage="Usage: hq_bs_monitor_jobs.sh <WFIDs> <JTLs> <refresh_time>
 
 Shows basic information about the batchsystem jobs of the specified workflows.
 
@@ -108,7 +108,7 @@ refresh_time=${3}
 while true; do
     echo; printf "*%.0s" {0..80}
     echo; hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
-    print "                                    *** Job information for JTLs ${jtls//:/,} ***"
+    echo "                                    *** Job information for JTLs ${jtls//:/,} ***"
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
