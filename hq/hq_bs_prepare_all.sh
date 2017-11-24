@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hq_bs_prepare_.sh <msp list> <job-template> <subjob template> <subsystems> <job types> <to_prepare>
+usage="Usage: hq_bs_prepare_all.sh <msp list> <job-template> <subjob template> <subsystems> <job types> <to_prepare>
 
 Summary: This script prepares the batchsystem files in a default mode:
          * One task per subjob, one subjob per job
@@ -117,7 +117,7 @@ for subsystem in ${subsystems//:/ }; do
         first_jid=1001
     elif [ "${subsystem}" == "LS" ]; then
         first_jid=2001
-    elif [ "${subsystem}" == "RLL" ]; then
+    elif [ "${subsystem}" == "RLS" ]; then
         first_jid=3001
     fi
 
