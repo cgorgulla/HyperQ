@@ -81,7 +81,7 @@ echo -e "\n *** Postprocessing the FEC between the systems ${system_1_basename} 
 mkdir -p previous-runs/${date}/
 
 # Extracting the final results of each TD Window
-for TDWindow in tdw*/; do
+for TDWindow in tds*/; do
     TDWindow=${TDWindow%/}
     cat ${TDWindow}/bar.out.stride${fec_stride}.values | grep "Delta_F equation 2:" | awk '{print $4}' | tr -d "\n"  > fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
     echo " kcal/mol" >> fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
