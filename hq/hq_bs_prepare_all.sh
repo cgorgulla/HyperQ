@@ -97,9 +97,6 @@ if [ ${bash_version} -lt 43 ]; then
     exit 1
 fi
 
-# Printing some information
-echo -e "\n\n                                   ***  Preparing the job-files (hq_bs_prepare_jobfiles.sh) ***\n"
-
 # Variables
 msp_list=$1
 job_template=$2

@@ -1,12 +1,14 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hq_bs_monitor_jobs.sh <WFIDs> <refresh_time>
+usage="Usage: hq_bs_monitor_jobs.sh <WFIDs> <JTL> <refresh_time>
 
 Shows basic information about the batchsystem jobs of the specified workflows.
 
 Arguments:
     <WFIDs>: Colon-separated list of WFIDs, e.g. A:B:C
+
+    <JTL>: Colon-separated list of JTLs, e.g. a:b:c
 
     <refresh_time>: Time in seconds between updates of the information."
 
@@ -20,13 +22,13 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "2" ]; then
+if [ "$#" -ne "3" ]; then
 
     # Printing some information
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 2"
+    echo "Number of expected arguments: 3"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -99,17 +101,19 @@ shopt -s nullglob
 
 # Variables
 wfids=${1}
-update_time=${2}
+jtls=${2//:/}
+refresh_time=${3}
 
 # Body
 while true; do
     echo; printf "*%.0s" {0..80}
     echo; hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
+    print "                                    *** Job information for JTLs ${jtls//:/,} ***
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
         # Variables
-        job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | wc -l)"
+        job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | wc -l)"
         running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:.*RUNNING" | wc -l)" # Todo: Fix to work for all batchsystems
         duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
@@ -118,5 +122,5 @@ while true; do
     done
 
     # Sleeping
-    sleep ${update_time}
+    sleep ${refresh_time}
 done

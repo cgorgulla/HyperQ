@@ -124,13 +124,13 @@ nodes_per_job=1
 # Not available for LSF and SGE (is always set to 1)
 # It is not recommended to change this value during runtime
 
-cpus_per_subjob=20
+cpus_per_subjob=10
 # SLURM: sets the cpus-per-task variable (task = step)
 # In LSF this corresponds to the number of slots per node
 # Not yet available for SGE (always set to 1)
 # Can be changed during runtime
 
-memory_per_cpu=1000M
+memory_per_cpu=2000M
 # Used by SLURM, SGE
 # Format for SLURM: <size[units:M/G/T]> (default units are M)
 # Format for SGE: size[K/M/G]
