@@ -11,7 +11,7 @@
 #SBATCH --mem-per-cpu=1000                                                   # Should be at least 60 seconds. Recommended value: 300 seconds
 #SBATCH --signal=10@300
 ##SBATCH --constraint="scratch2"
-##SBATCH --constraint="holyib"
+#SBATCH --constraint="holyib"
 #SBATCH --output=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
 #SBATCH --error=batchsystem/output-files/jtl-jtl_placeholder.jid-jid_placeholder.jsn-jsn_placeholder.main.bid-%j.out
 #SBATCH --mail-user=cgorgulla@crystal.harvard.edu

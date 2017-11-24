@@ -107,11 +107,11 @@ refresh_time=${3}
 # Body
 while true; do
     hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
-    echo -e "\n\n                                    *** Job information (JTL: ${jtls//:/,}) ***"
+    echo -e "\n\n                               *** Job information (JTL: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
     echo -e "\n"
-    printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in BS (compl.)" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
+    printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in BS (compl)" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
         # Variables
