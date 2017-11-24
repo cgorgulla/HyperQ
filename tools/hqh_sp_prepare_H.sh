@@ -106,7 +106,7 @@ if [ "${receptor_FFparameter_source}" == "MATCH" ]; then
 
     # Patching the prm file of MATCH
     # MATCH does not add the END statement which is needed by CP2K (in particular when joining multiple parameter files)
-    echo "END" >> ${receptor_basename}_unique.prm
+    echo -e "\nEND" >> ${receptor_basename}_unique.prm
 
     # Renaming the output files
     mv ${receptor_basename}_unique.prm ${receptor_basename}_unique_typed.prm

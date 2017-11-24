@@ -40,11 +40,12 @@ input_file_format=smi
 
 receptor_mode=common
 # Possible values: individual, common
-# If individual, then a receptor has to be in the receptor folder for each ligand with the same name as the ligand
+# If set to 'individual', then a receptor has to be in the receptor folder for each ligand with the same name as the ligand
 # Only needed if the subsystem includes a receptor (e.g. RLS)
 
 receptor_basename=
 # Only required if receptor_mode=common and if the simulations include a receptor (e.g. RLS)
+# If receptor_FFparameter_source=folder, then there is no need to include in the receptor filenames the words 'unique' or 'typed'. This is assumed implicitly, and filenames including these terms will be created.
 
 receptor_type=P
 # Possible values: P (protein), H (Host)
@@ -68,6 +69,7 @@ receptor_FFparameter_source=MATCH
 #   * receptorname.rtf
 #   * receptorname.prm
 # The prm files need to have a proper END statement at the end of the file
+# If receptor_FFparameter_source=folder, then there is no need to include in the receptor filenames the words 'unique' or 'typed'. This is assumed implicitly, and filenames including these terms will be created.
 
 
 ***************************************************************************** LOMAP *****************************************************************************
@@ -311,7 +313,7 @@ inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 md_stride_L=1000
 md_stride_LS=500
-md_stride_RLS=100
+md_stride_RLS=500
 # The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
 # Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
 

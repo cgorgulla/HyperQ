@@ -424,11 +424,11 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
     # Even though now that we set the first step to 1 in the ipi input file, the very first run produces no property and restart files in the beginning. Only successive runs do that. Thus we miss the first real snapshot of the first run...
     property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*properties)"
     for property_file in ${property_files}; do
-        cat ${property_file} | grep -v "^#" | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.properties
+        cat ${property_file} | (grep -v "^#" || true)  | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.properties
     done
     property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*properties)"
     for property_file in ${property_files}; do
-        cat ${property_files} | grep -v "^#" | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.properties
+        cat ${property_files} | ( grep -v "^#" || true ) | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.properties
     done
 
     # Uniting all the ipi cell files (previous all_runs files have already been cleaned)
