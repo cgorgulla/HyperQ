@@ -108,7 +108,8 @@ refresh_time=${3}
 while true; do
     hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
     echo -e "\n\n                                    *** Job information for JTLs ${jtls//:/,} ***"
-    printf "   *%.0s\n" {0..82}
+    printf "   *%.0s" {0..82}
+    echo
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in batchsystem" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
