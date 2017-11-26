@@ -136,7 +136,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
     echo -e "\n * Preparing the files and directories for the TDS with bead-configuration ${bead_configuration}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${bead_configuration}.initial.pdb ./
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${bead_configuration}.${coord_source}.pdb ./system.${bead_configuration}.initial.pdb
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system.${bead_configuration}.initial.pdb)
@@ -350,7 +350,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     echo -e "\n * Preparing the files and directories for the TDS with lambda-configuration ${lambda_configuration}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${lambda_configuration}.initial.pdb ./
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${lambda_configuration}.${coord_source}.pdb ./system.${lambda_configuration}.initial.pdb
 
     # Getting the cell size in the cp2k input files
     line=$(grep CRYST1 system.${lambda_configuration}.initial.pdb)
