@@ -126,9 +126,11 @@ for crosseval_folder in ${crosseval_folders}; do
                 # Determining the control file responsible for us
                 cd ../../../../
                 controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID} || true)"
+                echo ${controlfile}
 
                 # Getting the relevant value
                 terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true || true)"
+                echo ${terminate_current_job}
                 cd -
 
                 # Checking the value

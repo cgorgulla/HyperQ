@@ -88,9 +88,25 @@ md_stride="$(grep -m 1 "^md_stride_${subsystem}=" ../../../input-files/config.tx
 tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_activate="$(grep -m 1 "^eq_activate=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+
 
 # Printing information
 echo -e "\n *** Preparing the simulation folder for TDS ${tds_index} (hqf_md_prepare_one_tds.sh) "
+
+# Determining the coordinate source
+if [ "${eq_activate^^}" == "TRUE" ]; then
+    coord_source="eq"
+elif [ "${eq_activate^^}" == "FALSE" ]; then
+    coord_source="opt"
+else
+    # Printing some information
+    echo " * Error: The variables eq_activate has an unsupported value (${coord_source}). Exiting..."
+
+    # Exiting
+    exit 1
+fi
+
 
 # Preparing the individual MD folders for each thermodynamic state
 if [ "${tdcycle_type}" == "hq" ]; then
@@ -101,8 +117,10 @@ if [ "${tdcycle_type}" == "hq" ]; then
     mod="$(expr ${nbeads} % ${tdw_count})"
     trap 'error_response_std $LINENO' ERR
     if [ "${mod}" != "0" ]; then
-        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
-        exit
+        # Printing some information
+        echo " * Error: The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>. Exiting..."
+    # Exiting
+        exit 1
     fi
     echo " OK"
 
@@ -118,10 +136,10 @@ if [ "${tdcycle_type}" == "hq" ]; then
     echo -e "\n * Preparing the files and directories for the TDS with bead-configuration ${bead_configuration}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../eq/${msp_name}/${subsystem}/system.${bead_configuration}.eq.pdb ./
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${bead_configuration}.initial.pdb ./
 
     # Getting the cell size in the cp2k input files
-    line=$(grep CRYST1 system.${bead_configuration}.eq.pdb)
+    line=$(grep CRYST1 system.${bead_configuration}.initial.pdb)
     IFS=' ' read -r -a line_array <<< "$line"
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
@@ -175,7 +193,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
                 # We do not distinguish the cases with an if statement because this way is more robust
                 sed -i "/momenta/d" ipi/ipi.in.main.xml
-                sed -i "s|<file.*eq.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                 # If the previous run was started from a restart file, we only need to update the checkpoint tag
                 sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
 
@@ -184,7 +202,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
 
                 # Printing information
-                echo -e "\n * The preparing of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..
@@ -230,7 +248,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
                 cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
             else
-                echo "Error: The input file main.eq.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
             # Copying the sub files
@@ -332,10 +350,10 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     echo -e "\n * Preparing the files and directories for the TDS with lambda-configuration ${lambda_configuration}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../eq/${msp_name}/${subsystem}/system.${lambda_configuration}.eq.pdb ./
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${lambda_configuration}.initial.pdb ./
 
     # Getting the cell size in the cp2k input files
-    line=$(grep CRYST1 system.${lambda_configuration}.eq.pdb)
+    line=$(grep CRYST1 system.${lambda_configuration}.initial.pdb)
     IFS=' ' read -r -a line_array <<< "$line"
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
@@ -393,7 +411,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
                 # We do not distinguish the cases with an if statement because this way is more robust
                 sed -i "/momenta/d" ipi/ipi.in.main.xml
-                sed -i "s|<file.*eq.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
                 # If the previous run was started from a restart file, we only need to update the checkpoint tag
                 sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
 
@@ -403,7 +421,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
 
                 # Printing information
-                echo -e "\n * The preparing of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..

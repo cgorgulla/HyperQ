@@ -201,7 +201,7 @@ md_continue=true
 # This setting has mainly effects on _prm_, only very few on _rmd_
 
 ce_continue=true
-# Possible values (case insensitive): true, false 
+# Possible values (case insensitive): true, false
 # If true, then * during _rce_ snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
 #               * during _prc_ only snapshots will be prepared which are not already prepared (e.g. no finished snapshots will be overwritten)
 # If false, then * during _rce_ every snapshot will be computed regardless of whether they have been computed before or not
@@ -309,11 +309,19 @@ inputfile_iqi_md_RLS=iqi.in.main.RLS.xml
 inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 
+******************************************************************* Equilibration Simulations *******************************************************************
+
+eq_activate=true
+# Possible values: true, false
+# If false, _pmd_ will use the optimization output files, and _eq_ will not be run in hq-pipes
+# If true, _pmd_ will use the equilibration output files, and _eq_ will can be run in hq-pipes
+
+
 ************************************************************************* MD Simulations ************************************************************************
 
 md_stride_L=1000
-md_stride_LS=500
-md_stride_RLS=500
+md_stride_LS=1000
+md_stride_RLS=1000
 # The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
 # Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
 
@@ -332,18 +340,18 @@ ce_stride_RLS=1
 
 ****************************************************************************** FEC ******************************************************************************
 
-fec_first_snapshot_index_L=10
-fec_first_snapshot_index_LS=10
-fec_first_snapshot_index_RLS=10
+fec_first_snapshot_index_L=100
+fec_first_snapshot_index_LS=100
+fec_first_snapshot_index_RLS=100
 fec_stride_L=1
 fec_stride_LS=1
 fec_stride_RLS=1
 # The stride which is applied before carrying out the FEC, i.e. only every <stride_fec>th snapshots of the cross evaluation is used
 # The snapshot folder in the cross evaluation folders are indexed starting by 1
 
-C_absolute_tolerance=1
-delta_F_min=-10000
-delta_F_max=10000
+C_absolute_tolerance=0.1
+delta_F_min=-500
+delta_F_max=500
 
 
 ************************************************************************ Parallelization ************************************************************************

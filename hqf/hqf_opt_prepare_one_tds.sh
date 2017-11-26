@@ -143,7 +143,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 fi
 
                 # Printing information
-                echo -e "\n * The preparing of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..
@@ -249,7 +249,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 fi
 
                 # Printing information
-                echo -e "\n * The preparing of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..

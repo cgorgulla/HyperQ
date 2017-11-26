@@ -35,7 +35,7 @@
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.eq.pdb
+      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.initial.pdb
     &END TOPOLOGY
     &CELL
       ABC cell_dimensions_full_rounded_placeholder

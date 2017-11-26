@@ -219,6 +219,7 @@ system1="${msp_name/_*}"
 system2="${msp_name/*_}"
 workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
+eq_activate="$(grep -m 1 "^eq_activate=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
 logfile_folder_root="log-files/${HQ_STARTDATE_BS}/${msp_name}_${subsystem}"
 
 # Checking the pipeline type
@@ -233,6 +234,7 @@ if [[ "${pipeline_type}" != *"_pro_"* && "${pipeline_type}" != *"_rop_"* && "${p
     # Raising an internal error
     false
 fi
+
 
 # TDS Range
 if [ "${#}" == "4" ]; then
@@ -296,13 +298,13 @@ fi
 bs_check_termination_request
 
 # Preparing the equilibrations
-if [[ "${pipeline_type}" == *"_pre_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
+if [[ ( "${pipeline_type}" == *"_pre_"* || "${pipeline_type}" == *"_alleq_"* || "${pipeline_type}" == *"_all_"* ) && "${eq_activate^^}" == "TRUE" ]]; then
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_prepare_one_msp.sh ${system1} ${system2} ${subsystem} ${tds_range} 2>&1 | tee ${logfile_folder_root}/hqf_eq_prepare_one_msp_${tds_range}
 fi
 bs_check_termination_request
 
 # Running the equilibrations
-if [[ ${pipeline_type} == *"_req_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
+if [[ ( ${pipeline_type} == *"_req_"* || "${pipeline_type}" == *"_alleq_"* || "${pipeline_type}" == *"_all_"* ) && "${eq_activate^^}" == "TRUE" ]]; then
     cd eq/${msp_name}/${subsystem}
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_run_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_run_one_msp_${tds_range}
     cd ../../../
@@ -310,7 +312,7 @@ fi
 bs_check_termination_request
 
 # Postprocessing the equilibrations
-if [[ ${pipeline_type} == *"_ppe_"* ]] || [[ "${pipeline_type}" == *"_alleq_"* ]] || [[ "${pipeline_type}" == *"_all_"* ]]; then
+if [[ ( ${pipeline_type} == *"_ppe_"*|| "${pipeline_type}" == *"_alleq_"* || "${pipeline_type}" == *"_all_"* ) && "${eq_activate^^}" == "TRUE" ]]; then
     cd eq/${msp_name}/${subsystem}
     ${command_prefix_gen_run_one_pipe_sub} hqf_eq_pp_one_msp.sh ${tds_range} 2>&1 | tee ../../../${logfile_folder_root}/hqf_eq_pp_one_msp_${tds_range}
     cd ../../../

@@ -107,7 +107,7 @@ refresh_time=${3}
 # Body
 while true; do
     hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
-    echo -e "\n\n                               *** Job information (JTL: ${jtls//:/,}) ***"
+    echo -e "\n\n                               *** Job information (JTLs: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
     echo -e "\n"
