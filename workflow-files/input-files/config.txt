@@ -8,7 +8,7 @@
 workflow_id=A
 # Used within the socket names as well as the job names in the batchsystem to avoid clashes between parallel running instances of hyper-Q.
 # In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
-# Up to 20 characters are supported. The first character should be an alphabetic letter (required by some batchsystems)
+# Up to 50 characters are supported (provided the job IDs have less than 10 digits). The first character should be an alphabetic letter (required by some batchsystems)
 
 verbosity_runtime=debug
 # Possible values: standard, debug
