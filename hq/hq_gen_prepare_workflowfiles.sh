@@ -287,7 +287,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
             echo " * Info: The folder ${source_run_folder}/input-files/mappings does not exist, skipping..."
         fi
         if [ -f ${source_run_folder}/input-files/msp.all ]; then
-            cp -vr ${source_run_folder}/input-files/ligands input-files/
+            cp -vr ${source_run_folder}/input-files/msp.all input-files/
         else
             echo " * Info: The file ${source_run_folder}/input-files/msp.all does not exist, skipping..."
         fi
