@@ -172,7 +172,7 @@ for jobtype in ${jobtypes//:/ }; do
     if [[ "${jobtype}" == "c" ]]; then
 
         # Adjusting the cpus_per_subjob variable
-        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=${nbeads}" batchsystem/control/c-c:*.ctrl || true
+        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=${nbeads}/g" batchsystem/control/c-c:*.ctrl || true
     fi
 done
 
