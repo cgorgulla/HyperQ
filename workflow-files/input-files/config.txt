@@ -340,9 +340,9 @@ ce_stride_RLS=1
 
 ****************************************************************************** FEC ******************************************************************************
 
-fec_first_snapshot_index_L=100
-fec_first_snapshot_index_LS=100
-fec_first_snapshot_index_RLS=100
+fec_first_snapshot_index_L=10
+fec_first_snapshot_index_LS=10
+fec_first_snapshot_index_RLS=10
 fec_stride_L=1
 fec_stride_LS=1
 fec_stride_RLS=1

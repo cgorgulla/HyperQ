@@ -16,7 +16,7 @@
     &POISSON
       &EWALD
         EWALD_TYPE spme
-        ALPHA 1
+        ALPHA 0.5
         GMAX cell_dimensions_scaled_rounded_placeholder
         O_SPLINE 6
       &END EWALD
