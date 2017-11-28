@@ -337,6 +337,11 @@ ce_stride_RLS=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
+ce_verbosity=normal
+# Possible values: normal, debug
+# Normal: Only essential output files of the simulation programs (i-Pi, CP2K, i-QI) are kept
+# Debug: All the simulation output files are kept (not recommended for large scale production runs)
+
 
 ****************************************************************************** FEC ******************************************************************************
 

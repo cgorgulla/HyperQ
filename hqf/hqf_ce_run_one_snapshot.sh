@@ -46,6 +46,12 @@ cleanup_exit() {
     echo
     echo " * Cleaning up..."
 
+    # Removing CP2K output files to reduce total number of files
+    if [ "${ce_verbosity}" != "debug" ]; then
+        for bead_folder in $(ls -v cp2k/); do
+            rm ${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+        done
+    fi
 
     # Terminating all remaining processes
     echo " * Terminating all remaining processes..."
@@ -98,6 +104,7 @@ ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/c
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_verbosity="$(grep -m 1 "^ce_verbosity=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 snapshot_time_start=$(date +%s)
 sim_counter=0
 
@@ -129,8 +136,13 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
 
     # Starting ipi
-    stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
-    pid_ipi=$!
+    if [ "${ce_verbosity}" == "debug" ]; then
+        stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
+        pid_ipi=$!
+    else
+        stdbuf -oL ipi ipi.in.main.xml > /dev/null
+        pid_ipi=$!
+    fi
 
     # Updating variables
     pids[${sim_counter}]=${pid_ipi}
@@ -162,14 +174,25 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
                 sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
+                sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
 
                 # Checking the input file
-                ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
+                if [ "${ce_verbosity}" == "debug" ]; then
+                    ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
+                else
+                    ${cp2k_command} -e cp2k.in.main >/dev/null
+                fi
 
                 # Starting cp2k
                 echo " * Starting CP2K for ${bead_folder}..."
-                ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-                pid=$!
+                if [ "${ce_verbosity}" == "debug" ]; then
+                    ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
+                    pid=$!
+                else
+                    ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > /dev/null &
+                    pid=$!
+                fi
+
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
@@ -204,8 +227,14 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
     # Starting iqi
     echo -e " * Starting iqi"
     rm iqi.out.* > /dev/null 2>&1 || true 
-    iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
-    pid=$!
+    if [ "${ce_verbosity}" == "debug" ]; then
+        iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
+        pid=$!
+    else
+        iqi iqi.in.main.xml > /dev/null &
+        pid=$!
+    fi
+
 
     # Updating variables
     pids[${sim_counter}]=$pid
