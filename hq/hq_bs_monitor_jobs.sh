@@ -103,10 +103,14 @@ shopt -s nullglob
 wfids=${1}
 jtls=${2//:/}
 refresh_time=${3}
+temp_file_sqs="/tmp/$USER/hq_bs_sqs.$(date +%Y%m%d%m%S-%N)"
+
+# Creating required directories
+mkdir -p /tmp/$USER/
 
 # Body
 while true; do
-    hqh_bs_sqs.sh > /tmp/cgorgulla.sqs
+    hqh_bs_sqs.sh > ${temp_file_sqs}
     echo -e "\n\n                               *** Job information (JTLs: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
@@ -115,10 +119,10 @@ while true; do
     for wfid in ${wfids//:/ }; do
 
         # Variables
-        job_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
-        job_count_completing="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
-        running_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)" # Todo: Fix to work for all batchsystems
-        duplicated_jobs_count="$(cat /tmp/cgorgulla.sqs | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
+        job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
+        job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
+        running_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)" # Todo: Fix to work for all batchsystems
+        duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
         printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count} (${job_count_completing})" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
