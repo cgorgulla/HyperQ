@@ -106,6 +106,17 @@ jobtypes=$5
 toprepare=$6
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
+# Loop for each job type
+for jobtype in ${jobtypes//:/ }; do
+
+    # Jobtype c
+    if [[ "${jobtype}" == "c" ]]; then
+
+        # Adjusting the cpus_per_subjob variable
+        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=${nbeads}/g" batchsystem/control/c-c:*.ctrl || true
+    fi
+done
+
 # Loop for each subsystem
 for subsystem in ${subsystems//:/ }; do
 
@@ -163,17 +174,6 @@ for subsystem in ${subsystems//:/ }; do
             fi
         fi
     done
-done
-
-# Loop for each job type
-for jobtype in ${jobtypes//:/ }; do
-
-    # Jobtype c
-    if [[ "${jobtype}" == "c" ]]; then
-
-        # Adjusting the cpus_per_subjob variable
-        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=${nbeads}/g" batchsystem/control/c-c:*.ctrl || true
-    fi
 done
 
 # Printing final information
