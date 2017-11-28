@@ -174,7 +174,6 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
 
                 # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
                 sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
-                sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
 
                 # Checking the input file
                 if [ "${ce_verbosity}" == "debug" ]; then
@@ -189,6 +188,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                     ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
                     pid=$!
                 else
+                    sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
                     ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > /dev/null &
                     pid=$!
                 fi
