@@ -60,7 +60,7 @@ trap 'error_response_std $LINENO' ERR
 cleanup_exit() {
 
     # Removing the temp-folder
-    rm -r  /tmp/cgorgulla.sqs &>/dev/null || true
+    rm ${temp_file_sqs} &>/dev/null || true
 }
 trap 'cleanup_exit' EXIT
 
