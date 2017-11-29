@@ -54,7 +54,7 @@ cleanup_exit() {
 
         # CP2K
         for bead_folder in $(ls -v cp2k/); do
-            rm ${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+            rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
         done
     fi
 
