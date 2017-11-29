@@ -103,7 +103,7 @@ if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 fi
 
 # Printing some information
-echo -e "\n *** Starting the cross evalutations (hqf_ce_run_one_msp.sh) ***"
+echo -e "\n *** Starting the cross evaluations (hqf_ce_run_one_msp.sh) ***"
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"

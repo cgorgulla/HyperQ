@@ -9,7 +9,7 @@ usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <tdw_count> <system 1 b
 
 The <simulation type> Possible values: MM, QMMM
 
-Has to be run in the system root folder."
+Has to be run in the subsystem folder of the MSP."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -108,7 +108,6 @@ hqh_fes_prepare_cp2k_psf_dummy.py system1.vmd.psf system1.dummy.psf
 # Preparing the cp2k psf file for the dummy atoms of system 2
 echo -e " * Preparing the cp2k psf file for the dummy atoms of system 2"
 hqh_fes_prepare_cp2k_psf_dummy.py system2.vmd.psf system2.dummy.psf
-
 
 # System 1
 echo -e " * Preparing the cp2k qm_kind file for system 1"

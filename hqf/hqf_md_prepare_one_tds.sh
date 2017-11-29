@@ -76,8 +76,8 @@ tds_index="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -107,7 +107,6 @@ else
     exit 1
 fi
 
-
 # Preparing the individual MD folders for each thermodynamic state
 if [ "${tdcycle_type}" == "hq" ]; then
 
@@ -119,7 +118,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
     if [ "${mod}" != "0" ]; then
         # Printing some information
         echo " * Error: The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>. Exiting..."
-    # Exiting
+        # Exiting
         exit 1
     fi
     echo " OK"
@@ -144,15 +143,13 @@ if [ "${tdcycle_type}" == "hq" ]; then
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
     cell_C=${line_array[3]}
-
-    # Computing the GMAX values for CP2K
-    gmax_A=${cell_A/.*}
-    gmax_B=${cell_B/.*}
-    gmax_C=${cell_C/.*}
-    gmax_A_scaled=$((gmax_A*cell_dimensions_scaling_factor))
-    gmax_B_scaled=$((gmax_B*cell_dimensions_scaling_factor))
-    gmax_C_scaled=$((gmax_C*cell_dimensions_scaling_factor))
-    for value in gmax_A gmax_B gmax_C gmax_A_scaled gmax_B_scaled gmax_C_scaled; do
+    cell_A_floor=${cell_A/.*}
+    cell_B_floor=${cell_B/.*}
+    cell_C_floor=${cell_C/.*}
+    cell_A_scaled=$((cell_A_floor*cell_dimensions_scaling_factor))
+    cell_B_scaled=$((cell_B_floor*cell_dimensions_scaling_factor))
+    cell_C_scaled=$((cell_C_floor*cell_dimensions_scaling_factor))
+    for value in cell_A_floor cell_B_floor cell_C_floor cell_A_scaled cell_B_scaled cell_C_scaled; do
         mod=$((${value}%2))
         if [ "${mod}" == "0" ]; then
             eval ${value}_odd=$((${value}+1))
@@ -251,22 +248,14 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
-            # Copying the sub files
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
-                cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
-            # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
-                cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
 
             # Adjusting the CP2K input files
             sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
@@ -286,22 +275,14 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
-            # Copying the sub files
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
-                cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
-            # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
-                cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
 
             # Adjusting the CP2K input files
             sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
@@ -358,15 +339,13 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
     cell_C=${line_array[3]}
-
-    # Computing the GMAX values for CP2K
-    gmax_A=${cell_A/.*}
-    gmax_B=${cell_B/.*}
-    gmax_C=${cell_C/.*}
-    gmax_A_scaled=$((gmax_A*cell_dimensions_scaling_factor))
-    gmax_B_scaled=$((gmax_B*cell_dimensions_scaling_factor))
-    gmax_C_scaled=$((gmax_C*cell_dimensions_scaling_factor))
-    for value in gmax_A gmax_B gmax_C gmax_A_scaled gmax_B_scaled gmax_C_scaled; do
+    cell_A_floor=${cell_A/.*}
+    cell_B_floor=${cell_B/.*}
+    cell_C_floor=${cell_C/.*}
+    cell_A_scaled=$((cell_A_floor*cell_dimensions_scaling_factor))
+    cell_B_scaled=$((cell_B_floor*cell_dimensions_scaling_factor))
+    cell_C_scaled=$((cell_C_floor*cell_dimensions_scaling_factor))
+    for value in cell_A_floor cell_B_floor cell_C_floor cell_A_scaled cell_B_scaled cell_C_scaled; do
         mod=$((${value}%2))
         if [ "${mod}" == "0" ]; then
             eval ${value}_odd=$((${value}+1))
@@ -490,23 +469,15 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 exit 1
             fi
         fi
-        # Copying the sub files
-        for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
-            cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-        done
-        # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
-        for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
-            cp $file ${tds_folder}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-        done
 
         # Adjusting the CP2K input files
         sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/lambda_value_placeholder/${lambda_current}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
     done
 
@@ -524,3 +495,6 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
     fi
 fi
+
+# Printing program completion information
+echo -e "\n * The preparation of the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"

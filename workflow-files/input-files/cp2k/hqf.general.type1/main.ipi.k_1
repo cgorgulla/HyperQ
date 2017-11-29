@@ -1,3 +1,11 @@
+@SET subsystem_folder subsystem_folder_placeholder
+@SET subconfiguration subconfiguration_placeholder
+@SET cell_dimensions_full cell_dimensions_full_placeholder
+@SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder
+@SET cell_dimensions_scaled_rounded cell_dimensions_scaled_rounded_placeholder
+@SET cell_dimensions_odd_rounded cell_dimensions_odd_rounded_placeholder
+@SET cell_dimensions_scaled_odd_rounded cell_dimensions_scaled_odd_rounded_placeholder
+
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE driver
@@ -25,24 +33,24 @@
       # a: H1   : Hamiltonian of system 1
       # b: H2d  : Hamiltonian of system 2 dummies
       # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamltionian of system 2
+      # d: H2   : Hamiltonian of system 2
       VARIABLES c d
       MIXING_FUNCTION c+d
     &END
-    @include subsystem_folder_placeholder/cp2k.in.mapping.single
+    @include ${subsystem_folder}/cp2k.in.mapping.single
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.initial.pdb
+      COORD_FILE_NAME ${subsystem_folder}/system.${subconfiguration}.initial.pdb
     &END TOPOLOGY
     &CELL
-      ABC cell_dimensions_full_rounded_placeholder
+      ABC ${cell_dimensions_full}
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL
 
-@include cp2k.in.sub.forces.H1d
+@include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
-@include cp2k.in.sub.forces.H2
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2

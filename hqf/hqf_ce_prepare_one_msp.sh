@@ -104,14 +104,13 @@ prepare_restart() {
     cell_A=$(awk -v x="${line_array[0]}" 'BEGIN{printf("%9.1f", x)}')
     cell_B=$(awk -v y="${line_array[1]}" 'BEGIN{printf("%9.1f", y)}')
     cell_C=$(awk -v z="${line_array[2]}" 'BEGIN{printf("%9.1f", z)}')
-    # Computing the GMAX values for CP2K
-    gmax_A=${cell_A/.*}
-    gmax_B=${cell_B/.*}
-    gmax_C=${cell_C/.*}
-    gmax_A_scaled=$((gmax_A*cell_dimensions_scaling_factor))
-    gmax_B_scaled=$((gmax_B*cell_dimensions_scaling_factor))
-    gmax_C_scaled=$((gmax_C*cell_dimensions_scaling_factor))
-    for value in gmax_A gmax_B gmax_C gmax_A_scaled gmax_B_scaled gmax_C_scaled; do
+    cell_A_floor=${cell_A/.*}
+    cell_B_floor=${cell_B/.*}
+    cell_C_floor=${cell_C/.*}
+    cell_A_scaled=$((cell_A_floor*cell_dimensions_scaling_factor))
+    cell_B_scaled=$((cell_B_floor*cell_dimensions_scaling_factor))
+    cell_C_scaled=$((cell_C_floor*cell_dimensions_scaling_factor))
+    for value in cell_A_floor cell_B_floor cell_C_floor cell_A_scaled cell_B_scaled cell_C_scaled; do
         mod=$((${value}%2))
         if [ "${mod}" == "0" ]; then
             eval ${value}_odd=$((${value}+1))
@@ -171,14 +170,6 @@ prepare_restart() {
                     exit 1
                 fi
             fi
-            # Copying the sub files
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do
-                cp $file  ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
-            # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/ -type f -name "sub*"); do
-                cp $file  ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
 
             # Adjusting the CP2K files
             sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
@@ -207,25 +198,17 @@ prepare_restart() {
                     exit 1
                 fi
             fi
-            # Copying the sub files
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do
-                cp $file ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
-            # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
-            for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/ -type f -name "sub*"); do
-                cp $file ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.${file/*\/}
-            done
 
             # Adjusting the CP2K files
             sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         fi
 
         # Adjusting the CP2K files
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${gmax_A} ${gmax_B} ${gmax_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_odd_rounded_placeholder/${gmax_A_odd} ${gmax_B_odd} ${gmax_C_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${gmax_A_scaled} ${gmax_B_scaled} ${gmax_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${gmax_A_scaled_odd} ${gmax_B_scaled_odd} ${gmax_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../../../..|" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
@@ -320,6 +303,15 @@ fi
 
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${ce_type} ${md_programs}
+
+# Copying the CP2K sub input files
+for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do
+    cp $file cp2k.in.${file/*\/}
+done
+# The sub files in the specific folder are copied at the end so that they can override the ones of the general CP2K input folder
+for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/ -type f -name "sub*"); do
+    cp $file cp2k.in.${file/*\/}
+done
 
 # Copying the equilibration coordinate files (just for CP2K as some initial coordinate files which are not really used by CP2K)
 cp ../../../md/${msp_name}/${subsystem}/system.*.initial.pdb ./

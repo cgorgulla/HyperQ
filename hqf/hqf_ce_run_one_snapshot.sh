@@ -48,6 +48,11 @@ cleanup_exit() {
 
     # Removing CP2K output files to reduce total number of files
     if [ "${ce_verbosity}" != "debug" ]; then
+
+        # i-PI
+        rm ipi/RESTART >/dev/null 2>&1 || true
+
+        # CP2K
         for bead_folder in $(ls -v cp2k/); do
             rm ${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
         done

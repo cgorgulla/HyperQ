@@ -247,7 +247,6 @@ while true; do
 
     # Sleeping shortly before next round
     sleep 10 || true             # true because the script might be terminated while sleeping, which would result in an error
-
 done
 
 # Printing script completion information

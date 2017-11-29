@@ -98,7 +98,7 @@
       # a: H1   : Hamiltonian of system 1
       # b: H2d  : Hamiltonian of system 2 dummies
       # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamltionian of system 2
+      # d: H2   : Hamiltonian of system 2
       VARIABLES a b c d
       MIXING_FUNCTION (1-lambda_value)*(a+b)+lambda_value*(c+d)
     &END

@@ -1,3 +1,13 @@
+@SET subsystem_folder subsystem_folder_placeholder
+@SET subconfiguration subconfiguration_placeholder
+@SET cell_dimensions_full cell_dimensions_full_placeholder
+@SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder
+@SET cell_dimensions_scaled_rounded cell_dimensions_scaled_rounded_placeholder
+@SET cell_dimensions_odd_rounded cell_dimensions_odd_rounded_placeholder
+@SET cell_dimensions_scaled_odd_rounded cell_dimensions_scaled_odd_rounded_placeholder
+@SET lambda_value lambda_value_placeholder
+@SET temperature temperature_placeholder
+
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE md
@@ -14,7 +24,7 @@
     STEPS 100000
     !HQ_STEPS_TOTAL 100000             ! should be equal to the value of STEPS. HyperQ uses this value to adjust the STEPS when preparing restart files
     TIMESTEP [fs] 1.0
-    TEMPERATURE [K] temperature_placeholder
+    TEMPERATURE [K] ${temperature}
     &BAROSTAT
       PRESSURE [bar] 1.0
       TIMECON [fs] 200.0
@@ -62,28 +72,28 @@
       # a: H1   : Hamiltonian of system 1
       # b: H2d  : Hamiltonian of system 2 dummies
       # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamltionian of system 2
+      # d: H2   : Hamiltonian of system 2
       VARIABLES a b c d
-      MIXING_FUNCTION (1-lambda_value_placeholder)*(a+b)+lambda_value_placeholder*(c+d)
+      MIXING_FUNCTION (1-${lambda_value})*(a+b)+${lambda_value}*(c+d)
     &END
-    @include subsystem_folder_placeholder/cp2k.in.mapping.double
+    @include ${subsystem_folder}/cp2k.in.mapping.double
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME subsystem_folder_placeholder/system.subconfiguration_placeholder.opt.pdb
+      COORD_FILE_NAME ${subsystem_folder}/system.${subconfiguration}.opt.pdb
     &END TOPOLOGY
     &CELL
-      ABC cell_dimensions_full_rounded_placeholder
+      ABC ${cell_dimensions_full}
     &END CELL
   &END SUBSYS
 &END FORCE_EVAL
 
-@include cp2k.in.sub.forces.H1
+@include ${subsystem_folder}/cp2k.in.sub.forces.H1
 
-@include cp2k.in.sub.forces.H2d
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2d
 
-@include cp2k.in.sub.forces.H1d
+@include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
-@include cp2k.in.sub.forces.H2
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2

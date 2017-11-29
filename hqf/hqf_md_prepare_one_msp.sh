@@ -82,6 +82,8 @@ subsystem=${3}
 tds_range=${4}
 msp_name=${system1_basename}_${system2_basename}
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -108,7 +110,7 @@ fi
 
 # Checking if the general files for this MSP have to be prepared
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null; then
+if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/cp2k.in.sub.* &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the MD simulation is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."
@@ -117,7 +119,7 @@ if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system
     # Changing the pwd into the relevant folder
     cd md/${msp_name}/${subsystem}
 
-elif [[ "${md_continue^^}" == "FALSE" ]] || ( [[ "${md_continue^^}" == "TRUE" ]] && ! ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null ); then
+else
 
     # Preparing the main folder
     echo -e " * Preparing the main folder"
@@ -177,6 +179,15 @@ elif [[ "${md_continue^^}" == "FALSE" ]] || ( [[ "${md_continue^^}" == "TRUE" ]]
         # Raising an error
         false
     fi
+
+    # Copying the CP2K sub files
+    for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
+        cp $file cp2k.in.${file/*\/}
+    done
+    # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
+    for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
+        cp $file cp2k.in.${file/*\/}
+    done
 
     # Preparing the shared CP2K input files
     hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
