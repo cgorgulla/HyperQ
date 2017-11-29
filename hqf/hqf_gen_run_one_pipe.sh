@@ -134,7 +134,7 @@ cleanup_exit() {
         kill -SIGTERM -$pgid 2>&1 1>/dev/null || true
         sleep 10 || true
         kill -9 -$pgid 2>&1 1>/dev/null || true
-    " || true &> /dev/null
+    " &> /dev/null || true
 }
 trap "cleanup_exit $LINENO" EXIT
 
