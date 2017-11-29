@@ -212,7 +212,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                     pid=$!
                 else
                     sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
-                    ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > /dev/null &
+                    ${cp2k_command} -i cp2k.in.main > /dev/null &
                     pid=$!
                 fi
 
