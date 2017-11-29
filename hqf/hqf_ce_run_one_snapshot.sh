@@ -133,14 +133,14 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
 
     # Updating the input file (directly here before the simulation due to the timestamp in the socket address)
     sed -i "s|<address>.*cp2k.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
-    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce..iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
+    sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
 
     # Starting ipi
     if [ "${ce_verbosity}" == "debug" ]; then
         stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
         pid_ipi=$!
     else
-        stdbuf -oL ipi ipi.in.main.xml > /dev/null
+        stdbuf -oL ipi ipi.in.main.xml > /dev/null &
         pid_ipi=$!
     fi
 
@@ -192,7 +192,6 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                     ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > /dev/null &
                     pid=$!
                 fi
-
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
