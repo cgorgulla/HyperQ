@@ -229,7 +229,7 @@ if [[ "${pipeline_type}" != *"_pro_"* && "${pipeline_type}" != *"_rop_"* && "${p
      && "${pipeline_type}" != *"_allmd_"* && "${pipeline_type}" != *"_allce_"* && "${pipeline_type}" != *"_allfec_"* && "${pipeline_type}" != *"_all_"* ]]; then
 
     # Printing an error message
-    echo -e "\n * Error: This script has to be run in the root folder. Exiting...\n"
+    echo -e "\n * Error: This pipeline type which was specified (${pipeline_type}) is not supported. Exiting...\n"
 
     # Raising an internal error
     false
