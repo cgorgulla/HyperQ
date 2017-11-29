@@ -47,7 +47,7 @@ cleanup_exit() {
     echo " * Cleaning up..."
 
     # Removing CP2K output files to reduce total number of files
-    if [ "${ce_verbosity}" != "debug" ]; then
+    if [ "${ce_verbosity}" == "normal" ]; then
 
         # i-PI
         rm ipi/RESTART >/dev/null 2>&1 || true
@@ -73,6 +73,15 @@ cleanup_exit() {
 
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+        # Removing CP2K output files to reduce total number of files
+        if [ ${ce_verbosity} = normal ]; then
+            # i-PI
+            rm ipi/RESTART >/dev/null 2>&1 || true
+            # CP2K
+            for bead_folder in $(ls -v cp2k/); do
+                rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+            done
+        fi
 
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
@@ -81,6 +90,15 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
+        # Removing CP2K output files to reduce total number of files
+        if [ ${ce_verbosity} == normal ]; then
+            # i-PI
+            rm ipi/RESTART >/dev/null 2>&1 || true
+            # CP2K
+            for bead_folder in $(ls -v cp2k/); do
+                rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+            done
+        fi
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
