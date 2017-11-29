@@ -130,7 +130,7 @@ cpus_per_subjob=1
 # Not yet available for SGE (always set to 1)
 # Can be changed during runtime
 
-memory_per_cpu=1000M
+memory_per_cpu=2G
 # Used by SLURM, SGE
 # Format for SLURM: <size[units:M/G/T]> (default units are M)
 # Format for SGE: size[K/M/G]
