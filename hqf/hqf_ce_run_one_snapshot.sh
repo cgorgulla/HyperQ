@@ -54,7 +54,7 @@ cleanup_exit() {
 
         # CP2K
         for bead_folder in $(ls -v cp2k/); do
-            rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+            rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
         done
     fi
 
@@ -79,7 +79,7 @@ cleanup_exit() {
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
             for bead_folder in $(ls -v cp2k/); do
-                rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
             done
         fi
 
@@ -96,7 +96,7 @@ cleanup_exit() {
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
             for bead_folder in $(ls -v cp2k/); do
-                rm cp2k/${bead_folder}/cp2k.out.* >/dev/null 2>&1 || true
+                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
             done
         fi
 
