@@ -64,33 +64,21 @@ clean_up() {
 
     # Terminating all remaining processes.
     echo " * Terminating all remaining processes..."
+
     # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
     setsid nohup bash -c "
 
         # Trapping signals
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
-        # Terminating the main processes
-        kill ${pids[*]} 1>/dev/null 2>&1 || true
-        sleep 5
-        kill -9 ${pids[*]} 1>/dev/null 2>&1 || true
-
-        # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
-
-        # Terminating the child processes of the main processes
-        pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
-        sleep 1
-        pkill -9 -P ${pids[*]} 1>/dev/null 2>&1 || true
-
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* >/dev/null 2>&1 || true
 
         # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
-        pkill -P $$ || true
+        pkill -9 -P $$ || true &
         sleep 1
-        pkill -9 -P $$ || true
+        pkill -9 -P $$ || true &
     " &> /dev/null || true
 }
 trap 'clean_up' EXIT
