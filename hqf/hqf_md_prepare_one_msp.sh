@@ -110,7 +110,7 @@ fi
 
 # Checking if the general files for this MSP have to be prepared
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/cp2k.in.sub.* &>/dev/null; then
+if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the MD simulation is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."

@@ -155,7 +155,7 @@ echo "OK"
 
 # Checking if the general files for this MSP have to be prepared
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${opt_continue^^}" == "TRUE" ]] && ls ./opt/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./opt/${msp_name}/${subsystem}/cp2k.in.sub.* &>/dev/null; then
+if [[ "${opt_continue^^}" == "TRUE" ]] && ls ./opt/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./opt/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the optimizations is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."
