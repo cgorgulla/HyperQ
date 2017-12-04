@@ -328,8 +328,12 @@ if [ "${tdcycle_type}" = "hq" ]; then
     mod="$(expr ${nbeads} % ${tdw_count})"
     trap 'error_response_std $LINENO' ERR
     if [ "${mod}" != "0" ]; then
-        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
-        exit
+
+        # Printing error message
+        echo " * Error: The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>. Exiting..."
+
+        # Exiting
+        exit 1
     fi
     echo " OK"
 
@@ -387,8 +391,18 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
     rm ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*all_runs* || true
 
     # Determining the number of restart files of the two TDS simulations
+    trap '' ERR
     restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
     restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
+    trap 'error_response_std $LINENO' ERR
+    if [[ "${restartfile_count_MD1}" == "0" || "${restartfile_count_MD2}" == "0" ]]; then
+
+        # Printing error message
+        echo " * Error: One of the MD simulation does not have any restart files (with restart ID other than 0). Exiting..."
+
+        # Exiting
+        exit 1
+    fi
 
     # Checking if there are enough restart files
     if [[ "${ce_first_restart_ID}" -gt "${restartfile_count_MD1}" ]]; then

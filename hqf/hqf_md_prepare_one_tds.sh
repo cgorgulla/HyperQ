@@ -256,7 +256,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -283,7 +283,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder_placeholder/|../../../|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
