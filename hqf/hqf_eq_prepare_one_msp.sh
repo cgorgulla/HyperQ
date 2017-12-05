@@ -124,10 +124,10 @@ fi
 
 # Checking if the system names are proper by checking if the mapping file exists
 echo -e -n " * Checking if the mapping file exists... "
-if [ -f input-files/mappings/${system_1_basename}_${system_2_basename} ]; then
+if [ -f input-files/mappings/curated/${system_1_basename}_${system_2_basename} ]; then
     echo " OK"
 else
-    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings folder."
+    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings/curated folder."
     exit 1
 fi
 
@@ -212,14 +212,17 @@ else
         fi
         (( system_ID += 1 ))
     done
-    if [ -f ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ]; then
-        cp ../../../input-files/mappings/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true   # Parallel robustness
+    if [ -f ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ]; then
+        cp ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
         echo "Error: An required input-file does not exist. Exiting...\n\n"
 
         # Raising an error
         false
+    fi
+    if [ -f ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ]; then
+        cp ../../../input-files/mappings/hr/${system_1_basename}_${system_2_basename} ./system.mcs.mapping.hr || true   # Parallel robustness
     fi
 
     # Copying the CP2K sub files

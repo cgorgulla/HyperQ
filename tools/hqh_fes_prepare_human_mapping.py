@@ -2,7 +2,7 @@
 import sys
 from hyperq.molecular_systems import *
 def help():
-    print "\nUsage: hqh_fes_prepare_human_mapping.py <system1 pdb filename> <system2 pdb filename> <mcs mapping filename>"
+    print "\nUsage: hqh_fes_prepare_human_mapping.py <system1 pdb filename> <system2 pdb filename> <mcs mapping filename> <output filename>"
     print
     print "Prepares a human-readable (hr) mappinig file."
     print "Index of the atoms in the mcs-mapping-file starts at 1 (based on the ligand only files)"
@@ -19,14 +19,14 @@ def help():
 # Checking if this file is run as the main program
 if __name__ == '__main__':
     # Checking the number of arguments
-    if (len(sys.argv) != 4):
+    if (len(sys.argv) != 5):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 3 parameters. Exiting..."
+        print "Required are 4 parameters. Exiting..."
         help()
         exit(1)
 
     else:
-        system1 = SingleSystem(sys.argv[1], sys.argv[3], 1)
-        system2 = SingleSystem(sys.argv[2], sys.argv[3], 2)
+        system1 = SingleSystem(sys.argv[1], sys.argv[3], 1, createDummyIndexFiles=False)
+        system2 = SingleSystem(sys.argv[2], sys.argv[3], 2, createDummyIndexFiles=False)
         jointSystem = JointSystem(system1, system2, sys.argv[3])
-        jointSystem.writeHRMappingFile()
+        jointSystem.writeHRMappingFile(sys.argv[4])

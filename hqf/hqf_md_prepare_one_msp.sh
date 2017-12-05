@@ -170,14 +170,17 @@ else
         fi
         (( system_ID += 1 ))
     done
-    if [ -f ../../../input-files/mappings/${msp_name} ]; then
-        cp ../../../input-files/mappings/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
+    if [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+        cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
         echo "Error: An required input-file does not exist. Exiting...\n\n"
 
         # Raising an error
         false
+    fi
+    if [ -f ../../../input-files/mappings/hr/${msp_name} ]; then
+        cp ../../../input-files/mappings/hr/${msp_name} ./system.mcs.mapping.hr || true   # Parallel robustness
     fi
 
     # Copying the CP2K sub files

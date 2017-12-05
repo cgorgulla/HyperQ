@@ -296,7 +296,8 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx
     (( system_ID += 1 ))
 done
-cp ../../../input-files/mappings/${system1_basename}_${system2_basename} ./system.mcs.mapping
+cp ../../../input-files/mappings/curated/${system1_basename}_${system2_basename} ./system.mcs.mapping
+cp ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ./system.mcs.mapping.hr
 if [ -f "TD_windows.list" ]; then
     rm TD_windows.list
 fi

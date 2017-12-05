@@ -68,6 +68,8 @@ if [ -d "input-files/mappings" ]; then
     rm -r "input-files/mappings"
 fi
 mkdir -p input-files/mappings/raw
+mkdir -p input-files/mappings/curated
+mkdir -p input-files/mappings/hr
 cd input-files/mappings/raw
 
 # Running Lomap
@@ -83,7 +85,10 @@ cp td.pairings ../
 IFS=' ' read -r -a td_pairings <<< "td.pairings"
 while IFS='' read -r line || [[ -n "$line" ]]; do
     IFS=' ' read -r -a array <<< "$line"
-    cp mcs_mapping_${array[0]}_${array[1]} ../${array[2]}_${array[3]}
+    cp mcs_mapping_${array[0]}_${array[1]} ../curated/${array[2]}_${array[3]}
+
+    # Preparing the human readable mapping files
+    hqh_fes_prepare_human_mapping.py ../../ligands/pdb/${array[2]}.pdb ../../ligands/pdb/${array[3]}.pdb ../curated/${array[2]}_${array[3]}  ../hr/${array[2]}_${array[3]}
 done < td.pairings
 
 cd ../../../

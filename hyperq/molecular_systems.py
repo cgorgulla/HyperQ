@@ -7,7 +7,7 @@ import itertools
 
 class SingleSystem:
     
-    def __init__(self, systemPDBfilename, mcsMappingFilename, systemID):
+    def __init__(self, systemPDBfilename, mcsMappingFilename, systemID, createDummyIndexFiles=True):
     
         # Fields
         self.atomCount = {"receptor":0, "ligand":0, "solvent":0, "joint":0, "dummy":0, "total":0}
@@ -47,9 +47,10 @@ class SingleSystem:
         self.indices["dummy"] = self.indices["ligand"] - self.indices["joint"]
         self.atomCount["dummy"] = len(self.indices["dummy"])
         # Write out dummy indices (for cp2k_dummies.py)
-        with open("system" + str(systemID) + ".dummy.indices", "w") as dummyFile:
-            for atomIndex in self.indices["dummy"]: 
-                dummyFile.write(str(atomIndex) + " ")
+        if createDummyIndexFiles == True:
+            with open("system" + str(systemID) + ".dummy.indices", "w") as dummyFile:
+                for atomIndex in self.indices["dummy"]:
+                    dummyFile.write(str(atomIndex) + " ")
 
         # All atom indices, names, types
         with open(systemPDBfilename, "r") as pdbFile:
@@ -495,9 +496,10 @@ class JointSystem:
                                 systemPDBXfile.write(line)
 
 
-    def writeHRMappingFile(self):
+    def writeHRMappingFile(self, output_filename):
+
         # hr = human readable
-        with open(self.mcsMappingFilename + ".hr", "w") as mappingFile:
+        with open(output_filename, "w") as mappingFile:
             # Writing the heading 
             mappingFile.write("Column 1: System 1 reduced indices\n")
             mappingFile.write("Column 2: System 1 total indices\n")
