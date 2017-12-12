@@ -2,11 +2,11 @@
 import sys
 
 def main(psfFilenameIn, psfFilenameOut):
-    
-    with open(psfFilenameOut, "w") as pdbFileOut:
-        with open(psfFilenameIn, "r") as pdbFileIn:
+
+    with open(psfFilenameOut, "w") as psfFileOut:
+        with open(psfFilenameIn, "r") as psfFileIn:
             currentSection = "not atoms"
-            for line in pdbFileIn:
+            for line in psfFileIn:
                 lineSplit = line.split()
                 # Checking the current section
                 if len(lineSplit) <= 1:
@@ -30,8 +30,8 @@ def main(psfFilenameIn, psfFilenameOut):
                             exit(1)
                         line = '   {:>7} {:>3} {:>9} {:>8} {:>8} {:>8} {:>13} {:>8} {:>5}\n'.format(*lineSplit)
 
-                pdbFileOut.write(line)
-
+                # Writing the line to the output file
+                psfFileOut.write(line)
 
 def help():
     print "\nUsage: hqh_fes_prepare_cp2k_psf_dummy.py <psf filename in> <psf filename out>\n\n"
@@ -43,7 +43,7 @@ if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 2 parameters. Exiting..."
+        print "Required are 2 input arguments. Exiting..."
         help()
         exit(1)
 

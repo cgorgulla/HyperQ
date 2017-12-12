@@ -93,50 +93,12 @@ mcs_time=1
 
 **************************************************************************** General ****************************************************************************
 
-opt_programs_L=cp2k
-opt_programs_LS=cp2k
-opt_programs_RLS=cp2k
-# possible: cp2k
-
-opt_type_L=MM
-opt_type_LS=MM
-opt_type_RLS=MM
-# Possible values: MM, QM, QMMM
-# Currently obsolete
-
-eq_programs_L=cp2k
-eq_programs_LS=cp2k
-eq_programs_RLS=cp2k
-# possible: cp2k
-
-eq_type_L=MM
-eq_type_LS=MM
-eq_type_RLS=MM
-# Possible values: MM, QM, QMMM
-# Currently obsolete
-
-md_programs_L=ipi-cp2k
-md_programs_LS=ipi-cp2k
-md_programs_RLS=ipi-cp2k
-# Possible values: ipi-cp2k, ipi-cp2k-iqi
-# Will also be used for the CE (due to the restart files requiring the same clients)
-
-md_type_L=MM
-md_type_LS=MM
-md_type_RLS=MM
-# Possible values: QMMM, MM, QM
-# Currently obsolete
-
-ce_type_L=MM
-ce_type_LS=MM
-ce_type_RLS=MM
-# If umbrella_sampling=false, then this setting should be the same as md_type (since the MD files are copied)
-# Possible values: QMMM, MM, QM
-# Currently obsolete
-
 tdcycle_type=lambda
 # Possible options: hq, lambda
-# If using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the k_0 and k_1 files
+# If using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the sys1 and sys2 files (Todo: improve description)
+
+tdcycle_si_activate=true
+# Possible values: true, false
 
 tdw_count=1
 # The total number of thermodynamic windows
@@ -146,67 +108,6 @@ nbeads=1
 # Total number of path integral beads per particle
 # Minimum value: 1
 # Is only relevant for MD simulations and CE
-
-opt_timeout_L=100
-opt_timeout_LS=100
-opt_timeout_RLS=100
-# Unit: seconds
-# This value is used to detect whether the optimization is completed by checking if the file is still changing or not, 
-# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
-
-eq_timeout_L=100
-eq_timeout_LS=100
-eq_timeout_RLS=100
-# Unit: seconds
-# This value is used to detect whether the equilibration is completed by checking if the file is still changing or not,
-# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
-
-md_timeout_L=100
-md_timeout_LS=500
-md_timeout_RLS=1000
-# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
-# Timeout starts counting after CP2K (and possibly iqi) has been started
-
-ce_timeout_L=30
-ce_timeout_LS=100
-ce_timeout_RLS=100
-# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
-# Timeout starts counting after CP2K (and possibly iqi) has been started
-
-opt_continue=true
-# Possible values (case insensitive): true, false
-# If true, then
-#   * during _pro_
-#       * non-existent TDS-folders will be newly created
-#       * and existing TDS-folders which contain already restart files will be prepared for the next run provided the there are no opt-pp-files for this TDS yet, in which case it will be skipped
-#       * the general MSP folder will only be newly prepared if at least one of the files system.a1c1.[uc]_atoms is present
-#   * during _rop_
-#       * the simulation will only be started if there are no opt-pp-files yet for this TDS
-#   * during _ppo_
-#       * the pp  will only be carried out if there are no opt-pp-files yet for this TDS
-# If false, then
-#   * during _pro_
-#       * the opt/msp_name/subsystem general folder will be newly prepared
-#       * each TDS folder will be newly prepared (and wiped if existent)
-# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
-
-eq_continue=true
-# Details: Same as for opt_continue
-
-md_continue=true
-# Possible values (case insensitive): true, false 
-# If true, then during _prm_ non-existent MD-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
-# If false, then the md/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
-# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
-# This setting has mainly effects on _prm_, only very few on _rmd_
-
-ce_continue=true
-# Possible values (case insensitive): true, false
-# If true, then * during _rce_ snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
-#               * during _prc_ only snapshots will be prepared which are not already prepared (e.g. no finished snapshots will be overwritten)
-# If false, then * during _rce_ every snapshot will be computed regardless of whether they have been computed before or not
-#                * during _prc_ all snapshots will be newly prepared (and the ce/msp_name/subsystem folder will be wiped if already existent)
-# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
 
 umbrella_sampling=false
 # Possible values: true, false
@@ -224,16 +125,16 @@ cell_dimensions_scaling_factor_RLS=2
 # At least one of the two CP2K input folders for each GEO_OPT, EQ, MD and CE has to contain the following files:
 # When used for GEO_OPT:
 # * main.opt.lambda
-# * main.opt.k_0
-# * main.opt.k_1
+# * main.opt.sys1
+# * main.opt.sys2
 # When used for EQ:
 # * main.eq.lambda
-# * main.eq.k_0
-# * main.eq.k_1
+# * main.eq.sys1
+# * main.eq.sys2
 # When used for MD simulations:
 # * main.ipi.lambda
-# * main.ipi.k_0
-# * main.ipi.k_1
+# * main.ipi.sys1
+# * main.ipi.sys2
 # Optional for GEO_OPT, EQ, MD, and CE are files of the form sub.*
 # Possible variables in the cp2k input files: cell_dimensions_full_rounded, cell_dimensions_half_rounded, cell_dimensions_odd_rounded, subconfiguration, lambda_value
 
@@ -309,38 +210,182 @@ inputfile_iqi_md_RLS=iqi.in.main.RLS.xml
 inputfile_iqi_constraints_RLS=iqi.in.sub.constraints.RLS.xml
 
 
+********************************************************************* Geometry Optimization *********************************************************************
+
+opt_continue=true
+# Possible values (case insensitive): true, false
+# If true, then
+#   * during _pro_
+#       * non-existent TDS-folders will be newly created
+#       * and existing TDS-folders which contain already restart files will be prepared for the next run provided the there are no opt-pp-files for this TDS yet, in which case it will be skipped
+#       * the general MSP folder will only be newly prepared if at least one of the files system.a1c1.[uc]_atoms is present
+#   * during _rop_
+#       * the simulation will only be started if there are no opt-pp-files yet for this TDS
+#   * during _ppo_
+#       * the pp  will only be carried out if there are no opt-pp-files yet for this TDS
+# If false, then
+#   * during _pro_
+#       * the opt/msp_name/subsystem general folder will be newly prepared
+#       * each TDS folder will be newly prepared (and wiped if existent)
+# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
+
+opt_programs_L=cp2k
+opt_programs_LS=cp2k
+opt_programs_RLS=cp2k
+# possible: cp2k
+
+opt_max_steps_L=500
+opt_max_steps_LS=500
+opt_max_steps_RLS=500
+# Input files for the simulations are adjusted automatically by replacing the term 'opt_max_steps_placeholder'
+
+opt_trajectory_stride_L=10
+opt_trajectory_stride_LS=10
+opt_trajectory_stride_RLS=10
+# Input files for the simulations are adjusted automatically by replacing the term 'opt_trajectory_stride_placeholder'
+
+opt_restart_stride_L=100
+opt_restart_stride_LS=100
+opt_restart_stride_RLS=100
+# Input files for the simulations are adjusted automatically by replacing the term 'opt_restart_stride_placeholder'
+
+opt_type_L=MM
+opt_type_LS=MM
+opt_type_RLS=MM
+# Possible values: MM, QM, QMMM
+# Currently obsolete
+
+opt_timeout_L=100
+opt_timeout_LS=100
+opt_timeout_RLS=100
+# Unit: seconds
+# This value is used to detect whether the optimization is completed by checking if the file is still changing or not,
+# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
+
+
 ******************************************************************* Equilibration Simulations *******************************************************************
 
 eq_activate=true
 # Possible values: true, false
 # If false, _pmd_ will use the optimization output files, and _eq_ will not be run in hq-pipes
-# If true, _pmd_ will use the equilibration output files, and _eq_ will can be run in hq-pipes
+# If true, _pmd_ will use the equilibration output files, and _eq_ can be run in hq-pipes
+
+eq_continue=true
+# Possible values: true, false
+# Details: Same as for opt_continue
+
+eq_programs_L=cp2k
+eq_programs_LS=cp2k
+eq_programs_RLS=cp2k
+# possible: cp2k
+
+eq_type_L=MM
+eq_type_LS=MM
+eq_type_RLS=MM
+# Possible values: MM, QM, QMMM
+# Currently obsolete
+
+eq_total_steps_L=2000
+eq_total_steps_LS=2000
+eq_total_steps_RLS=2000
+# Input files for the simulations are adjusted automatically by replacing the term 'eq_total_steps_placeholder'
+
+eq_trajectory_stride_L=10
+eq_trajectory_stride_LS=10
+eq_trajectory_stride_RLS=10
+# The stride w.r.t. the time steps when snapshot files are written out
+# Input files for the simulations are adjusted automatically by replacing the term 'eq_trajectory_stride_placeholder'
+
+eq_restart_stride_L=1000
+eq_restart_stride_LS=1000
+eq_restart_stride_RLS=1000
+# The stride w.r.t. the time steps when restart files are written out
+# Input files for the simulations are adjusted automatically by replacing the term 'eq_restart_stride_placeholder'
+
+eq_timeout_L=100
+eq_timeout_LS=100
+eq_timeout_RLS=100
+# Unit: seconds
+# This value is used to detect whether the equilibration is completed by checking if the file is still changing or not,
+# because sometimes a program (in particular CP2K is done but the program doesn't terminate)
 
 
 ************************************************************************* MD Simulations ************************************************************************
 
-md_stride_L=1000
-md_stride_LS=1000
-md_stride_RLS=1000
+md_continue=true
+# Possible values (case insensitive): true, false
+# If true, then during _prm_ non-existent MD-folders will be newly created, and existing ones which have already ipi restart files will be prepared for the next run (without deleting the previous runs)
+# If false, then the md/msp_name/subsystem will be newly prepared (and will be wiped if already existent)
+# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
+# This setting has mainly effects on _prm_, only very few on _rmd_
+
+md_programs_L=ipi-cp2k
+md_programs_LS=ipi-cp2k
+md_programs_RLS=ipi-cp2k
+# Possible values: ipi-cp2k, ipi-cp2k-iqi
+# Will also be used for the CE (due to the restart files requiring the same clients)
+
+md_type_L=MM
+md_type_LS=MM
+md_type_RLS=MM
+# Possible values: QMMM, MM, QM
+# Currently obsolete
+
+md_total_steps_L=100000000
+md_total_steps_LS=100000000
+md_total_steps_RLS=100000000
+# Input files for the simulations are adjusted automatically by replacing the term 'md_total_steps_placeholder'
+
+md_trajectory_stride_L=1000
+md_trajectory_stride_LS=1000
+md_trajectory_stride_RLS=1000
 # The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
 # Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
+
+md_timeout_L=100
+md_timeout_LS=500
+md_timeout_RLS=1000
+# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
+# Timeout starts counting after CP2K (and possibly iqi) has been started
 
 
 *********************************************************************** Cross-Evaluations ***********************************************************************
 
+ce_continue=true
+# Possible values (case insensitive): true, false
+# If true, then * during _rce_ snapshots will be skipped for which the file ipi.out.properties already exists and contains a line with property values
+#               * during _prc_ only snapshots will be prepared which are not already prepared (e.g. no finished snapshots will be overwritten)
+# If false, then * during _rce_ every snapshot will be computed regardless of whether they have been computed before or not
+#                * during _prc_ all snapshots will be newly prepared (and the ce/msp_name/subsystem folder will be wiped if already existent)
+# If the input files have changed and should be updated, this setting should be set either to false, otherwise one needs to delete the folders which should be newly prepared
+
+ce_verbosity=normal
+# Possible values: normal, debug
+# Normal: Only essential output files of the simulation programs (i-Pi, CP2K, i-QI) are kept
+# Debug: All the simulation output files are kept (not recommended for large scale production runs)
+
+ce_type_L=MM
+ce_type_LS=MM
+ce_type_RLS=MM
+# If umbrella_sampling=false, then this setting should be the same as md_type (since the MD files are copied)
+# Possible values: QMMM, MM, QM
+# Currently obsolete
+
 ce_first_restart_ID_L=1
 ce_first_restart_ID_LS=1
 ce_first_restart_ID_RLS=1
+
 ce_stride_L=1
 ce_stride_LS=1
 ce_stride_RLS=1
 # The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
-ce_verbosity=normal
-# Possible values: normal, debug
-# Normal: Only essential output files of the simulation programs (i-Pi, CP2K, i-QI) are kept
-# Debug: All the simulation output files are kept (not recommended for large scale production runs)
+ce_timeout_L=30
+ce_timeout_LS=100
+ce_timeout_RLS=100
+# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
+# Timeout starts counting after CP2K (and possibly iqi) has been started
 
 
 ****************************************************************************** FEC ******************************************************************************

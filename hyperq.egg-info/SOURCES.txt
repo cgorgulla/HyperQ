@@ -14,6 +14,7 @@ hyperq/fep.py
 hyperq/functions.py
 hyperq/molecular_systems.py
 hyperq/tools.py
+hyperq.egg-info/.dropbox.attr
 hyperq.egg-info/PKG-INFO
 hyperq.egg-info/SOURCES.txt
 hyperq.egg-info/dependency_links.txt
@@ -29,8 +30,7 @@ tools/hqh_fes_prepare_cp2k_psf_dummy.py
 tools/hqh_fes_prepare_human_mapping.py
 tools/hqh_fes_prepare_jointsystem.py
 tools/hqh_gen_prepare_cp2k_qmmm.py
-tools/hqh_gen_prepare_pdbx.py
-tools/hqh_md_prepare_jointpdbx.py
+tools/hqh_fes_prepare_jointpdbx.py
 tools/hqh_sp_prepare_pdbx.py
 tools/hqh_sp_prepare_td_pairings.py
 tools/hqh_sp_prepare_td_pairings_lomap.py

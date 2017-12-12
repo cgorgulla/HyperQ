@@ -84,7 +84,8 @@ tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr 
 md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_stride="$(grep -m 1 "^md_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_trajectory_stride="$(grep -m 1 "^md_trajectory_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_total_steps="$(grep -m 1 "^md_total_steps_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -160,7 +161,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
 
     # Checking if the MD folder already exists
     if [[ "${md_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}" ]; then
+        if [ -d "${tds_folder}"/ipi ]; then
 
             # Printing some information
             echo " * The folder ${tds_folder} already exists. Checking its contents..."
@@ -205,29 +206,30 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder} seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
                 cd ..
-                rm -r ${tds_folder}
+                rm -r ${tds_folder}/ipi
+                rm -r ${tds_folder}/cp2k || true
             fi
         fi
     fi
 
-    # Creating directies
-    mkdir ${tds_folder}
-    mkdir ${tds_folder}/cp2k
-    mkdir ${tds_folder}/ipi
+    # Creating directories
+    mkdir -p ${tds_folder}/cp2k
+    mkdir -p ${tds_folder}/ipi
     for bead in $(eval echo "{1..$nbeads}"); do
-        mkdir ${tds_folder}/cp2k/bead-${bead}
+        mkdir -p ${tds_folder}/cp2k/bead-${bead}
     done
 
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_stride_placeholder|${md_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_stride_placeholder|${md_trajectory_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subconfiguration_placeholder|${bead_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tds_folder}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
         sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
     fi
@@ -240,12 +242,12 @@ if [ "${tdcycle_type}" == "hq" ]; then
             # Copying the CP2K input files
             # Copying the main files
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
             else
-                echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
 
@@ -257,6 +259,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -267,12 +270,12 @@ if [ "${tdcycle_type}" == "hq" ]; then
             # Copying the CP2K input files
             # Copying the main files
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
             else
-                echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.ipi.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
 
@@ -284,6 +287,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
             sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -295,7 +299,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
         inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
-        mkdir ${tds_folder}/iqi
+        mkdir -p ${tds_folder}/iqi
         cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
         cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
         sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
@@ -356,7 +360,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
 
     # Checking if the MD folder already exists
     if [[ "${md_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}" ]; then
+        if [ -d "${tds_folder}/ipi" ]; then
 
             # Printing some information
             echo " * The folder ${tds_folder} already exists. Checking its contents..."
@@ -382,7 +386,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
                 run_new=$((run_old + 1))
 
-                # Todo: (Maybe) Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
+                # Todo: (Possibly) Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
 
                 # Editing the ipi input file
                 sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
@@ -406,17 +410,17 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder} seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
                 cd ..
-                rm -r ${tds_folder}
+                rm -r ${tds_folder}/ipi
+                rm -r ${tds_folder}/cp2k || true
             fi
         fi
     fi
 
-    # Creating directies
-    mkdir ${tds_folder}
-    mkdir ${tds_folder}/cp2k
-    mkdir ${tds_folder}/ipi
+    # Creating directories
+    mkdir -p ${tds_folder}/cp2k
+    mkdir -p ${tds_folder}/ipi
     for bead in $(eval echo "{1..$nbeads}"); do
         mkdir ${tds_folder}/cp2k/bead-${bead}
     done
@@ -424,11 +428,12 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_stride_placeholder|${md_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_stride_placeholder|${md_trajectory_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subconfiguration_placeholder|${lambda_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tds_folder}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
         sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
     fi
@@ -440,22 +445,22 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         # Copying the main files
         if [ "${lambda_current}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_0 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_0 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
             else
-                echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         elif [ "${lambda_current}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.k_1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.k_1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
             else
-                echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.ipi.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         else
@@ -479,6 +484,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the input files of i-QI
@@ -489,7 +495,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
-        mkdir ${tds_folder}/iqi
+        mkdir -p ${tds_folder}/iqi
         cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
         cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
         sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml

@@ -135,7 +135,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system1
 
     # Preparing the remaining QMMM files for CP2K
-    hqh_gen_prepare_cp2k_qmmm.py "system1"
+    hqh_gen_prepare_cp2k_qmmm.py "system1" "system1.psf" "system1.prm" "system1.pdbx"
 fi
 
 # Preparation of the ipi files

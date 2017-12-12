@@ -78,9 +78,9 @@ fi
 # Variables
 system1_basename="${1}"
 system2_basename="${2}"
-subsystem=${3}
-tds_range=${4}
-msp_name=${system1_basename}_${system2_basename}
+subsystem="${3}"
+tds_range="${4}"
+msp_name="${system1_basename}_${system2_basename}"
 inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -192,8 +192,8 @@ else
         cp $file cp2k.in.${file/*\/}
     done
 
-    # Preparing the shared CP2K input files
-    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${md_type} ${md_programs}
+    # Preparing the shared input files (independent of simulation type)
+    hqh_fes_prepare_one_fes_common.sh
 fi
 
 # Preparing the MD simulation folder for each TDS

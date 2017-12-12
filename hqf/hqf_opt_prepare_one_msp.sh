@@ -240,7 +240,7 @@ else
     done
 
     # Preparing the shared input files
-    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system_1_basename} ${system_2_basename} ${subsystem} ${opt_type} ${opt_programs}
+    hqh_fes_prepare_one_fes_common.sh
 fi
 
 # Preparing the optimization folder for each TDS

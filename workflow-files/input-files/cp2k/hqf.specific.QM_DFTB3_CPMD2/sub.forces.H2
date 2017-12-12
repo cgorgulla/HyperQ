@@ -74,9 +74,9 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME ${subsystem_folder}/system2.pdb
+      COORD_FILE_NAME ${potential_folder}/system2.pdb
       CONN_FILE_FORMAT upsf
-      CONN_FILE_NAME ${subsystem_folder}/system2.cp2k.psf
+      CONN_FILE_NAME ${potential_folder}/system2.cp2k.psf
     &END TOPOLOGY
     @include ${subsystem_folder}/cp2k.in.sub.kind.dftb3.3ob
     @include ${subsystem_folder}/cp2k.in.sub.kind.element.c36

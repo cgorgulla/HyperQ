@@ -81,6 +81,9 @@ inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsyst
 inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 eq_continue="$(grep -m 1 "^eq_continue="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_total_steps="$(grep -m 1 "^eq_total_steps_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_trajectory_stride="$(grep -m 1 "^eq_trajectory_stride_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_restart_stride="$(grep -m 1 "^eq_restart_stride_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -127,12 +130,12 @@ if [ "${tdcycle_type}" == "hq" ]; then
 
     # Checking if this equilibration should be continued
     if [[ "${eq_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}" ]; then
-            echo " * The folder ${tds_folder} already exists. Checking its contents..."
+        if [ -d "${tds_folder}/cp2k" ]; then
+            echo " * The folder ${tds_folder}/cp2k already exists. Checking its contents..."
             cd ${tds_folder}
             if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
 
-                echo -e " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run...\n"
+                echo -e " * The folder ${tds_folder}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
 
                 # Editing the cp2k major input file
                 sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
@@ -157,14 +160,14 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder} seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tds_folder}/cp2k seems to not contain files from a previous run. Preparing it newly..."
                 cd ..
-                rm -r ${tds_folder}
+                rm -r ${tds_folder}/cp2k
             fi
         fi
     elif [[ "${eq_continue^^}" == "FALSE" ]]; then
-        if [ -d "${tds_folder}" ]; then
-            rm -r "${tds_folder}"
+        if [ -d "${tds_folder}/cp2k" ]; then
+            rm -r "${tds_folder}/cp2k"
         fi
     else
         echo -e "Error: The variable eq_continue has an unsupported value (${tds_folder}). Exiting..."
@@ -183,22 +186,22 @@ if [ "${tdcycle_type}" == "hq" ]; then
         # Copying the CP2K input files
         if [ "${lambda_current}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_0 tds.${bead_configuration}/cp2k/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_0 tds.${bead_configuration}/cp2k/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys1 tds.${bead_configuration}/cp2k/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys1 tds.${bead_configuration}/cp2k/cp2k.in.main
             else
-                echo "Error: The input file main.eq.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.eq.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         elif [ "${lambda_current}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_1 tds.${bead_configuration}/cp2k/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_1 tds.${bead_configuration}/cp2k/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys2 tds.${bead_configuration}/cp2k/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys2 tds.${bead_configuration}/cp2k/cp2k.in.main
             else
-                echo "Error: The input file main.eq.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.eq.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         else
@@ -223,6 +226,10 @@ if [ "${tdcycle_type}" == "hq" ]; then
         sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../..|" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_total_steps_placeholder|${eq_total_steps}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_trajectory_stride_placeholder|${eq_trajectory_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_restart_stride_placeholder|${eq_restart_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
     fi
 elif [ "${tdcycle_type}" == "lambda" ]; then
 
@@ -235,12 +242,12 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
 
     # Checking if this equilibration should be continued
     if [[ "${eq_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}" ]; then
-            echo " * The folder ${tds_folder} already exists. Checking its contents..."
+        if [ -d "${tds_folder}/cp2k" ]; then
+            echo " * The folder ${tds_folder}/cp2k already exists. Checking its contents..."
             cd ${tds_folder}
             if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
 
-                echo -e " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run...\n"
+                echo -e " * The folder ${tds_folder}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
 
                 # Editing the cp2k major input file
                 sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
@@ -265,17 +272,17 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder} seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tds_folder}/cp2k seems to not contain files from a previous run. Preparing it newly..."
                 cd ..
-                rm -r ${tds_folder}
+                rm -r ${tds_folder}/cp2k
             fi
         fi
     elif [[ "${eq_continue^^}" == "FALSE" ]]; then
-        if [ -d "${tds_folder}" ]; then
-            rm -r "${tds_folder}"
+        if [ -d "${tds_folder}/cp2k" ]; then
+            rm -r "${tds_folder}/cp2k"
         fi
     else
-        echo -e "Error: The variable opt_continue has an unsupported value (${tds_folder}). Exiting..."
+        echo -e "Error: The variable eq_continue has an unsupported value (${tds_folder}). Exiting..."
         exit 1
     fi
 
@@ -292,22 +299,22 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         # Copying the main files
         if [ "${lambda_current}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_0 tds.${lambda_configuration}/cp2k/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_0 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_0 tds.${lambda_configuration}/cp2k/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys1 tds.${lambda_configuration}/cp2k/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys1 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys1 tds.${lambda_configuration}/cp2k/cp2k.in.main
             else
-                echo "Error: The input file main.eq.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.eq.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         elif [ "${lambda_current}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
-            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.k_1 tds.${lambda_configuration}/cp2k/cp2k.in.main
-            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.k_1 tds.${lambda_configuration}/cp2k/cp2k.in.main
+            if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_specific}/main.eq.sys2 tds.${lambda_configuration}/cp2k/cp2k.in.main
+            elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys2 ]; then
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_eq_general}/main.eq.sys2 tds.${lambda_configuration}/cp2k/cp2k.in.main
             else
-                echo "Error: The input file main.eq.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                echo "Error: The input file main.eq.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
         else
@@ -332,6 +339,10 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../..|" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_total_steps_placeholder|${eq_total_steps}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_trajectory_stride_placeholder|${eq_trajectory_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|eq_restart_stride_placeholder|${eq_restart_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
     fi
 fi
 

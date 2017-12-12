@@ -36,7 +36,7 @@ if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 3):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 2 parameters. Exiting..."
+        print "Required are 2 input arguments. Exiting..."
         help()
         exit(1)
 

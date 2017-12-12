@@ -1,12 +1,11 @@
 @SET subsystem_folder subsystem_folder_placeholder
-@SET subconfiguration subconfiguration_placeholder
 @SET tds_potential_folder tds_potential_folder_placeholder
+@SET subconfiguration subconfiguration_placeholder
 @SET cell_dimensions_full cell_dimensions_full_placeholder
 @SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder
 @SET cell_dimensions_scaled_rounded cell_dimensions_scaled_rounded_placeholder
 @SET cell_dimensions_odd_rounded cell_dimensions_odd_rounded_placeholder
 @SET cell_dimensions_scaled_odd_rounded cell_dimensions_scaled_odd_rounded_placeholder
-@SET lambda_value lambda_value_placeholder
 @SET opt_max_steps opt_max_steps_placeholder
 @SET opt_trajectory_stride opt_trajectory_stride_placeholder
 @SET opt_restart_stride opt_restart_stride_placeholder
@@ -48,7 +47,7 @@
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS
-  FORCE_EVAL_ORDER 2 3 4 5 6 7
+  FORCE_EVAL_ORDER 2 3 4
   MULTIPLE_SUBSYS true
 &END
 
@@ -64,16 +63,16 @@
       # d: H1d_f   : Hamiltonian of system 1 dummies full
       # e: H2      : Hamiltonian of system 2
       # f: H2d_p   : Hamiltonian of system 2 dummies partial
-      VARIABLES a b c d e f
-      MIXING_FUNCTION ((a+b)+c)+(d+(e+f))
+      VARIABLES d e f
+      MIXING_FUNCTION d+(e+f)
     &END GENERIC
-    @include ${subsystem_folder}/cp2k.in.mapping.m112122toJoint
+    @include ${subsystem_folder}/cp2k.in.mapping.m122toJoint
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME ${subsystem_folder}/system.a1c1.pdb
+      COORD_FILE_NAME ${subsystem_folder}/system.a2c2.pdb
     &END TOPOLOGY
     &CELL
       ABC ${cell_dimensions_full}
@@ -81,12 +80,7 @@
   &END SUBSYS
 &END FORCE_EVAL
 
-@SET potential_folder ${tds_potential_folder}
-@include ${subsystem_folder}/cp2k.in.sub.forces.H1
-@include ${subsystem_folder}/cp2k.in.sub.forces.H1d
-
 @SET potential_folder ${subsystem_folder}
-@include ${subsystem_folder}/cp2k.in.sub.forces.H2d
 @include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
 @SET potential_folder ${tds_potential_folder}

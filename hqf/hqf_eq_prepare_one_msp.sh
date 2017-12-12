@@ -235,7 +235,7 @@ else
     done
 
     # Preparing the shared input files
-    hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system_1_basename} ${system_2_basename} ${subsystem} ${eq_type} ${eq_programs}
+    hqh_fes_prepare_one_fes_common.sh
 fi
 
 # Preparing the equilibration folder for each TDS

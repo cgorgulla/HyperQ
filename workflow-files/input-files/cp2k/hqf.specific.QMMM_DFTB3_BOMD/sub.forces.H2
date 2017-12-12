@@ -45,7 +45,7 @@
   &MM
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      PARM_FILE_NAME ${subsystem_folder}/system2.prm
+      PARM_FILE_NAME ${potential_folder}/system2.prm
       PARMTYPE chm
       &SPLINE
         EMAX_SPLINE 100000
@@ -70,9 +70,9 @@
     &END CELL
     &TOPOLOGY
       COORDINATE pdb
-      COORD_FILE_NAME ${subsystem_folder}/system2.pdb
+      COORD_FILE_NAME ${potential_folder}/system2.pdb
       CONN_FILE_FORMAT upsf
-      CONN_FILE_NAME ${subsystem_folder}/system2.cp2k.psf
+      CONN_FILE_NAME ${potential_folder}/system2.cp2k.psf
     &END TOPOLOGY
     @include ${subsystem_folder}/cp2k.in.sub.kind.dftb3.3ob
     @include ${subsystem_folder}/cp2k.in.sub.kind.element.c36
@@ -86,12 +86,12 @@
     CENTER never
     CENTER_GRID false
     USE_GEEP_LIB 12               
-    @include ${subsystem_folder}/cp2k.in.qm_kinds.system2
-    @include ${subsystem_folder}/cp2k.in.qmmm.link.system2
+    @include ${potential_folder}/cp2k.in.qm_kinds.system2
+    @include ${potential_folder}/cp2k.in.qmmm.link.system2
     NOCOMPATIBILITY
     &FORCEFIELD
       &NONBONDED14
-        @include ${subsystem_folder}/cp2k.in.qmmm.lj.system2
+        @include ${potential_folder}/cp2k.in.qmmm.lj.system2
       &END NONBONDED14
     &END FORCEFIELD
   &END QMMM

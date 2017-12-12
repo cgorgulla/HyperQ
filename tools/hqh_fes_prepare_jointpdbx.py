@@ -3,10 +3,10 @@ import sys
 from hyperq.molecular_systems import *                        
 
 def help():
-    print "\nUsage: hqh_md_prepare_jointpdbx.py <system1 pdb filename> <system2 pdb filename> <mcs mapping filename>"
+    print "\nUsage: hqh_fes_prepare_jointpdbx.py <system1 pdb filename> <system2 pdb filename> <mcs mapping filename>"
     print 
     print "Index of the atoms in the mcs-mapping-file starts at 1 (based on the ligand only files)"
-    print "The atom indicess which are mapped are the ones of the entire system."
+    print "The atom indices which are mapped are the ones of the entire system."
     print "Can contain the following chains/molecules in the given order:"
     print "Chain R (receptor)"
     print "Chain L (ligand)"
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # Checking the number of arguments
     if (len(sys.argv) != 4):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 3 parameters. Exiting..."
+        print "Required are 3 input arguments. Exiting..."
         help()
         exit(1)
 

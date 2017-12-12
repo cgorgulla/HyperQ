@@ -61,12 +61,12 @@ class SingleSystem:
                 if len(lineSplit) > 1 and lineSplit[0] in ["ATOM", "HETATM"]:
                     self.atomIndexToName[int(line[6:11].strip())] = line[12:16]
 
-# For
-class MolecularSystem2:
-    def __init__(self, systemName):
+
+class MolecularSystemQMMM:
+    def __init__(self, systemName, psfFilename, pdbxFilename):
 
         self.systemName = systemName
-        self.atomIndeces = set()
+        self.atomIndices = set()
         self.atomIndexToName = {}
         self.atomIndexToPSFType = {} # But it will contain also as keys the atom indices
         self.atomIndexToMQType = {}             # Q or M
@@ -75,7 +75,7 @@ class MolecularSystem2:
         self.atomNameToType = {}
 
         # All atom indices, names, types
-        with open(systemName + ".vmd.psf", "r") as psf_file:
+        with open(psfFilename, "r") as psf_file:
             currentSection = "not atoms"
             for line in psf_file:
                 lineSplit = line.split()
@@ -88,11 +88,11 @@ class MolecularSystem2:
                     elif currentSection == "atoms" and ("END" in line or "!" in line):
                         currentSection = "not atoms"
                     elif currentSection == "atoms":
-                        self.atomIndeces.add(int(lineSplit[0]))
+                        self.atomIndices.add(int(lineSplit[0]))
                         self.atomIndexToName[int(lineSplit[0])] = lineSplit[4]
                         self.atomIndexToPSFType[int(lineSplit[0])] = lineSplit[5]
 
-        with open(systemName + ".pdbx", "r") as pdbx_file:
+        with open(pdbxFilename, "r") as pdbx_file:
             index = 0
             for line in pdbx_file:
                 lineSplit = line.split()
@@ -106,7 +106,7 @@ class MolecularSystem2:
                         raise Exception("Wrong or missing element type in pdbx file. Exiting")
 
                         # All bonds
-        with open(systemName + ".vmd.psf", "r") as psf_file:
+        with open(psfFilename, "r") as psf_file:
             currentSection = "not bonds"
             for line in psf_file:
                 lineSplit = line.split()
@@ -127,18 +127,17 @@ class MolecularSystem2:
         self.atomTypes = set(self.atomIndexToPSFType.values())
 
 
-    def prepare_cp2k_qmmm(molecularSystem2, parameterFileBasename):
+    def prepare_cp2k_qmmm(self, parameterFilename):
 
         # Preparing the link atom input file for CP2K
-        with open("cp2k.in.qmmm.link." + molecularSystem2.systemName, "w") as cp2kLinkFile:
-            for bond in molecularSystem2.bonds:
-                if molecularSystem2.atomIndexToMQType[bond[0]] == "Q" and molecularSystem2.atomIndexToMQType[bond[1]] == "M":
+        with open("cp2k.in.qmmm.link." + self.systemName, "w") as cp2kLinkFile:
+            for bond in self.bonds:
+                if self.atomIndexToMQType[bond[0]] == "Q" and self.atomIndexToMQType[bond[1]] == "M":
                     atomIndexQM = bond[0]
                     atomIndexMM = bond[1]
                     cp2kLinkFile.write(
-                        "&LINK\n  ALPHA 1.50\n  LINK_TYPE IMOMM\n  MM_INDEX %s\n  QM_INDEX %s\n&END LINK\n" % (
-                        atomIndexMM, atomIndexQM))
-                elif molecularSystem2.atomIndexToMQType[bond[0]] == "M" and molecularSystem2.atomIndexToMQType[bond[1]] == "Q":
+                        "&LINK\n  ALPHA 1.50\n  LINK_TYPE IMOMM\n  MM_INDEX %s\n  QM_INDEX %s\n&END LINK\n" % (atomIndexMM, atomIndexQM))
+                elif self.atomIndexToMQType[bond[0]] == "M" and self.atomIndexToMQType[bond[1]] == "Q":
                     atomIndexMM = bond[0]
                     atomIndexQM = bond[1]
                     cp2kLinkFile.write(
@@ -146,10 +145,9 @@ class MolecularSystem2:
                         atomIndexMM, atomIndexQM))
 
         # Preparing LJ input for CP2K
-        LJParameters = FF_LJ_paras(parameterFileBasename)
-        # The file parameterFileBasename.prm needs to be present
-        with open("cp2k.in.qmmm.lj." + molecularSystem2.systemName, "w") as cp2kLJFile:
-            for atom_pair in itertools.combinations_with_replacement(molecularSystem2.atomTypes, 2):
+        LJParameters = FF_LJ_paras(parameterFilename)
+        with open("cp2k.in.qmmm.lj." + self.systemName, "w") as cp2kLJFile:
+            for atom_pair in itertools.combinations_with_replacement(self.atomTypes, 2):
                 epsilon = math.sqrt(LJParameters.epsilon[atom_pair[0]] * LJParameters.epsilon[atom_pair[1]])
                 sigma = ( LJParameters.sigma[atom_pair[0]] + LJParameters.sigma[atom_pair[1]] ) * 1                 # scaling factor set to 1
                 cp2kLJFile.write("""&LENNARD-JONES\n  ATOMS %s %s\n  EPSILON [kcalmol] %f\n  SIGMA [angstrom] %f\n  RCUT [angstrom] %f\n&END LENNARD-JONES\n"""
@@ -197,15 +195,11 @@ class JointSystem:
             self.mappingJointSystemToSystem2[self.system1.atomCount["receptor"] + self.system1.atomCount["ligand"]+system2.atomCount["dummy"] + counter] = index
 
 
-    def writeCP2Kfile(self):
+    def write_cp2k_mapping_files(self):
 
-        with open("cp2k.in.mapping.single", "w") as cp2kFile:
+        with open("cp2k.in.mapping.mixed", "w") as cp2kFile:
 
-            # Beginning of the mapping section 
-            cp2kFile.write("&MAPPING\n")
-
-            # Beginng of the mixed force eval
-            cp2kFile.write("  &FORCE_EVAL_MIXED\n")
+            # Beginning of the mixed force eval
             fragmentCounter = 1
             # Fragment for the receptor
             if self.system1.atomCount["receptor"] != 0:
@@ -231,11 +225,10 @@ class JointSystem:
                 cp2kFile.write("      " + atomIndex1 + " " + atomIndex2 + "\n")
                 cp2kFile.write("    &END FRAGMENT\n")
                 fragmentCounter += 1
-            # End of this force eval
-            cp2kFile.write("  &END FORCE_EVAL_MIXED\n")
 
-            # First Force Eval (first system)
-            cp2kFile.write("  &FORCE_EVAL 1\n")
+
+        # First Force Eval (first system)
+        with open("cp2k.in.mapping.1toJoint", "w") as cp2kFile:
             fragmentCounter = 1
             # Fragment for the receptor
             if self.system1.atomCount["receptor"] != 0:
@@ -263,10 +256,9 @@ class JointSystem:
                 cp2kFile.write("    &END FRAGMENT\n")
                 fragmentCounter += 1
             # End of this force eval
-            cp2kFile.write("  &END FORCE_EVAL\n")
 
-            # Second Force Eval (second system)
-            cp2kFile.write("  &FORCE_EVAL 2\n")
+        # Second Force Eval (first system)
+        with open("cp2k.in.mapping.2toJoint", "w") as cp2kFile:
             fragmentCounter = 1
             # Fragment for the receptor
             if self.system2.atomCount["receptor"] != 0:
@@ -307,16 +299,12 @@ class JointSystem:
                 #                cp2kFile.write("      MAP " + str(1 + system1.atomCount["ligand"] + system2.atomCount["dummy"] + 1) + "\n")
                 cp2kFile.write("    &END FRAGMENT\n")
                 fragmentCounter += 1
-            # End of this force eval
-            cp2kFile.write("  &END FORCE_EVAL\n")
 
-            # End of this section
-            cp2kFile.write("&END MAPPING\n")
 
 
     def writeSystemPDB(self):
 
-        # k_0 state
+        # Initial state (system 1)
         with open("system.a1c1.pdb", "w") as systemPDBfile:  # a for atom types, c for coordinates
             # Adding the receptor and the first ligand of the first system
             with open(self.system1.PDBfilename, "r") as system1PDBfile:

@@ -64,7 +64,7 @@ prepare_restart() {
     
     # Variables
     tds_folder_coordinate_source=${1}
-    tds_folder_potential_source=${2}
+    tds_folder_potential_source=${2}    # not used currently
     restart_file=${3}
     crosseval_folder=${4}
     restart_ID=${5}
@@ -141,22 +141,22 @@ prepare_restart() {
             # Copying the main files
             if [ "${lambda_currenteval_local}" == "0.000" ]; then
                 # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
                 else
-                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                     exit 1
                 fi
             elif [ "${lambda_currenteval_local}" == "1.000" ]; then
                 # Checking the specific folder at first to give it priority over the general folder
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys2 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys2 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys2 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys2 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
                 else
-                    echo "Error: The input file main.ipi.k_1 could not be found in neither of the two CP2K input folders. Exiting..."
+                    echo "Error: The input file main.ipi.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                     exit 1
                 fi
             else
@@ -180,21 +180,21 @@ prepare_restart() {
             # Copying the CP2K input files according to the bead type
             # Copying the main files
             if [ ${bead} -le "${bead_count1_local}" ]; then
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_0 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys1 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
                 else
-                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                     exit 1
                 fi
             else
-                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
-                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ]; then
-                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.k_1 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys2 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_specific}/main.ipi.sys2 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
+                elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys2 ]; then
+                    cp ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/main.ipi.sys2 ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.main
                 else
-                    echo "Error: The input file main.ipi.k_0 could not be found in neither of the two CP2K input folders. Exiting..."
+                    echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                     exit 1
                 fi
             fi
@@ -210,6 +210,7 @@ prepare_restart() {
         sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../../../..|" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../../../../tds.${subconfiguration_local}/general|g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
@@ -303,7 +304,7 @@ if [ -f "TD_windows.list" ]; then
 fi
 
 # Preparing the shared CP2K input files
-hqh_fes_prepare_one_fes_common.sh ${nbeads} ${tdw_count} ${system1_basename} ${system2_basename} ${subsystem} ${ce_type} ${md_programs}
+hqh_fes_prepare_one_fes_common.sh
 
 # Copying the CP2K sub input files
 for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_ce_general}/ -type f -name "sub*"); do

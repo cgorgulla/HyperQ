@@ -1,4 +1,5 @@
 @SET subsystem_folder subsystem_folder_placeholder
+@SET tds_potential_folder tds_potential_folder_placeholder
 @SET subconfiguration subconfiguration_placeholder
 @SET cell_dimensions_full cell_dimensions_full_placeholder
 @SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder
@@ -8,42 +9,19 @@
 
 &GLOBAL
   PROJECT cp2k.out
-  RUN_TYPE geo_opt
+  RUN_TYPE driver
   PRINT_LEVEL medium
 &END global
 
-!&EXT_RESTART
-!  EXTERNAL_FILE cp2k.out.restart.bak-1
-!&END EXT_RESTART
-
 &MOTION
-  &GEO_OPT
-    MAX_ITER 500
-    OPTIMIZER lbfgs
-  &END GEO_OPT
-  &PRINT
-    &TRAJECTORY on
-      FORMAT pdb
-      FILENAME =cp2k.out.trajectory.pdb
-      &EACH
-        GEO_OPT 1
-      &END EACH
-    &END TRAJECTORY
-    &RESTART
-      ADD_LAST symbolic
-      BACKUP_COPIES 1
-      FILENAME =cp2k.out.restart
-      &EACH
-        GEO_OPT 1
-      &END EACH
-    &END RESTART
-    &RESTART_HISTORY off
-    &END RESTART_HISTORY
-  &END PRINT
+  &DRIVER
+    UNIX
+    HOST address_cp2k_placeholder
+  &END DRIVER
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS
-  FORCE_EVAL_ORDER 2 3
+  FORCE_EVAL_ORDER 2 3 4
   MULTIPLE_SUBSYS true
 &END
 
@@ -53,20 +31,22 @@
   &MIXED
     MIXING_TYPE genmix
     &GENERIC
-      # a: H1   : Hamiltonian of system 1
-      # b: H2d  : Hamiltonian of system 2 dummies
-      # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamiltonian of system 2
-      VARIABLES c d
-      MIXING_FUNCTION c+d
-    &END
-    @include ${subsystem_folder}/cp2k.in.mapping.single
+      # a: H1      : Hamiltonian of system 1
+      # b: H1d_p   : Hamiltonian of system 1 dummies partial
+      # c: H2d_f   : Hamiltonian of system 2 dummies full
+      # d: H1d_f   : Hamiltonian of system 1 dummies full
+      # e: H2      : Hamiltonian of system 2
+      # f: H2d_p   : Hamiltonian of system 2 dummies partial
+      VARIABLES d e f
+      MIXING_FUNCTION d+(e+f)
+    &END GENERIC
+    @include ${subsystem_folder}/cp2k.in.mapping.m122toJoint
   &END
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME ${subsystem_folder}/system.a2c2.pdb
+      COORD_FILE_NAME ${subsystem_folder}/system.${subconfiguration}.initial.pdb
     &END TOPOLOGY
     &CELL
       ABC ${cell_dimensions_full}
@@ -74,6 +54,10 @@
   &END SUBSYS
 &END FORCE_EVAL
 
+@SET potential_folder ${subsystem_folder}
 @include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
+@SET potential_folder ${tds_potential_folder}
 @include ${subsystem_folder}/cp2k.in.sub.forces.H2
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2d
+

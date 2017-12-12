@@ -1,15 +1,18 @@
 @SET subsystem_folder subsystem_folder_placeholder
+@SET tds_potential_folder tds_potential_folder_placeholder
 @SET subconfiguration subconfiguration_placeholder
 @SET cell_dimensions_full cell_dimensions_full_placeholder
 @SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder
 @SET cell_dimensions_scaled_rounded cell_dimensions_scaled_rounded_placeholder
 @SET cell_dimensions_odd_rounded cell_dimensions_odd_rounded_placeholder
 @SET cell_dimensions_scaled_odd_rounded cell_dimensions_scaled_odd_rounded_placeholder
-@SET temperature temperature_placeholder
+@SET opt_max_steps opt_max_steps_placeholder
+@SET opt_trajectory_stride opt_trajectory_stride_placeholder
+@SET opt_restart_stride opt_restart_stride_placeholder
 
 &GLOBAL
   PROJECT cp2k.out
-  RUN_TYPE md
+  RUN_TYPE geo_opt
   PRINT_LEVEL medium
 &END global
 
@@ -18,30 +21,16 @@
 !&END EXT_RESTART
 
 &MOTION
-  &MD
-    ENSEMBLE NPT_I
-    STEPS 100000
-    !HQ_STEPS_TOTAL 100000             ! should be equal to the value of STEPS. HyperQ uses this value to adjust the STEPS when preparing restart files
-    TIMESTEP [fs] 1.0
-    TEMPERATURE [K] ${temperature}
-    &BAROSTAT
-      PRESSURE [bar] 1.0
-      TIMECON [fs] 200.0
-    &END BAROSTAT
-    &THERMOSTAT
-      TYPE NOSE
-      REGION molecule
-      &NOSE
-        TIMECON [fs] 200.0
-      &END
-    &END
-  &END MD
+  &GEO_OPT
+    MAX_ITER ${opt_max_steps}
+    OPTIMIZER lbfgs
+  &END GEO_OPT
   &PRINT
     &TRAJECTORY on
       FORMAT pdb
       FILENAME =cp2k.out.trajectory.pdb
       &EACH
-        MD 1000
+        GEO_OPT ${opt_trajectory_stride}
       &END EACH
     &END TRAJECTORY
     &RESTART
@@ -49,7 +38,7 @@
       BACKUP_COPIES 1
       FILENAME =cp2k.out.restart
       &EACH
-        MD 1000
+        GEO_OPT ${opt_restart_stride}
       &END EACH
     &END RESTART
     &RESTART_HISTORY off
@@ -58,7 +47,7 @@
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS
-  FORCE_EVAL_ORDER 2 3
+  FORCE_EVAL_ORDER 2 3 4
   MULTIPLE_SUBSYS true
 &END
 
@@ -68,20 +57,22 @@
   &MIXED
     MIXING_TYPE genmix
     &GENERIC
-      # a: H1   : Hamiltonian of system 1
-      # b: H2d  : Hamiltonian of system 2 dummies
-      # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamiltonian of system 2
-      VARIABLES c d
-      MIXING_FUNCTION c+d
-    &END
-    @include ${subsystem_folder}/cp2k.in.mapping.single
-  &END
+      # a: H1      : Hamiltonian of system 1
+      # b: H1d_p   : Hamiltonian of system 1 dummies partial
+      # c: H2d_f   : Hamiltonian of system 2 dummies full
+      # d: H1d_f   : Hamiltonian of system 1 dummies full
+      # e: H2      : Hamiltonian of system 2
+      # f: H2d_p   : Hamiltonian of system 2 dummies partial
+      VARIABLES a b c
+      MIXING_FUNCTION (a+b)+c
+    &END GENERIC
+    @include ${subsystem_folder}/cp2k.in.mapping.m112toJoint
+  &END MIXED
   &SUBSYS
     &TOPOLOGY
       CONNECTIVITY off
       COORDINATE pdb
-      COORD_FILE_NAME ${subsystem_folder}/system.${subconfiguration}.opt.pdb
+      COORD_FILE_NAME ${subsystem_folder}/system.a1c1.pdb
     &END TOPOLOGY
     &CELL
       ABC ${cell_dimensions_full}
@@ -89,6 +80,9 @@
   &END SUBSYS
 &END FORCE_EVAL
 
+@SET potential_folder ${tds_potential_folder}
+@include ${subsystem_folder}/cp2k.in.sub.forces.H1
 @include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
-@include ${subsystem_folder}/cp2k.in.sub.forces.H2
+@SET potential_folder ${subsystem_folder}
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2d

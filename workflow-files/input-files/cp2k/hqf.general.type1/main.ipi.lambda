@@ -21,7 +21,7 @@
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS
-  FORCE_EVAL_ORDER 2 3 4 5
+  FORCE_EVAL_ORDER 2 3 4 5 6 7
   MULTIPLE_SUBSYS true
 &END
 
@@ -31,14 +31,16 @@
   &MIXED
     MIXING_TYPE genmix
     &GENERIC
-      # a: H1   : Hamiltonian of system 1
-      # b: H2d  : Hamiltonian of system 2 dummies
-      # c: H1d  : Hamiltonian of system 1 dummies
-      # d: H2   : Hamiltonian of system 2
-      VARIABLES a b c d
-      MIXING_FUNCTION (1-${lambda_value})*(a+b)+${lambda_value}*(c+d)
-    &END
-    @include ${subsystem_folder}/cp2k.in.mapping.double
+      # a: H1      : Hamiltonian of system 1
+      # b: H1d_p   : Hamiltonian of system 1 dummies partial
+      # c: H2d_f   : Hamiltonian of system 2 dummies full
+      # d: H1d_f   : Hamiltonian of system 1 dummies full
+      # e: H2      : Hamiltonian of system 2
+      # f: H2d_p   : Hamiltonian of system 2 dummies partial
+      VARIABLES a b c d e f
+      MIXING_FUNCTION ((a+b)+c)+(d+(e+f))
+    &END GENERIC
+    @include ${subsystem_folder}/cp2k.in.mapping.m112122toJoint
   &END
   &SUBSYS
     &TOPOLOGY
@@ -52,10 +54,15 @@
   &END SUBSYS
 &END FORCE_EVAL
 
+
+@SET potential_folder ${tds_potential_folder}
 @include ${subsystem_folder}/cp2k.in.sub.forces.H1
-
-@include ${subsystem_folder}/cp2k.in.sub.forces.H2d
-
 @include ${subsystem_folder}/cp2k.in.sub.forces.H1d
 
+@SET potential_folder ${subsystem_folder}
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2d
+@include ${subsystem_folder}/cp2k.in.sub.forces.H1d
+
+@SET potential_folder ${tds_potential_folder}
 @include ${subsystem_folder}/cp2k.in.sub.forces.H2
+@include ${subsystem_folder}/cp2k.in.sub.forces.H2d

@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hqh_fes_prepare_one_fes_common.sh <nbeads> <tdw_count> <system 1 basename> <system 2 basename> <subsystem type> <simulation type> <simulation programs>
-
-<tdw_count> is the number of TD windows (minimal value is 1).
-
-<subsystem>: Possible values: L, LS, RLS
-
-The <simulation type> Possible values: MM, QMMM
+usage="Usage: hqh_fes_prepare_one_fes_common.sh
 
 Has to be run in the subsystem folder of the MSP."
 
@@ -19,11 +13,11 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "7" ]; then
+if [ "$#" -ne "0" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
     echo "Reason: The wrong number of arguments was provided when calling the script."
-    echo "Number of expected arguments: 7"
+    echo "Number of expected arguments: 0"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
     echo
@@ -72,28 +66,90 @@ if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 fi
 
 # Variables
-nbeads="${1}"
-tdw_count="${2}"
+subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
+msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
+runtype="$(pwd | awk -F '/' '{print $(NF-2)}')"
+sim_type="$(grep -m 1 "^${runtype}_type_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
-system_1_basename="${3}"
-system_2_basename="${4}"
-subsystem=${5}
-msp_name=${system_1_basename}_${system_2_basename}
-sim_type=${6}
-sim_programs=${7}
+system_1_basename="${msp_name/_*}"
+system_2_basename="${msp_name/*_}"
 
 # Copying the kind files
 cp ../../../input-files/cp2k/cp2k.in.sub.* ./ || true    # Parallel robustness
 
 # Preparing the mapping files
 echo -e " * Preparing the cp2k mapping files"
-hqh_fes_prepare_jointsystem.py system1.pdb system2.pdb system.mcs.mapping
-grep -v "&END MAPPING" cp2k.in.mapping.single > cp2k.in.mapping.double
-grep  -A 100000 "FORCE_EVAL 1" cp2k.in.mapping.single | sed "s/FORCE_EVAL 1/FORCE_EVAL 3/g" | sed "s/FORCE_EVAL 2/FORCE_EVAL 4/g" >> cp2k.in.mapping.double
 
-# Preparing the files for the dummy atoms
+## Preparing the elementary mapping files
+hqh_fes_prepare_jointsystem.py system1.pdb system2.pdb system.mcs.mapping
+
+## Assembling the full mapping files
+### Assembling the mapping file cp2k.in.mapping.m112toJoint
+echo "&MAPPING" > cp2k.in.mapping.m112toJoint
+echo "  &FORCE_EVAL_MIXED" >> cp2k.in.mapping.m112toJoint
+cat cp2k.in.mapping.mixed >> cp2k.in.mapping.m112toJoint
+echo "  &END FORCE_EVAL_MIXED" >> cp2k.in.mapping.m112toJoint
+echo "  &FORCE_EVAL 1" >> cp2k.in.mapping.m112toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m112toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112toJoint
+echo "  &FORCE_EVAL 2" >> cp2k.in.mapping.m112toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m112toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112toJoint
+echo "  &FORCE_EVAL 3" >> cp2k.in.mapping.m112toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m112toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112toJoint
+echo "&END MAPPING" >> cp2k.in.mapping.m112toJoint
+
+## Assembling the full mapping files
+### Assembling the mapping file cp2k.in.mapping.m122toJoint
+echo "&MAPPING" > cp2k.in.mapping.m122toJoint
+echo "  &FORCE_EVAL_MIXED" >> cp2k.in.mapping.m122toJoint
+cat cp2k.in.mapping.mixed >> cp2k.in.mapping.m122toJoint
+echo "  &END FORCE_EVAL_MIXED" >> cp2k.in.mapping.m122toJoint
+echo "  &FORCE_EVAL 1" >> cp2k.in.mapping.m122toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m122toJoint
+echo "  &FORCE_EVAL 2" >> cp2k.in.mapping.m122toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m122toJoint
+echo "  &FORCE_EVAL 3" >> cp2k.in.mapping.m122toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m122toJoint
+echo "&END MAPPING" >> cp2k.in.mapping.m122toJoint
+
+## Assembling the full mapping files
+### Assembling the mapping file cp2k.in.mapping.m112122toJoint
+echo "&MAPPING" > cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL_MIXED" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.mixed >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL_MIXED" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 1" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 2" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 3" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 4" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.1toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 5" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "  &FORCE_EVAL 6" >> cp2k.in.mapping.m112122toJoint
+cat cp2k.in.mapping.2toJoint >> cp2k.in.mapping.m112122toJoint
+echo "  &END FORCE_EVAL" >> cp2k.in.mapping.m112122toJoint
+echo "&END MAPPING" >> cp2k.in.mapping.m112122toJoint
+
+
+# Preparing the CP2K dummy atom files
 echo -e " * Preparing the cp2k dummy files"
-hqh_fes_prepare_cp2k_dummies.py system1 system2
+hqh_fes_prepare_cp2k_dummies.py system1 system1.vmd.psf system1.prm system1.dummy.indices
+hqh_fes_prepare_cp2k_dummies.py system2 system2.vmd.psf system2.prm system2.dummy.indices
 # Preparing the cp2k psf file for system 1
 echo -e " * Preparing the cp2k psf file for system 1"
 hqh_fes_prepare_cp2k_psf.py system1.vmd.psf system1.cp2k.psf
@@ -160,11 +216,14 @@ hqh_gen_prepare_cp2k_qm_kind.sh system2.nonsolvent.qatoms.elements.* system2.sol
 mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system2 || true    # Parallel robustness
 
 # Preparing the QMMM files for CP2K
-hqh_gen_prepare_cp2k_qmmm.py "system1"
-hqh_gen_prepare_cp2k_qmmm.py "system2"
+hqh_gen_prepare_cp2k_qmmm.py "system1" "system1.vmd.psf" "system1.prm" "system1.pdbx"
+hqh_gen_prepare_cp2k_qmmm.py "system2" "system2.vmd.psf" "system2.prm" "system2.pdbx"
 
-# Preparing the joint pdbx file (not just for iqi)
-hqh_gen_prepare_pdbx.py system1.pdb system2.pdb system.mcs.mapping
+# Preparing the joint pdbx file (not only for iqi)
+hqh_fes_prepare_jointpdbx.py system1.pdb system2.pdb system.mcs.mapping
+
+# Preparing the TDS structure files
+hqh_fes_prepare_tds_structure_files.sh
 
 # Preparing the special atom types (for analysis purposes only)
 hqh_gen_prepare_special_atoms.sh system.a1c1.pdbx system.a1c1
