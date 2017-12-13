@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 
 # Usage information
-usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <first job ID> <last job ID> <increase job serial number> <check for active jobs> <sync with controlfile> <delay time>
+usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <JID ranges> <increase job serial number> <check for active jobs> <sync with controlfile> <delay time>
 
 Starts the job files in batchsystem/job-files/main/jtl-<jtl>.jid-<jid>.<batchsystem>
 The variable <batchsystem> is determined by the corresponding setting in the file input-files/config.txt
 
 Arguments:
     <increase job serial number>: Possible values: true or false
+
+    <JID ranges>: Can either
+            * be set to 'all', which refers to all jobs in the batchsystem/job-files/main folder of the specified JTL
+            * or specify a colon separated list of JID ranges in the form <range 1 first JID>-<range 1 last JID>:<range 2 first JID>-<range 2 last JID>:...
 
     <job-type-letter>: The job-type-letter corresponding to the jobs to be started (a lower case letter)
 
@@ -30,7 +34,7 @@ if [ "${1}" == "-h" ]; then
     echo
     exit 0
 fi
-if [ "$#" -ne "7" ]; then
+if [ "$#" -ne "6" ]; then
 
     # Printing some information
     echo
@@ -108,12 +112,11 @@ fi
 
 # Variables
 jtl=${1}
-first_jid=${2}
-last_jid=${3}
-increase_jsn=${4}
-check_active_jobs=${5}
-sync_job_file=${6}
-delay_time=${7}
+jid_ranges=${2}
+increase_jsn=${3}
+check_active_jobs=${4}
+sync_job_file=${5}
+delay_time=${6}
 batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
 workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 time_nanoseconds="$(date +%Y%m%d%m%S-%N)"
@@ -161,8 +164,32 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
     # Getting the active jobs
     hqh_bs_sqs.sh > ${temp_folder}/jobs-all 2>/dev/null || true
 
-    # Determining which jobs which have to be restarted
-    for jid in $(seq ${first_jid} ${last_jid}); do
+    # Determining which jobs have to be started
+    JIDs_to_start=""
+    # Checking the value type of the jid_ranges variable
+    if jid_ranges="all"; then
+        for jobfile in batchsystem/job-files/main/jtl-${jtl}.*; do
+
+            # Variables
+            jid=${jobfile//[^0-9]}
+            JIDs_to_start="${JIDs_to_start} ${jid}"
+        done
+    else
+        # Loop for each JID range
+        for jid_range in ${jid_ranges/:/ }; do
+
+            # Variables
+            first_jid=${jid_range/-*}
+            last_jid=${jid_range/*-}
+
+            # Loop for each jid in the current JID range
+            for jid in $(seq ${first_jid} ${last_jid}); do
+                JIDs_to_start="${JIDs_to_start} ${jid}"
+            done
+        done
+    fi
+
+    for jid in ${JIDs_to_start}; do
         if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid}\." ${temp_folder}/jobs-all; then
 
             # Printing some information

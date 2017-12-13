@@ -40,7 +40,7 @@ prevent_new_job_submissions=false
 # Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
 # Can be changed during runtime
 
-job_success_actions=submit_new_job
+job_success_actions=exit
 # Possible values: exit, prepare_new_job, submit_new_job
 # Can be unset (i.e. having no values)
 # Multiple values can be specified by using colons: value1:value2:...
