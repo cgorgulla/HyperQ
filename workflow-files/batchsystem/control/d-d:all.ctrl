@@ -40,7 +40,7 @@ prevent_new_job_submissions=false
 # Old jobs will check this setting at the end before submitting new jobs (as specified by other options).
 # Can be changed during runtime
 
-job_success_actions=exit
+job_success_actions=prepare_new_job:submit_new_job
 # Possible values: exit, prepare_new_job, submit_new_job
 # Can be unset (i.e. having no values)
 # Multiple values can be specified by using colons: value1:value2:...
@@ -110,7 +110,7 @@ errors_pipeline_new_job_jtl=same
 ****************************************************************    Job Resource Configuration    ***************************************************************
 *****************************************************************************************************************************************************************
 
-partition=serial_requeue
+partition=shared
 # also called queue
 
 walltime=07-00:00:00
@@ -124,13 +124,13 @@ nodes_per_job=1
 # Not available for LSF and SGE (is always set to 1)
 # It is not recommended to change this value during runtime
 
-cpus_per_subjob=2
+cpus_per_subjob=1
 # SLURM: sets the cpus-per-task variable (task = step)
 # In LSF this corresponds to the number of slots per node
 # Not yet available for SGE (always set to 1)
 # Can be changed during runtime
 
-memory_per_cpu=4G
+memory_per_cpu=2G
 # Used by SLURM, SGE
 # Format for SLURM: <size[units:M/G/T]> (default units are M)
 # Format for SGE: size[K/M/G]
