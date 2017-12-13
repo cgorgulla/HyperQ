@@ -46,7 +46,6 @@ class SingleSystem:
         # Dummy Atoms
         self.indices["dummy"] = self.indices["ligand"] - self.indices["joint"]
         self.atomCount["dummy"] = len(self.indices["dummy"])
-        # Write out dummy indices (for cp2k_dummies.py)
         if createDummyIndexFiles == True:
             with open("system" + str(systemID) + ".dummy.indices", "w") as dummyFile:
                 for atomIndex in self.indices["dummy"]:

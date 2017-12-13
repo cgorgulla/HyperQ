@@ -5,7 +5,7 @@ from hyperq.molecular_systems import *
 def help():
     print "\nUsage: hqh_fes_prepare_jointsystem.py <system1 pdb filename> <system2 pdb filename> <mcs mapping filename>"
     print 
-    print "Index of the atoms in the mcs-mapping-file starts at 1 (based on the ligand only files)"
+    print "Index of the atoms in the (input) mcs-mapping-file starts at 1 (based on the ligand only files)"
     print "The atom indices which are mapped are the ones of the entire system."
     print "Can contain the following chains/molecules in the given order:"
     print "Chain R (receptor)"

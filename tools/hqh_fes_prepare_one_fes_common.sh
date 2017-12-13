@@ -64,7 +64,7 @@ set -o pipefail
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
-
+set -x
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"

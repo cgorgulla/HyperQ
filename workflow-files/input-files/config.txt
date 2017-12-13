@@ -285,9 +285,9 @@ eq_type_RLS=MM
 # Possible values: MM, QM, QMMM
 # Currently obsolete
 
-eq_total_steps_L=2000
-eq_total_steps_LS=2000
-eq_total_steps_RLS=2000
+eq_total_steps_L=20000
+eq_total_steps_LS=20000
+eq_total_steps_RLS=20000
 # Input files for the simulations are adjusted automatically by replacing the term 'eq_total_steps_placeholder'
 
 eq_trajectory_stride_L=10
@@ -336,9 +336,9 @@ md_total_steps_LS=100000000
 md_total_steps_RLS=100000000
 # Input files for the simulations are adjusted automatically by replacing the term 'md_total_steps_placeholder'
 
-md_trajectory_stride_L=1000
-md_trajectory_stride_LS=1000
-md_trajectory_stride_RLS=1000
+md_trajectory_stride_L=100
+md_trajectory_stride_LS=100
+md_trajectory_stride_RLS=100
 # The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
 # Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
 
@@ -375,13 +375,13 @@ ce_first_restart_ID_L=1
 ce_first_restart_ID_LS=1
 ce_first_restart_ID_RLS=1
 
-ce_stride_L=1
-ce_stride_LS=1
-ce_stride_RLS=1
-# The stride which is applied before carrying out the crossevaluation of the snapshots, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
+ce_stride_L=10
+ce_stride_LS=10
+ce_stride_RLS=10
+# The stride which is applied during the CE, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
-ce_timeout_L=30
+ce_timeout_L=100
 ce_timeout_LS=100
 ce_timeout_RLS=100
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
@@ -400,8 +400,8 @@ fec_stride_RLS=1
 # The snapshot folder in the cross evaluation folders are indexed starting by 1
 
 C_absolute_tolerance=0.1
-delta_F_min=-500
-delta_F_max=500
+delta_F_min=-1000
+delta_F_max=1000
 
 
 ************************************************************************ Parallelization ************************************************************************
@@ -428,9 +428,9 @@ fes_eq_parallel_max_RLS=10
 fes_md_parallel_max_L=10
 fes_md_parallel_max_LS=10
 fes_md_parallel_max_RLS=10
-fes_ce_parallel_max_L=2
-fes_ce_parallel_max_LS=2
-fes_ce_parallel_max_RLS=2
+fes_ce_parallel_max_L=1
+fes_ce_parallel_max_LS=1
+fes_ce_parallel_max_RLS=1
 
 command_prefix_bs_subjob=srun -N 1 -n 1
 # Cray/HLRN: aprun -cc none -n 1
