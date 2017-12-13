@@ -221,7 +221,7 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 elif [ "${check_active_jobs^^}" == "FALSE" ]; then
 
     # Loop for all JIDs
-    for jid in $(seq ${first_jid} ${last_jid}); do
+    for jid in ${JIDs_to_check}; do
 
         # Printing some information
         echo " * Adding job ${jtl}.${jid} to the list of jobs to be started."
