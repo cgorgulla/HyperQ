@@ -8,7 +8,7 @@ Summary: This script prepares the batchsystem files in a default mode:
          * One TDS per task for job types 'b' and 'c', one MSP per task for job type 'd'
          * Creates the task lists in the folder batchsystem, and names them all.<subsystem>.<pipeline_type>
          * The jobfiles start their numbering at 1 for LS, 1001 for RLS
-         * Adjust the cpus_per_task variable of batchsystem control files batchsystem/c-c:*.ctrl
+         * Setting the cpus_per_task variable of batchsystem control files batchsystem/c-c:*.ctrl and d-d.*.ctrl to the number of beads
 
 Arguments:
     <msp list>: One task per line, one task is represented by one command. No empty lines should be present.
@@ -120,7 +120,8 @@ for jobtype in ${jobtypes//:/ }; do
     if [[ "${jobtype}" == "d" ]]; then
 
         # Adjusting the cpus_per_subjob variable
-        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=$((nbeads*2))/g" batchsystem/control/c-c:*.ctrl || true
+        jtl_d_cpu_multipliactor=1
+        sed -i "s/cpus_per_subjob=.*/cpus_per_subjob=$((nbeads*${jtl_d_cpu_multipliactor}))/g" batchsystem/control/d-d:*.ctrl || true
     fi
 done
 
