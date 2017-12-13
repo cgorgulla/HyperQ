@@ -142,9 +142,43 @@ touch ${temp_folder}/jobs-to-start
 # Printing some information
 echo -e "\n\nChecking which jobs should be started...\n"
 
+# Determining which jobs have to be checked/started
+JIDs_to_check=""
+# Checking the value type of the jid_ranges variable
+echo $jid_ranges
+if [[ "${jid_ranges}" == "all" ]] ; then
+    for jobfile in batchsystem/job-files/main/jtl-${jtl}.* ; do
+
+        # Variables
+        jid=${jobfile//[^0-9]}
+        JIDs_to_check="${JIDs_to_check} ${jid}"
+    done
+else
+    # Loop for each JID range
+    for jid_range in ${jid_ranges/:/ }; do
+
+        # Variables
+        first_jid=${jid_range/-*}
+        last_jid=${jid_range/*-}
+
+        # Checking the variables
+        if ! ( [ "${first_jid}" -eq "${first_jid}" ] && [ "${last_jid}" -eq "${last_jid}" ] ) ; then
+
+            # Printing some information
+            echo -e "\n * Error: The <JID ranges> variable has an unsupported format. Exiting..."
+            exit 1
+        fi
+
+        # Loop for each jid in the current JID range
+        for jid in $(seq ${first_jid} ${last_jid}); do
+            JIDs_to_check="${JIDs_to_check} ${jid}"
+        done
+    done
+fi
+
 # Checking if we should check for already active jobs
 jobs_started=0
-jobs_omitted=0
+JIDs_to_start=""
 if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
     # Variables
@@ -164,39 +198,14 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
     # Getting the active jobs
     hqh_bs_sqs.sh > ${temp_folder}/jobs-all 2>/dev/null || true
 
-    # Determining which jobs have to be started
-    JIDs_to_start=""
-    # Checking the value type of the jid_ranges variable
-    if jid_ranges="all"; then
-        for jobfile in batchsystem/job-files/main/jtl-${jtl}.*; do
-
-            # Variables
-            jid=${jobfile//[^0-9]}
-            JIDs_to_start="${JIDs_to_start} ${jid}"
-        done
-    else
-        # Loop for each JID range
-        for jid_range in ${jid_ranges/:/ }; do
-
-            # Variables
-            first_jid=${jid_range/-*}
-            last_jid=${jid_range/*-}
-
-            # Loop for each jid in the current JID range
-            for jid in $(seq ${first_jid} ${last_jid}); do
-                JIDs_to_start="${JIDs_to_start} ${jid}"
-            done
-        done
-    fi
-
-    for jid in ${JIDs_to_start}; do
+    for jid in ${JIDs_to_check}; do
         if ! grep -q "${workflow_id}:[${jtls_to_check}]\.${jid}\." ${temp_folder}/jobs-all; then
 
             # Printing some information
             echo "   * Adding job ${jtl}.${jid} to the list of jobs to be started."
 
             # Adding the JID
-            echo ${jid} >> ${temp_folder}/jobs-to-start
+            JIDs_to_start="${JIDs_to_start} ${jid}"
 
             # Increasing the counter
             jobs_started=$((jobs_started+1))
@@ -218,7 +227,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
         echo " * Adding job ${jtl}.${jid} to the list of jobs to be started."
 
         # Adding the JID
-        echo ${jid} >> ${temp_folder}/jobs-to-start
+        JIDs_to_start="${JIDs_to_start} ${jid}"
 
         # Increasing the counter
         jobs_started=$((jobs_started+1))
@@ -236,7 +245,7 @@ chmod u+x batchsystem/job-files/subjobs/*
 
 # Updating and submitting the relevant jobs
 if [ -f ${temp_folder}/jobs-to-start ]; then
-    for jid in $(cat ${temp_folder}/jobs-to-start ); do
+    for jid in ${JIDs_to_start}; do
 
         # Preparing the new jobfile
         if [ "${increase_jsn^^}" == "TRUE" ]; then
@@ -258,14 +267,6 @@ if [ -f ${temp_folder}/jobs-to-start ]; then
         # Sleeping
         sleep ${delay_time}
     done
-fi
-
-# Removing the temporary files
-if [ -f "${temp_folder}/jobs-all" ]; then
-    rm ${temp_folder}/jobs-all || true
-fi
-if [ -f "${temp_folder}/jobs-to-start" ]; then
-    rm ${temp_folder}/jobs-to-start
 fi
 
 # Displaying some information
