@@ -290,9 +290,9 @@ eq_total_steps_LS=20000
 eq_total_steps_RLS=20000
 # Input files for the simulations are adjusted automatically by replacing the term 'eq_total_steps_placeholder'
 
-eq_trajectory_stride_L=10
-eq_trajectory_stride_LS=10
-eq_trajectory_stride_RLS=10
+eq_trajectory_stride_L=1000
+eq_trajectory_stride_LS=1000
+eq_trajectory_stride_RLS=1000
 # The stride w.r.t. the time steps when snapshot files are written out
 # Input files for the simulations are adjusted automatically by replacing the term 'eq_trajectory_stride_placeholder'
 
