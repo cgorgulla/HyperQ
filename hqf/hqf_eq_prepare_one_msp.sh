@@ -150,7 +150,7 @@ fi
 echo "OK"
 
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${eq_continue^^}" == "TRUE" ]] && ls ./eq/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null; then
+if [[ "${eq_continue^^}" == "TRUE" ]] && ls ./eq/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./eq/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the equilibration is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."
