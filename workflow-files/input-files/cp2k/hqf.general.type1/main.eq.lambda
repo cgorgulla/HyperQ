@@ -10,11 +10,13 @@
 @SET temperature temperature_placeholder
 @SET eq_trajectory_stride eq_trajectory_stride_placeholder
 @SET eq_restart_stride eq_restart_stride_placeholder
+@SET cp2k_random_seed cp2k_random_seed_placeholder
 
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE md
   PRINT_LEVEL medium
+  SEED ${cp2k_random_seed}
 &END global
 
 !&EXT_RESTART

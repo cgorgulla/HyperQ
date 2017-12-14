@@ -168,6 +168,12 @@ inputfolder_cp2k_eq_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_md_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_ce_specific_RLS=hqf.specific.MM
 
+cp2k_random_seed=random
+# Possible values: random, <integer>
+# Sets the seed of the prng in the cp2k main input files (opt and eq)
+# If an integer is specified, it will be used as the random seed
+# If 'random' is specified, a random integer will be generated and used (recommended). This can be useful in particular when a simulation crashes during the run and has to be restarted.
+
 cp2k_command=cp2k-5.1.sopt
 #cp2k-5.1.sopt
 #cp2k_command=/home/wagner/cgorgulla/Dropbox/Software/installed/bin/cp2k.ssmp 

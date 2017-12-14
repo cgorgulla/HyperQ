@@ -10,11 +10,13 @@
 @SET opt_max_steps opt_max_steps_placeholder
 @SET opt_trajectory_stride opt_trajectory_stride_placeholder
 @SET opt_restart_stride opt_restart_stride_placeholder
+@SET cp2k_random_seed cp2k_random_seed_placeholder
 
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE geo_opt
   PRINT_LEVEL medium
+  SEED ${cp2k_random_seed}
 &END global
 
 !&EXT_RESTART

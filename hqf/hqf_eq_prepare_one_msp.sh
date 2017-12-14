@@ -246,4 +246,4 @@ done
 cd ../../../
 
 # Printing script completion information
-echo -e "\n * The preparation of the subsystem folder for the the current MSP (${msp_name}) has been successfully completed.\n\n"
+echo -e "\n * The preparation of the subsystem folder for the current MSP (${msp_name}) has been successfully completed.\n\n"

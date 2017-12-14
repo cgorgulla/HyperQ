@@ -86,6 +86,7 @@ eq_trajectory_stride="$(grep -m 1 "^eq_trajectory_stride_${subsystem}="  ../../.
 eq_restart_stride="$(grep -m 1 "^eq_restart_stride_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+cp2k_random_seed="$(grep -m 1 "^cp2k_random_seed="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$(($tdw_count + 1))"
 
@@ -112,6 +113,21 @@ for value in cell_A_floor cell_B_floor cell_C_floor cell_A_scaled cell_B_scaled 
         eval ${value}_odd=$((${value}))
     fi
 done
+
+# Setting the cp2k random seed
+if [ "${cp2k_random_seed}" == "random" ]; then
+
+    # Setting the random seed
+    cp2k_random_seed=$RANDOM
+
+# Checking if the value is an integer
+elif ! [ "${cp2k_random_seed}" -eq "${cp2k_random_seed}" ]; then
+
+    # Printing error message before exiting
+    echo -e "Error: The variable cp2k_random_seed has an unsupported value (${cp2k_random_seed}). Exiting..."
+    exit 1
+fi
+
 
 # Checking which tdcycle type should be used
 if [ "${tdcycle_type}" == "hq" ]; then
@@ -227,6 +243,7 @@ if [ "${tdcycle_type}" == "hq" ]; then
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../..|" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_total_steps_placeholder|${eq_total_steps}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_trajectory_stride_placeholder|${eq_trajectory_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_restart_stride_placeholder|${eq_restart_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
@@ -340,6 +357,7 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../..|" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_total_steps_placeholder|${eq_total_steps}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_trajectory_stride_placeholder|${eq_trajectory_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
         sed -i "s|eq_restart_stride_placeholder|${eq_restart_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*

@@ -564,7 +564,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
         fi
         
         # Loop for preparing the restart files in tds_folder_endstate
-        echo -e "\n * Preparing the snapshots for the re-evaluation of the the end state (${tds_folder_endstate})."
+        echo -e "\n * Preparing the snapshots for the re-evaluation of the end state (${tds_folder_endstate})."
         for restart_ID in $(seq ${ce_first_restart_ID} ${restartfile_count_MD2}); do
 
             # Applying the crosseval trajectory stride
