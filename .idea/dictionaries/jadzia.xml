@@ -1,0 +1,32 @@
+<component name="ProjectDictionaryState">
+  <dictionary name="jadzia">
+    <words>
+      <w>batchsystem</w>
+      <w>batchsystems</w>
+      <w>crossevaluations</w>
+      <w>dihedrals</w>
+      <w>equilibrations</w>
+      <w>filenames</w>
+      <w>impropers</w>
+      <w>jobfile</w>
+      <w>jobfiles</w>
+      <w>jobname</w>
+      <w>parallelization</w>
+      <w>parallelize</w>
+      <w>parallelized</w>
+      <w>pdbqt</w>
+      <w>pdbx</w>
+      <w>runtimeletter</w>
+      <w>setsid</w>
+      <w>sjid</w>
+      <w>slurm</w>
+      <w>startdate</w>
+      <w>stepsize</w>
+      <w>stepsizes</w>
+      <w>subconfiguration</w>
+      <w>subjob</w>
+      <w>subjobs</w>
+      <w>tolower</w>
+    </words>
+  </dictionary>
+</component>
