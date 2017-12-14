@@ -145,7 +145,6 @@ echo -e "\n\nChecking which jobs should be started...\n"
 # Determining which jobs have to be checked/started
 JIDs_to_check=""
 # Checking the value type of the jid_ranges variable
-echo $jid_ranges
 if [[ "${jid_ranges}" == "all" ]] ; then
     for jobfile in batchsystem/job-files/main/jtl-${jtl}.* ; do
 
@@ -165,7 +164,7 @@ else
         if ! ( [ "${first_jid}" -eq "${first_jid}" ] && [ "${last_jid}" -eq "${last_jid}" ] ) ; then
 
             # Printing some information
-            echo -e "\n * Error: The <JID ranges> variable has an unsupported format. Exiting..."
+            echo -e "\n * Error: The <JID ranges> variable has an unsupported format. Exiting...\n\n"
             exit 1
         fi
 
@@ -177,7 +176,7 @@ else
 fi
 
 # Checking if we should check for already active jobs
-jobs_started=0
+job_count=0
 JIDs_to_start=""
 if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
@@ -208,7 +207,7 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
             JIDs_to_start="${JIDs_to_start} ${jid}"
 
             # Increasing the counter
-            jobs_started=$((jobs_started+1))
+            job_count=$((job_count+1))
         else
 
             # Printing some information
@@ -230,7 +229,7 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
         JIDs_to_start="${JIDs_to_start} ${jid}"
 
         # Increasing the counter
-        jobs_started=$((jobs_started+1))
+        job_count=$((job_count+1))
     done
 else
 
@@ -272,5 +271,5 @@ fi
 # Displaying some information
 echo -e "\n * The starting of the jobs has been completed"
 echo -e "   * Number of jobs processed: $((last_jid-first_jid+1))"
-echo -e "   * Number of jobs started: ${jobs_started}"
+echo -e "   * Number of jobs started: ${job_count}"
 echo -e "   * Number of jobs omitted: ${jobs_omitted}\n\n"
