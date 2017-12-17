@@ -8,7 +8,9 @@ class DummyAtoms:
 
         # Variables
         self.dummyCount = len(indices)
-        self.indices = indices
+        self.indices = indices          # A list
+        self.indicesH = []
+        self.indicesNonH = []
         self.molecularSystem = molecularSystem
         
         # Bonds 
@@ -67,28 +69,50 @@ class DummyAtoms:
             for atomIndex in self.nonangledAtomIndices[dummyAtomIndex]:
                 self.nonangledAtomNames[dummyAtomIndex].add(molecularSystem.atomIndexToName[atomIndex])
 
+        # Hydrogen and non-hydrogen dummies
+        for dummyAtomIndex in self.indices:
+            if molecularSystem.atomIndexToName[dummyAtomIndex][0] == "H" and isfloat(molecularSystem.atomIndexToName[dummyAtomIndex][1]):
+                self.indicesH.append(dummyAtomIndex)
+            else:
+                self.indicesNonH.append(dummyAtomIndex)
+        print("indices: ", self.indices)
+        print("indicesNonH: ", str(self.indicesNonH))
+        print("indicesH: ", str(self.indicesH))
+
         # Dummy atom distances
         self.atomIndexToDistance = None
         self.distances = None
+        self.distancesNonH = None
         self.distanceToAtomIndices = None
+        self.distanceToAtomIndicesNonH = None
 
 
     def compute_dummy_atom_distances(self):
 
         # Preparing the atom index to distance conversion
         self.atomIndexToDistance = {}
+
+        # All dummy atoms
+        # Loop for each dummy atom
         for dummyAtomIndex in self.indices:
             self.atomIndexToDistance[dummyAtomIndex] = self.compute_dummy_atom_distance(dummyAtomIndex)
-
         # Preparing the set of all distances
         self.distances = set(self.atomIndexToDistance.values())
-        type(self.distances)
-        len(self.distances)
-
-        # Preparing the distance to index dictionary
+        print("self.distances: " + str(self.distances))
+        # Preparing the distance to index dictionary for all dummies
         self.distanceToAtomIndices = {distance: set() for distance in self.distances}
         for dummyAtomIndex in self.indices:
             self.distanceToAtomIndices[self.atomIndexToDistance[dummyAtomIndex]].add(dummyAtomIndex)
+
+        # Only non-hydrogen dummy atoms
+        # Preparing the set of all distances
+        self.distancesNonH = set(self.atomIndexToDistance[dummyAtomIndex] for dummyAtomIndex in self.indicesNonH)
+        print("self.distancesNonH: " + str(self.distancesNonH))
+
+        # Preparing the distance to index dictionary for the non-hydrogen atoms only
+        self.distanceToAtomIndicesNonH = {distance: set() for distance in self.distancesNonH}
+        for dummyAtomIndex in self.indicesNonH:
+            self.distanceToAtomIndicesNonH[self.atomIndexToDistance[dummyAtomIndex]].add(dummyAtomIndex)
 
 
     def compute_dummy_atom_distance(self, dummyAtomIndex):

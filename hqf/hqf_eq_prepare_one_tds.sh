@@ -115,7 +115,7 @@ for value in cell_A_floor cell_B_floor cell_C_floor cell_A_scaled cell_B_scaled 
 done
 
 # Setting the cp2k random seed
-if [ "${cp2k_random_seed}" == "random" ]; then
+if [ "${cp2k_random_seed^^}" == "RANDOM" ]; then
 
     # Setting the random seed
     cp2k_random_seed=$RANDOM
