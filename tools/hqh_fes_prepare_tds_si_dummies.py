@@ -3,12 +3,25 @@ from __future__ import print_function
 from hyperq.cp2k_dummies import *
 import textwrap
 
-def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages, hydrogenSingleStep, separateNeighbors, direction):
+
+class Atom:
+
+    def __init__(self, atomIndex):
+
+        self.atomIndex = atomIndex
+        self.parentAtomIndex = None
+        self.children = set()
+        self.globalDistance = None
+        self.totalDistance = None
+
+
+def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages, hydrogenSingleStep, separateNeighbors, considerBranches, direction):
 
     # Variables
     dummyAtomIndicesAll = []
     tdwCountAllStages = int(tdwCountAllStages)
     tdsCountAllStages = tdwCountAllStages + 1
+    #Todo: Rename all variables which contain the word dummy/dummies but are dummyAtomIndices accordingly to avoid confusion with the Atom objects
 
     # Reading in the dummy atom indices
     with open(systemBasename + ".dummy.indices", "r") as systemDummyAtomIndicesFile:
@@ -100,14 +113,14 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
     ## Computing the dummy atom clusters and their sizes
     # Variables
-    atomsByGlobalDistance = {}
+    dummyAtomsByGlobalDistance = {}
     atomClustersByGlobalDistance = {globalDistance:[] for globalDistance in range(1, maxGlobalDistanceStage1+1)}
-    # Filling the atomsByGlobalDistance dictionary
+    # Filling the dummyAtomsByGlobalDistance dictionary
     for globalDistance in range(1, maxGlobalDistanceStage1+1):
         if hydrogenSingleStep.lower() == "false":
-            atomsByGlobalDistance[globalDistance] = system.dummyAtoms.distanceToAtomIndices[globalDistance]
+            dummyAtomsByGlobalDistance[globalDistance] = system.dummyAtoms.distanceToAtomIndices[globalDistance]
         elif hydrogenSingleStep.lower() == "true":
-            atomsByGlobalDistance[globalDistance] = system.dummyAtoms.distanceToAtomIndicesNonH[globalDistance]
+            dummyAtomsByGlobalDistance[globalDistance] = system.dummyAtoms.distanceToAtomIndicesNonH[globalDistance]
         else:
             # Printing error message and raising an error
             errorMessage = "Error: The input argument <hydrogenSingleStep> has an unsupported value."
@@ -125,8 +138,8 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
             atomsAdded = set()
 
             # Loop for each atom to add it to a cluster if needed
-            print("atomsByGlobalDistance: " + str(atomsByGlobalDistance))
-            for atomIndex in atomsByGlobalDistance[globalDistance]:
+            print("dummyAtomsByGlobalDistance: " + str(dummyAtomsByGlobalDistance))
+            for atomIndex in dummyAtomsByGlobalDistance[globalDistance]:
                 print("atomIndex: " + str(atomIndex))
 
                 # Variables
@@ -147,9 +160,9 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
                         # Adding all angled atoms to the cluster, whether the cluster is new not, but excluding atoms which were already added to make the clusters disjoint (Alternative: allow for overlapping clusters and unite them afterwards)
                         if hydrogenSingleStep.lower() == "false":
-                            atomsToAdd = (system.dummyAtoms.angledAtoms[atomIndex] & atomsByGlobalDistance[globalDistance])-atomsAdded
+                            atomsToAdd = (system.dummyAtoms.angledAtoms[atomIndex] & dummyAtomsByGlobalDistance[globalDistance])-atomsAdded
                         else:
-                            atomsToAdd = (system.dummyAtoms.angledAtoms[atomIndex] & atomsByGlobalDistance[globalDistance] & set(system.dummyAtoms.indicesNonH))-atomsAdded
+                            atomsToAdd = (system.dummyAtoms.angledAtoms[atomIndex] & dummyAtomsByGlobalDistance[globalDistance] & set(system.dummyAtoms.indicesNonH))-atomsAdded
                         atomClustersByGlobalDistance[globalDistance][clusterIndex].update(atomsToAdd)
                         atomsAdded.update(atomsToAdd)
 
@@ -166,9 +179,9 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
                     # Adding all angled atoms to the cluster, whether the cluster is new not
                     if hydrogenSingleStep.lower() == "false":
-                        atomClustersByGlobalDistance[globalDistance][clusterCount-1].update(system.dummyAtoms.angledAtoms[atomIndex] & atomsByGlobalDistance[globalDistance])
+                        atomClustersByGlobalDistance[globalDistance][clusterCount-1].update(system.dummyAtoms.angledAtoms[atomIndex] & dummyAtomsByGlobalDistance[globalDistance])
                     else:
-                        atomClustersByGlobalDistance[globalDistance][clusterCount-1].update(system.dummyAtoms.angledAtoms[atomIndex] & atomsByGlobalDistance[globalDistance] & set(system.dummyAtoms.indicesNonH))
+                        atomClustersByGlobalDistance[globalDistance][clusterCount-1].update(system.dummyAtoms.angledAtoms[atomIndex] & dummyAtomsByGlobalDistance[globalDistance] & set(system.dummyAtoms.indicesNonH))
 
                 # Unifying the non-disjoint clusters
 
@@ -180,10 +193,10 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         for globalDistance in range(1, maxGlobalDistanceStage1+1):
 
             ## In this case there is only one cluster per global distance, containing all the dummy atoms of that distance
-            #atomClustersByGlobalDistance[globalDistance].append(set(atomsByGlobalDistance[globalDistance]))
+            #atomClustersByGlobalDistance[globalDistance].append(set(dummyAtomsByGlobalDistance[globalDistance]))
             # Loop for each atom of the current global distance
             clusterCount = 0
-            for atomIndex in atomsByGlobalDistance[globalDistance]:
+            for atomIndex in dummyAtomsByGlobalDistance[globalDistance]:
 
                 # Creating a new cluster for each atom
                 atomClustersByGlobalDistance[globalDistance].append(set())
@@ -204,20 +217,110 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
     # Creating linear lists of the atom clusters for stage 1
     atomSetsTotalLinearStage1 = []          # total = global + expanded local steps
-    for globalDistance in range(1, maxGlobalDistanceStage1+1):
-        print("Global distance: " + str(globalDistance))
-        for localDistance in range(1, maxClusterSizeByGlobalDistance[globalDistance]+1):
-            print("Local distance: " + str(localDistance))
+    dummyAtoms = {dummyAtomIndex:Atom(dummyAtomIndex) for dummyAtomIndex in dummyAtomIndicesAll}
+    totalDistanceToDummyAtomIndices = {}
+    dummyAtomIndexToTotalDistance = {}
+    if separateNeighbors.lower() == "true" and considerBranches.lower() == "true":
+
+        # Adding a pseudo root dummy atom
+        dummyAtoms[0] = Atom(0) # Root atom (parent) for the dummy atoms of global distance 1
+        dummyAtoms[0].globalDistance = 0
+        dummyAtoms[0].totalDistance = 0
+
+        # Recursive function to determine the atom tree
+        def findChildren(currentAtom):
+
+            # Finding the children
+            if currentAtom.atomIndex == 0:
+                childrenAtomIndices = dummyAtomsByGlobalDistance[1]
+            else:
+                if currentAtom.globalDistance < maxGlobalDistanceStage1:
+                    childrenAtomIndices = dummyAtomsByGlobalDistance[currentAtom.globalDistance+1] & system.bondedAtoms[currentAtom.atomIndex]
+                else:
+                    childrenAtomIndices = set()
+
+            # Loop for each children
+            nextChildTotalDistanceDifference = 1
+            for childrenAtomIndex in childrenAtomIndices:
+
+                # Checking if the child has a parent
+                if dummyAtoms[childrenAtomIndex].parentAtomIndex == None:
+
+                    # The current atom will adopt this child
+                    dummyAtoms[childrenAtomIndex].parentAtomIndex = currentAtom.atomIndex
+
+                    # Checking if the current atom is the root dummy atom
+                    if currentAtom.atomIndex == 0:
+
+                        # Resetting the nextChildTotalDistanceDifference
+                        nextChildTotalDistanceDifference = 1
+
+                        # Checking to how many other children which were already treated the current atom is angled in order to determine the total distance (useful if multiple dummies are connected to the same non-dummy (root) atom)
+                        for dummyAtomIndexToCheck in dummyAtomsByGlobalDistance[1]:
+                            # Checking if the atom to be checked was already initialized
+                            if dummyAtoms[dummyAtomIndexToCheck].totalDistance != None:
+                                if dummyAtomIndexToCheck in system.dummyAtoms.angledAtoms[childrenAtomIndex]:
+                                    nextChildTotalDistanceDifference += 1
+
+                        childrenTotalDistance = nextChildTotalDistanceDifference
+
+                    else:
+                        childrenTotalDistance = currentAtom.totalDistance + nextChildTotalDistanceDifference
+                        nextChildTotalDistanceDifference += 1
+
+                    # Setting properties
+                    dummyAtoms[childrenAtomIndex].totalDistance = childrenTotalDistance
+                    dummyAtoms[childrenAtomIndex].globalDistance = system.dummyAtoms.atomIndexToDistance[childrenAtomIndex]
+
+                    # Updating variables
+                    dummyAtomIndexToTotalDistance[childrenAtomIndex] = dummyAtoms[childrenAtomIndex].totalDistance
+
+                    # Letting the child find its own children
+                    findChildren(dummyAtoms[childrenAtomIndex])
+
+        # Determining the atom tree
+        findChildren(dummyAtoms[0])
+
+        # Computing the maximum total distance
+        maxTotalDistanceStage1 = max([dummyAtoms[dummyAtomIndex].totalDistance for dummyAtomIndex in dummyAtoms])
+
+        # Creating the atomSetsTotalLinearStage1 variable
+        for totalDistance in range(1, maxTotalDistanceStage1 +1):
+
+            # Finding out which dummy atoms have the same totalDistance
             localDummyAtoms = set()
-            for cluster in atomClustersByGlobalDistance[globalDistance]:
-                cluster = list(cluster)
-                print("Cluster atoms: ", cluster)
-                if len(cluster) >= localDistance:
-                    localDummyAtoms.add(cluster[localDistance-1])
+            for dummyAtomIndex in dummyAtoms:
+                if dummyAtoms[dummyAtomIndex].totalDistance == totalDistance:
+                    localDummyAtoms.add(dummyAtomIndex)
+
+            # Updating variables
             atomSetsTotalLinearStage1.append(localDummyAtoms)
 
-    # Computing the total length (= global length expanded by the local clusters)
-    maxTotalDistanceStage1 = len(atomSetsTotalLinearStage1)
+    else:
+
+        # Creating the atomSetsTotalLinearStage1 variable
+        totalDistance = 0
+        for globalDistance in range(1, maxGlobalDistanceStage1+1):
+            print("Global distance: " + str(globalDistance))
+            for localDistance in range(1, maxClusterSizeByGlobalDistance[globalDistance]+1):
+                totalDistance += 1
+                print("Local distance: " + str(localDistance))
+                localDummyAtoms = set()
+                for cluster in atomClustersByGlobalDistance[globalDistance]:
+                    cluster = list(cluster)
+                    print("Cluster atoms: ", cluster)
+                    if len(cluster) >= localDistance:
+                        localDummyAtoms.add(cluster[localDistance-1])  # Add, not update, because we add a single atom
+                atomSetsTotalLinearStage1.append(localDummyAtoms)
+                for atomIndex in localDummyAtoms:
+                    dummyAtomIndexToTotalDistance[atomIndex] = totalDistance
+                    dummyAtoms[atomIndex].totalDistance = totalDistance
+                    dummyAtoms[atomIndex].globalDistance = globalDistance
+
+        # Computing the total length (= global length expanded by the local clusters)
+        maxTotalDistanceStage1 = len(atomSetsTotalLinearStage1)
+
+
     if hydrogenSingleStep.lower() == "false":
         maxTotalDistanceAllStages = maxTotalDistanceStage1
     else:
@@ -317,13 +420,16 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n\n\n{:^120}\n".format("General information on the dummy atoms and the insertion mode")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "Single step for hydrogens: " + str(hydrogenSingleStep) + "\n"
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "Separation of neighbors: " + str(separateNeighbors) + "\n"
+        print(lineToPrint, end="")
+        dummyDistanceFile.write(lineToPrint)
+        lineToPrint = "Consideration of branches: " + str(considerBranches) + "\n"
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "TDW count w.r.t. all stages: " + str(tdwCountAllStages) + "\n"
@@ -366,7 +472,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Overview of dummies by global distance within all stages (including hydrogen dummy atoms)")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "{:^20s} {:^20s} {}\n".format("Global Distance", "Maximum VdW Radius", "Dummy Atom Indices")
@@ -384,14 +490,14 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Overview of the global distances within stage 1")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "{:^20s} {:^25} {:^20s} {:^25s} {}\n".format("Global Distance", "Maximum VdW Radius", "Number of Clusters", "Maximum Cluster Size", "Dummy Atom Indices")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         for globalDistance in range(1, maxGlobalDistanceStage1+1):
-            indices = atomsByGlobalDistance[globalDistance]
+            indices = dummyAtomsByGlobalDistance[globalDistance]
             lineToPrint = "{:^20s} {:^25s} {:^20s} {:^25} {}\n".format(str(globalDistance), str(maxVdwRadiusByGlobalDistance[globalDistance]), str(len(atomClustersByGlobalDistance[globalDistance])), str(maxClusterSizeByGlobalDistance[globalDistance]), " " + ", ".join([str(index) for index in indices]))
             print(lineToPrint, end="")
             dummyDistanceFile.write(lineToPrint)
@@ -402,7 +508,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Overview of dummies by total distance within stage 1")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "{:^20s} {}\n".format("Total Distance", "Dummy Atom Indices")
@@ -420,7 +526,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Overview of the TDSs within all stages")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "{:^20s} {}\n".format("TDS", "Dummy Atom Indices")
@@ -438,7 +544,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Overview of the TDWs within all stages")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         lineToPrint = "{:^20s} {:^30s} {}\n".format("TDW", "Step Size (total distance)", "Transformed Atoms")
@@ -461,7 +567,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
             lineToPrint = "\n{:^120}\n".format("Overview about stage 2 which is present for this system")
             print(lineToPrint, end="")
             dummyDistanceFile.write(lineToPrint)
-            lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+            lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
             print(lineToPrint, end="")
             dummyDistanceFile.write(lineToPrint)
             lineToPrint = "(First) TDW of stage 2: " + str(tdwIndexStage2) + "\n"
@@ -477,20 +583,20 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         lineToPrint = "\n{:^120}\n".format("Information about the dummy atoms")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^120}\n\n".format("************************************************************************************************************************")
+        lineToPrint = "{:^120}\n\n".format("********************************************************************************************************************************************")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
-        lineToPrint = "{:^20} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s}\n".format("Dummy atom index", "Stage", "Global Distance", "Total Distance", "Atom name", "Atom type", "VdW Radius")
+        lineToPrint = "{:^10s} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s} {:^15s}\n".format("Dummy ID", "Stage", "Global Distance", "Total Distance", "Parent ID", "Atom name", "Atom type", "VdW Radius")
         print(lineToPrint, end="")
         dummyDistanceFile.write(lineToPrint)
         for totalDistance in range(1, maxTotalDistanceStage1 + 1):
             for dummyAtomIndex in atomSetsTotalLinearStage1[totalDistance-1]:
-                lineToPrint = "{:^20s} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s}\n".format(str(dummyAtomIndex), "1", str(system.dummyAtoms.atomIndexToDistance[dummyAtomIndex]), str(totalDistance), system.atomIndexToName[dummyAtomIndex], system.atomIndexToType[dummyAtomIndex], str(abs(float(FFSystem.LJParas.rminHalf[system.atomIndexToType[dummyAtomIndex]]))))
+                lineToPrint = "{:^10s} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s} {:^15s}\n".format(str(dummyAtomIndex), "1", str(system.dummyAtoms.atomIndexToDistance[dummyAtomIndex]), str(dummyAtoms[dummyAtomIndex].totalDistance), str(dummyAtoms[dummyAtomIndex].parentAtomIndex), system.atomIndexToName[dummyAtomIndex], system.atomIndexToType[dummyAtomIndex], str(abs(float(FFSystem.LJParas.rminHalf[system.atomIndexToType[dummyAtomIndex]]))))
                 print(lineToPrint, end="")
                 dummyDistanceFile.write(lineToPrint)
         if hydrogenSingleStep.lower() == "true":
             for dummyAtomIndex in system.dummyAtoms.indicesH:
-                lineToPrint = "{:^20s} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s}\n".format(str(dummyAtomIndex), "2", str(system.dummyAtoms.atomIndexToDistance[dummyAtomIndex]), "n/a (stage 2)", system.atomIndexToName[dummyAtomIndex], system.atomIndexToType[dummyAtomIndex], str(abs(float(FFSystem.LJParas.rminHalf[system.atomIndexToType[dummyAtomIndex]]))))
+                lineToPrint = "{:^10s} {:^10s} {:^20s} {:^20s} {:^15s} {:^15s} {:^15s} {:^15s}\n".format(str(dummyAtomIndex), "2", str(system.dummyAtoms.atomIndexToDistance[dummyAtomIndex]), str(dummyAtoms[dummyAtomIndex].totalDistance), str(dummyAtoms[dummyAtomIndex].parentAtomIndex), system.atomIndexToName[dummyAtomIndex], system.atomIndexToType[dummyAtomIndex], str(abs(float(FFSystem.LJParas.rminHalf[system.atomIndexToType[dummyAtomIndex]]))))
                 print(lineToPrint, end="")
                 dummyDistanceFile.write(lineToPrint)
 
@@ -505,13 +611,14 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
 
 def help():
-    print("\nUsage: hqh_fes_prepare_tds_si_dummies.py <systemBasename> <psf file> <prm file> <tdw_count> <hydrogen single step> <separate neighbors> <tds index output direction>\n")
+    print("\nUsage: hqh_fes_prepare_tds_si_dummies.py <systemBasename> <psf file> <prm file> <tdw_count> <hydrogen single step> <separate neighbors> <consider branches> <tds index output direction>\n")
     print("Prepares the dummy atom indices for the serial insertion thermodynamic cycles.")
     print("Indices used internally are the ones of the psf files. -> atom order")
     print("The dummy atom indices are interpreted as the atom IDs used in the psf file.")
     print("The psf file can be in any format.")
     print("<hydrogen single step>: Possible values: False, True")
     print("<separate neighbors>: Possible values: False, True")
+    print("<consider branches>: Possible values: False, True. Only relevant if <separate neighbors>=True")
     print("<tdw_count> refers only to the TDWs which should be considered by the serial insertion mechanism.")
     print("<tds index output direction>: Possible values: increasing")
     print("                 * increasing: The core/non-dummy region of the molecule will increase (the dummies will decrease).")
@@ -522,9 +629,9 @@ def help():
 if __name__ == '__main__':
 
     # Checking the number of arguments
-    if (len(sys.argv) != 8):
+    if (len(sys.argv) != 9):
         print("Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv))
-        print("Required are 7 input arguments. Exiting...")
+        print("Required are 8 input arguments. Exiting...")
         help()
         exit(1)
 

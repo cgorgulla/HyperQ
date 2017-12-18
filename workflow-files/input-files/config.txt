@@ -111,11 +111,15 @@ tdcycle_si_activate=true
 
 tdcycle_si_hydrogen_single_step=true
 # Possible values: true, false
-# Only needed if tdcycle_si_activate=true
+# Only relevant if tdcycle_si_activate=true
 
 tdcycle_si_separate_neighbors=true
 # Possible values: true, false
-# Only needed if tdcycle_si_activate=true
+# Only relevant if tdcycle_si_activate=true
+
+tdcycle_si_consider_branches=true
+# Possible values: true, false
+# Only relevant if tdcycle_si_activate=true
 
 umbrella_sampling=false
 # Possible values: true, false

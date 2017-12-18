@@ -18,6 +18,10 @@
     UNIX
     HOST address_cp2k_placeholder
   &END DRIVER
+  &PRINT
+    &RESTART_HISTORY off
+    &END RESTART_HISTORY
+  &END PRINT
 &END MOTION
 
 &MULTIPLE_FORCE_EVALS

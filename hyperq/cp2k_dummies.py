@@ -275,6 +275,16 @@ class MolecularSystem:
         self.dummyAtoms = DummyAtoms(dummyAtomIndices, self)
 
 
+        # Bonds
+        self.bondedAtoms = {atomIndex: set() for atomIndex in self.atomIndices}
+        for atomIndex in self.atomIndices:
+            for bond in self.bonds:
+                if atomIndex in bond:
+                    for atomIndexBond in bond:
+                        if atomIndexBond != atomIndex:
+                            self.bondedAtoms[atomIndex].add(int(atomIndexBond))
+
+
 class ForceField:
     
     def __init__(self, prmFilename):

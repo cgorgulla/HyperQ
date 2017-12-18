@@ -74,6 +74,7 @@ tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr 
 tdcycle_si_activate="$(grep -m 1 "^tdcycle_si_activate=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdcycle_si_hydrogen_single_step="$(grep -m 1 "^tdcycle_si_hydrogen_single_step=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdcycle_si_separate_neighbors="$(grep -m 1 "^tdcycle_si_separate_neighbors=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_si_consider_branches="$(grep -m 1 "^tdcycle_si_consider_branches=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count="$((tdw_count + 1))"
@@ -81,8 +82,8 @@ tds_count="$((tdw_count + 1))"
 
 # Creating the dummy atom indices files
 if [ "${tdcycle_si_activate^^}" == "TRUE" ]; then
-    hqh_fes_prepare_tds_si_dummies.py system1 system1.cp2k.psf system1.prm ${tdw_count} ${tdcycle_si_hydrogen_single_step} ${tdcycle_si_separate_neighbors} decreasing
-    hqh_fes_prepare_tds_si_dummies.py system2 system2.cp2k.psf system2.prm ${tdw_count} ${tdcycle_si_hydrogen_single_step} ${tdcycle_si_separate_neighbors} increasing
+    hqh_fes_prepare_tds_si_dummies.py system1 system1.cp2k.psf system1.prm ${tdw_count} ${tdcycle_si_hydrogen_single_step} ${tdcycle_si_separate_neighbors} ${tdcycle_si_consider_branches} decreasing
+    hqh_fes_prepare_tds_si_dummies.py system2 system2.cp2k.psf system2.prm ${tdw_count} ${tdcycle_si_hydrogen_single_step} ${tdcycle_si_separate_neighbors} ${tdcycle_si_consider_branches} increasing
 fi
 
 # Preparing the files and folders
