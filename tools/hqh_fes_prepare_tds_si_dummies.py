@@ -21,7 +21,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
     dummyAtomIndicesAll = []
     tdwCountAllStages = int(tdwCountAllStages)
     tdsCountAllStages = tdwCountAllStages + 1
-    #Todo: Rename all variables which contain the word dummy/dummies but are dummyAtomIndices accordingly to avoid confusion with the Atom objects
+    # Todo: Rename all variables which contain the word dummy/dummies but are dummyAtomIndices accordingly to avoid confusion with the Atom objects
 
     # Reading in the dummy atom indices
     with open(systemBasename + ".dummy.indices", "r") as systemDummyAtomIndicesFile:

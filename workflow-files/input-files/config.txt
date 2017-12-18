@@ -48,7 +48,7 @@ receptor_basename=
 # If receptor_FFparameter_source=folder, then there is no need to include in the receptor filenames the words 'unique' or 'typed'. This is assumed implicitly, and filenames including these terms will be created.
 
 receptor_type=P
-# Possible values: P (protein), H (Host)
+# Possible values: P (Protein), H (Host)
 # Only required if the simulations include a receptor (e.g. RLS)
 
 box_edge_length_L=10

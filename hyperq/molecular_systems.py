@@ -487,15 +487,17 @@ class JointSystem:
 
         # hr = human readable
         with open(output_filename, "w") as mappingFile:
-            # Writing the heading 
-            mappingFile.write("Column 1: System 1 reduced indices\n")
-            mappingFile.write("Column 2: System 1 total indices\n")
-            mappingFile.write("Column 3: System 1 atom names\n")
-            mappingFile.write("Column 4: System 2 reduced indices\n")
-            mappingFile.write("Column 5: System 2 total indices\n")
-            mappingFile.write("Column 6: System 2 atom names\n\n")
+            # Writing the heading
+            mappingFile.write("# All indices are based on the order of the atoms in the pdb/psf files)\n")
+            mappingFile.write("#\n")
+            mappingFile.write("# Column 1: System 1 reduced indices (without receptor if present)\n")
+            mappingFile.write("# Column 2: System 1 total indices\n")
+            mappingFile.write("# Column 3: System 1 atom names\n")
+            mappingFile.write("# Column 4: System 2 reduced indices (without receptor if present)\n")
+            mappingFile.write("# Column 5: System 2 total indices\n")
+            mappingFile.write("# Column 6: System 2 atom names\n\n")
     
-            # Writing the mapping
+            # Writing the mapping of the atoms
             for system1Index in self.mappingMCSLigandSystem1To2:
                 system1Index = system1Index
                 system2Index = self.mappingMCSLigandSystem1To2[system1Index]
