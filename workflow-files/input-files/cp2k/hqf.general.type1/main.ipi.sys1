@@ -10,7 +10,7 @@
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE driver
-  PRINT_LEVEL medium
+  PRINT_LEVEL low
 &END global
 
 &MOTION

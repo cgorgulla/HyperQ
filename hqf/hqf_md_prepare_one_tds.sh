@@ -61,6 +61,70 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+# Function which checks and handles continuation of previous MD simulations
+handle_md_continuation() {
+
+    # Checking if the continuation mode is activated
+    if [[ "${md_continue^^}" == "TRUE" ]]; then
+
+        # Checking if the MD folder already exists
+        if [ -d "${tds_folder}"/ipi ]; then
+
+            # Printing some information
+            echo " * The folder ${tds_folder} already exists. Checking its contents..."
+
+            # Changing into the TDS directory
+            cd ${tds_folder}
+
+            # Removing empty restart files
+            #find ipi -iname "*restart*" -type f -empty -delete # We will not remove empty restart files, because our cross evaluations depend on all of them
+
+            # Variables
+            restart_file_no=$(ls -1v ipi/ | { grep "ipi.out.run.*restart_.*.gz" || true; } | wc -l)
+
+            # Checking the number of restart files
+            if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
+
+                echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+
+                # Variables
+                restart_file=$(ls -1v ipi/ | { grep "restart.*.gz" || true; } | tail -n 1)
+                run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
+                run_new=$((run_old + 1))
+
+                # Editing the ipi input file
+                sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
+
+                # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
+                # We do not distinguish the cases with an if statement because this way is more robust
+                sed -i "/momenta/d" ipi/ipi.in.main.xml
+                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ipi/ipi.in.sub.restart </file>|g" ipi/ipi.in.main.xml
+                # If the previous run was started from a restart file, we only need to update the checkpoint tag
+                sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+
+                # Preparing the restart file
+                zcat ipi/${restart_file} > ipi/ipi.in.sub.restart
+
+                # Setting the correct current step value
+                current_step_value=$(grep -m 1 "<step>" ipi/${restart_file} | grep -o "[0-9]\+")
+                sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
+
+                # Printing information
+                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+
+                # Finalization
+                cd ..
+                exit 0
+            else
+                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
+                cd ..
+                rm -r ${tds_folder}/ipi
+                rm -r ${tds_folder}/cp2k || true
+            fi
+        fi
+    fi
+}
+
 # Bash options
 set -o pipefail
 
@@ -84,7 +148,10 @@ tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr 
 md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_trajectory_stride="$(grep -m 1 "^md_trajectory_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_trajectory_centroid_stride="$(grep -m 1 "^md_trajectory_centroid_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_trajectory_beads_stride="$(grep -m 1 "^md_trajectory_beads_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_forces_stride="$(grep -m 1 "^md_forces_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_restart_stride="$(grep -m 1 "^md_restart_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_total_steps="$(grep -m 1 "^md_total_steps_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -159,60 +226,8 @@ if [ "${tdcycle_type}" == "hq" ]; then
         fi
     done
 
-    # Checking if the MD folder already exists
-    if [[ "${md_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}"/ipi ]; then
-
-            # Printing some information
-            echo " * The folder ${tds_folder} already exists. Checking its contents..."
-
-            # Changing into the TDS directory
-            cd ${tds_folder}
-
-            # Removing empty restart files
-            find ipi -iname "*restart*" -type f -empty -delete
-
-            # Variables
-            restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
-
-            # Checking the number of restart files
-            if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
-
-                echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
-
-                # Variables
-                restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
-                run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
-                run_new=$((run_old + 1))
-
-                # Editing the ipi input file
-                sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
-
-                # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
-                # We do not distinguish the cases with an if statement because this way is more robust
-                sed -i "/momenta/d" ipi/ipi.in.main.xml
-                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
-                # If the previous run was started from a restart file, we only need to update the checkpoint tag
-                sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
-
-                # Setting the correct current step value
-                current_step_value=$(grep -m 1 "<step>" ipi/${restart_file} | grep -o "[0-9]\+")
-                sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
-
-                # Printing information
-                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
-
-                # Finalization
-                cd ..
-                exit 0
-            else
-                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
-                cd ..
-                rm -r ${tds_folder}/ipi
-                rm -r ${tds_folder}/cp2k || true
-            fi
-        fi
-    fi
+    # Handling the MD continuation mode if needed
+    handle_md_continuation
 
     # Creating directories
     mkdir -p ${tds_folder}/cp2k
@@ -224,7 +239,10 @@ if [ "${tdcycle_type}" == "hq" ]; then
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_stride_placeholder|${md_trajectory_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subconfiguration_placeholder|${bead_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
@@ -358,65 +376,9 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         fi
     done
 
-    # Checking if the MD folder already exists
-    if [[ "${md_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}/ipi" ]; then
 
-            # Printing some information
-            echo " * The folder ${tds_folder} already exists. Checking its contents..."
-
-            # Changing into the TDS directory
-            cd ${tds_folder}
-
-            # Removing empty restart files
-            find ipi -iname "*restart*" -type f -empty -delete
-
-            # Variables
-            restart_file_no=$(ls -1v ipi/ | { grep restart || true; } | wc -l)
-
-            # Checking the number of restart files
-            if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
-
-                # Printing some information
-                echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
-
-                # Variables
-                restart_file=$(ls -1v ipi/ | { grep restart || true; } | tail -n 1)
-                restart_file_ID=${restart_file//*_}
-                run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
-                run_new=$((run_old + 1))
-
-                # Todo: (Possibly) Checking if the restart ID is larger than 1. If yes ok, if not checking if we can use file from previous run (so that we only use the second newest restart file)
-
-                # Editing the ipi input file
-                sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
-
-                # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
-                # We do not distinguish the cases with an if statement because this way is more robust
-                sed -i "/momenta/d" ipi/ipi.in.main.xml
-                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
-                # If the previous run was started from a restart file, we only need to update the checkpoint tag
-                sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
-
-                # Setting the correct current step value
-                current_step_value=$(grep -m 1 "<step>" ipi/${restart_file} | grep -o "[0-9]\+")
-                current_step_value=$((current_step_value+1))            # Because i-PI start to count internally at 0, thus we get 99 instead of 100 for instance after 100 steps
-                sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
-
-                # Printing information
-                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
-
-                # Finalization
-                cd ..
-                exit 0
-            else
-                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
-                cd ..
-                rm -r ${tds_folder}/ipi
-                rm -r ${tds_folder}/cp2k || true
-            fi
-        fi
-    fi
+    # Handling the MD continuation mode if needed
+    handle_md_continuation
 
     # Creating directories
     mkdir -p ${tds_folder}/cp2k
@@ -428,7 +390,10 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
     cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_stride_placeholder|${md_trajectory_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subconfiguration_placeholder|${lambda_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
     sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml

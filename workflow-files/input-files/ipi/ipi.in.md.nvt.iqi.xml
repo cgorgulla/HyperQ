@@ -1,11 +1,11 @@
-<simulation verbosity="high">
+<simulation verbosity="low">
   <output prefix='ipi.out.run1'>
-     <properties stride="md_trajectory_stride_placeholder" filename="properties" flush="1"> [step, time{femtosecond}, conserved, potential{kcal/mol}, kinetic_cv, pressure_cv{bar}, volume, temperature{kelvin}, kinetic_md, pressure_md{bar} ] </properties>
-     <properties stride="md_trajectory_stride_placeholder" filename="cell" flush="1"> [cell_h{angstrom}] </properties>
-     <trajectory stride="md_trajectory_stride_placeholder" filename="forces" format="pdb" cell_units="angstrom" flush="1"> forces </trajectory>
-     <trajectory stride="md_trajectory_stride_placeholder" filename="positions.bead" format="pdb" cell_units="angstrom" flush="1"> positions{angstrom} </trajectory>
-     <trajectory stride="md_trajectory_stride_placeholder" filename='positions.centroid' format="pdb" cell_units='angstrom' flush="1"> x_centroid{angstrom} </trajectory>
-     <checkpoint stride="md_trajectory_stride_placeholder" filename="restart" overwrite="false"/>
+     <properties stride="md_restart_stride_placeholder" filename="properties" flush="1"> [step, time{femtosecond}, conserved, potential{kcal/mol}, kinetic_cv, pressure_cv{bar}, volume, temperature{kelvin}, kinetic_md, pressure_md{bar} ] </properties>
+     <properties stride="md_restart_stride_placeholder" filename="cell" flush="1"> [cell_h{angstrom}] </properties>
+     <trajectory stride="md_forces_stride_placeholder" filename="forces" format="pdb" cell_units="angstrom" flush="1"> forces </trajectory>
+     <trajectory stride="md_trajectory_beads_stride_placeholder" filename="positions.bead" format="pdb" cell_units="angstrom" flush="1"> positions{angstrom} </trajectory>
+     <trajectory stride="md_trajectory_centroid_stride_placeholder" filename='positions.centroid' format="pdb" cell_units='angstrom' flush="1"> x_centroid{angstrom} </trajectory>
+     <checkpoint stride="md_restart_stride_placeholder" filename="restart" overwrite="false"/>
   </output>
   <total_steps>md_total_steps_placeholder</total_steps>
   <step>1</step>

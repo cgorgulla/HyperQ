@@ -125,7 +125,7 @@ prepare_restart() {
     mkdir -p ${crosseval_folder}/snapshot-${restart_ID}/cp2k
 
     # Preparing the ipi files
-    cp ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/${restart_file} ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
+    zcat ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/${restart_file} > ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     sed -i "/<step>/d" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
@@ -392,10 +392,20 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
     rm ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*all_runs* || true
     rm ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*all_runs* || true
 
+    # Note: We are not removing any uncompressed or empty restart files because we are dependent on a complete set of restart files even if one is not proper, because the cell/property files contain the associated information in corresponding lines
+
+    # Compressing all restart files which are uncompressed
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
+        gzip $restart_file
+    done
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
+        gzip $restart_file
+    done
+
     # Determining the number of restart files of the two TDS simulations
     trap '' ERR
-    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
-    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart" | grep -v restart_0 | wc -l)
+    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0 | wc -l)   # works also for .gz endings. i-PI restart files have no preceding zeros in their restart IDs
+    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0 | wc -l)
     trap 'error_response_std $LINENO' ERR
     if [[ "${restartfile_count_MD1}" == "0" || "${restartfile_count_MD2}" == "0" ]]; then
 
@@ -417,13 +427,13 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
     # Preparing the restart files
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep restart_ | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.restart_${counter} || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.restart_${counter}.gz || true
         counter=$((counter + 1))
     done
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep restart_ | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.restart_${counter} || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.restart_${counter}.gz || true
         counter=$((counter + 1))
     done
 
@@ -471,7 +481,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
             fi
 
             # Preparing the snapshot folder
-            restart_file=ipi.out.all_runs.restart_${restart_ID}
+            restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
             prepare_restart ${tds_folder_initialstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_fw} ${restart_ID} "endstate"
 
         else
@@ -506,7 +516,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
             fi
 
             # Preparing the snapshot folder
-            restart_file=ipi.out.all_runs.restart_${restart_ID}
+            restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
             prepare_restart ${tds_folder_endstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_bw} ${restart_ID} "initialstate"
 
         else
@@ -549,7 +559,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
                     fi
 
                     # Preparing the snapshot folder
-                    restart_file=ipi.out.all_runs.restart_${restart_ID}
+                    restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
                     prepare_restart ${tds_folder_initialstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_sn1} ${restart_ID} "initialstate"
 
                 else
@@ -585,7 +595,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
                 fi
 
                 # Preparing the snapshot folder
-                restart_file=ipi.out.all_runs.restart_${restart_ID}
+                restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
                 prepare_restart ${tds_folder_endstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_sn2} ${restart_ID} "endstate"
 
             else

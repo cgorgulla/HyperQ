@@ -63,6 +63,19 @@ cleanup_exit() {
     echo
     echo " * Cleaning up..."
 
+    # Removing output files to reduce total number of files
+    if [ "${md_verbosity^^}" == "LOW" ]; then
+
+        # i-PI
+        rm ipi/RESTART >/dev/null 2>&1 || true
+        rm ipi/ipi.out.*screen >/dev/null 2>&1 || true
+
+        # CP2K
+        for bead_folder in $(ls -v cp2k/); do
+            rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true # Problematic if using CPMD2 (which uses restart files)
+        done
+    fi
+
     # Terminating all processes
     if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 
@@ -99,6 +112,16 @@ cleanup_exit() {
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
+        # Removing output files to reduce total number of files
+        if [ ${md_verbosity^^} = LOW ]; then
+            # i-PI
+            rm ipi/RESTART >/dev/null 2>&1 || true
+            # CP2K
+            for bead_folder in $(ls -v cp2k/); do
+                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
+            done
+        fi
+
         # Terminating the child processes of the main processes
         pkill -P ${pids[*]} 1>/dev/null 2>&1 || true
         sleep 1 || true
@@ -106,6 +129,16 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
+
+        # Removing output files to reduce total number of files
+        if [ ${md_verbosity^^} = LOW ]; then
+            # i-PI
+            rm ipi/RESTART >/dev/null 2>&1 || true
+            # CP2K
+            for bead_folder in $(ls -v cp2k/); do
+                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
+            done
+        fi
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
         pkill -P $$ || true
@@ -132,6 +165,7 @@ tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_verbosity="$(grep -m 1 "^md_verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
@@ -157,7 +191,8 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
 
     # Starting ipi
     echo " * Starting ipi"
-    stdbuf -oL ipi ipi.in.main.xml > ipi.out.run${run}.screen 2>> ipi.out.run${run}.err &
+    # We always keep the screen output file because we use it as an major indicator whether i-PI is still running or not. Therefore we also use the stdbuf command only for this program
+    stdbuf -oL ipi ipi.in.main.xml | gzip > ipi.out.run${run}.screen.gz 2> ipi.out.run${run}.err &
     pid_ipi=$!
 
     # Updating variables
@@ -193,10 +228,16 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
                 # Checking the input file
                 ${cp2k_command} -e cp2k.in.main > cp2k.out.run${run}.config 2>cp2k.out.run${run}.err
 
-                # Starting CP2k
-                echo " * Starting cp2k (${bead_folder})"
-                OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main -o cp2k.out.run${run}.general > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
-                pid=$!
+                # Starting cp2k
+                echo " * Starting CP2K for ${bead_folder}..."
+                if [ "${md_verbosity^^}" == "NORMAL" ]; then
+                    OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main | gzip > cp2k.out.run${run}.screen.gz 2>cp2k.out.run${run}.err &
+                    pid=$!
+                elif [ "${md_verbosity^^}" == "LOW" ]; then
+                    sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
+                    OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main >/dev/null 2>cp2k.out.run${run}.err &
+                    pid=$!
+                fi
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
@@ -237,8 +278,19 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
 
     # Starting i-QI
     echo " * Starting iqi"
-    stdbuf -oL iqi iqi.in.main.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
-    pid=$!
+    if [ "${md_verbosity^^}" == "NORMAL" ]; then
+        iqi iqi.in.main.xml | gzip > iqi.out.run${run}.screen.gz 2> iqi.out.run${run}.err &
+        pid=$!
+    elif [ "${md_verbosity^^}" == "LOW" ]; then
+        iqi ipi.in.main.xml 2> iqi.out.run${run}.err
+        pid_ipi=$!
+    else
+        # Printing some information
+        echo " * Error: The variables md_verbosity has an unsupported value (${md_verbosity}). Exiting..."
+
+        # Exiting
+        exit 1
+    fi
 
     # Updating variables
     pids[${sim_counter}]=$pid
@@ -290,10 +342,10 @@ while true; do
     fi
 
     # Checking the condition of the output files
-    if [ -f ipi/ipi.out.run${run}.screen ]; then
+    if [ -f ipi/ipi.out.run${run}.screen.gz ]; then
 
         # Variables
-        time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+        time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen.gz)))
 
         # Checking the time diff
         if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+30))" ]]; then
@@ -304,7 +356,7 @@ while true; do
         elif [[ "${time_diff}" -ge "$((md_timeout+30))" ]]; then
         
             # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
-            touch ipi/ipi.out.run${run}.screen
+            touch ipi/ipi.out.run${run}.screen.gz
         fi
     fi
     if [ -f ipi/ipi.out.run${run}.err ]; then
@@ -402,7 +454,7 @@ while true; do
         else
 
             # Variables
-            time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
+            time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen.gz)))
             
             # Still waiting until we reach md_timeout, just in case the process check was erroneous 
             if [ "${time_diff}" -ge "${md_timeout}" ]; then
@@ -413,6 +465,11 @@ while true; do
             fi
         fi
     fi
+
+    # Checking if there are new restart files and compressing them if there are some
+    for restart_file in $(find ipi -iregex ".*ipi.out.run.*restart_[0-9]+$"); do
+        gzip $restart_file
+    done
 
     # Sleeping before next round
     sleep 10 || true   # true because the script might be terminated while sleeping, which would result in an error

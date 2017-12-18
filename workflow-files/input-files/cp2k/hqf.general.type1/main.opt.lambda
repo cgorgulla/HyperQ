@@ -15,7 +15,7 @@
 &GLOBAL
   PROJECT cp2k.out
   RUN_TYPE geo_opt
-  PRINT_LEVEL medium
+  PRINT_LEVEL low
   SEED ${cp2k_random_seed}
 &END global
 

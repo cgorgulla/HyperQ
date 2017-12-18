@@ -1,4 +1,4 @@
-<simulation verbosity="debug">
+<simulation verbosity="low">
 	<interface type="socket">
 		<socket type="unix">
 			<address> address_iqi_placeholder </address>

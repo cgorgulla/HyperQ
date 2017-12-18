@@ -46,8 +46,8 @@ cleanup_exit() {
     echo
     echo " * Cleaning up..."
 
-    # Removing CP2K output files to reduce total number of files
-    if [ "${ce_verbosity}" == "normal" ]; then
+    # Removing output files to reduce total number of files
+    if [ "${ce_verbosity^^}" == "NORMAL" ]; then
 
         # i-PI
         rm ipi/RESTART >/dev/null 2>&1 || true
@@ -73,8 +73,8 @@ cleanup_exit() {
 
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
-        # Removing CP2K output files to reduce total number of files
-        if [ ${ce_verbosity} = normal ]; then
+        # Removing output files to reduce total number of files
+        if [ ${ce_verbosity^^} = NORMAL ]; then
             # i-PI
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
@@ -90,8 +90,8 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
-        # Removing CP2K output files to reduce total number of files
-        if [ ${ce_verbosity} == normal ]; then
+        # Removing output files to reduce total number of files
+        if [ ${ce_verbosity^^} == NORMAL ]; then
             # i-PI
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
@@ -159,13 +159,8 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
     sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" ipi.in.*
 
     # Starting ipi
-    if [ "${ce_verbosity}" == "debug" ]; then
-        stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
-        pid_ipi=$!
-    else
-        stdbuf -oL ipi ipi.in.main.xml > /dev/null &
-        pid_ipi=$!
-    fi
+    stdbuf -oL ipi ipi.in.main.xml > ipi.out.screen 2> ipi.out.err &
+    pid_ipi=$!
 
     # Updating variables
     pids[${sim_counter}]=${pid_ipi}
@@ -199,22 +194,15 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
 
                 # Checking the input file
-                if [ "${ce_verbosity}" == "debug" ]; then
+                if [ "${ce_verbosity^^}" == "DEBUG" ]; then
                     ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
                 else
                     ${cp2k_command} -e cp2k.in.main >/dev/null
                 fi
 
                 # Starting cp2k
-                echo " * Starting CP2K for ${bead_folder}..."
-                if [ "${ce_verbosity}" == "debug" ]; then
-                    ${cp2k_command} -i cp2k.in.main -o cp2k.out.general > cp2k.out.screen 2>cp2k.out.err &
-                    pid=$!
-                else
-                    sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
-                    ${cp2k_command} -i cp2k.in.main > /dev/null &
-                    pid=$!
-                fi
+                ${cp2k_command} -i cp2k.in.main > cp2k.out.screen 2>cp2k.out.err &
+                pid=$!
 
                 # Updating variables
                 pids[${sim_counter}]=$pid
@@ -248,14 +236,8 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
 
     # Starting iqi
     echo -e " * Starting iqi"
-    rm iqi.out.* > /dev/null 2>&1 || true 
-    if [ "${ce_verbosity}" == "debug" ]; then
-        iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
-        pid=$!
-    else
-        iqi iqi.in.main.xml > /dev/null &
-        pid=$!
-    fi
+    iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
+    pid=$!
 
 
     # Updating variables
@@ -332,5 +314,5 @@ while true; do
     fi
 
     # Sleeping shortly before next round
-    sleep 1 || true             # true because the script might be terminated while sleeoping, which would result in an error
+    sleep 1 || true             # true because the script might be terminated while sleeping, which would result in an error
 done

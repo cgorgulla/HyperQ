@@ -10,7 +10,7 @@ workflow_id=A
 # In particular relevant for the batchsystem, for the socket-files a time-stamp mechanism is used as additional protection mechanism.
 # Up to 50 characters are supported (provided the job IDs have less than 10 digits). The first character should be an alphabetic letter (required by some batchsystems)
 
-verbosity_runtime=debug
+verbosity_runtime=standard
 # Possible values: standard, debug
 # This option mainly effects the screen output and the logfiles
 
@@ -354,16 +354,40 @@ md_total_steps_LS=100000000
 md_total_steps_RLS=100000000
 # Input files for the simulations are adjusted automatically by replacing the term 'md_total_steps_placeholder'
 
-md_trajectory_stride_L=100
-md_trajectory_stride_LS=100
-md_trajectory_stride_RLS=100
-# The stride w.r.t. the time steps during the MD simulations when snapshot files are written out for the later CEs
-# Input files for the simulations are adjusted automatically by replacing the term 'stride_md_placeholder'
+md_restart_stride_L=100
+md_restart_stride_LS=100
+md_restart_stride_RLS=100
+# The stride w.r.t. the time steps during the MD simulations when restart/property/cell files are written out for the later CEs
+# Input files for the simulations are adjusted automatically by replacing the term 'md_restart_stride_placeholder' (should be used at least for the above mentioned three types of files)
 
-md_timeout_L=100
-md_timeout_LS=500
+md_trajectory_centroid_stride_L=1000
+md_trajectory_centroid_stride_LS=1000
+md_trajectory_centroid_stride_RLS=1000
+# The stride w.r.t. the time steps during the MD simulations when trajectory files for the centroids are written out
+# Input files for the simulations are adjusted automatically by replacing the term 'md_trajectory_centroid_stride_placeholder'
+
+md_trajectory_beads_stride_L=1000
+md_trajectory_beads_stride_LS=1000
+md_trajectory_beads_stride_RLS=1000
+# The stride w.r.t. the time steps during the MD simulations when trajectory files for the beads are written out
+# Input files for the simulations are adjusted automatically by replacing the term 'md_trajectory_beads_stride_placeholder'
+
+md_forces_stride_L=10000
+md_forces_stride_LS=10000
+md_forces_stride_RLS=10000
+# The stride w.r.t. the time steps during the MD simulations when force files are written out
+# Input files for the simulations are adjusted automatically by replacing the term 'md_forces_stride_placeholder'
+
+md_verbosity=low
+# Possible values: normal, low
+# normal: Default output files are kept
+# low: No screen and related output files are kept
+# Does not affect the verbosity settings of the simulation input files
+
+md_timeout_L=1000
+md_timeout_LS=1000
 md_timeout_RLS=1000
-# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
+# Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds), and that the output files are compressed which can increase the update interval a lot
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
 
@@ -379,8 +403,8 @@ ce_continue=true
 
 ce_verbosity=normal
 # Possible values: normal, debug
-# Normal: Only essential output files of the simulation programs (i-Pi, CP2K, i-QI) are kept
-# Debug: All the simulation output files are kept (not recommended for large scale production runs)
+# normal: Only essential output files of the simulation programs (i-Pi, CP2K, i-QI) are kept
+# debug: All the simulation output files are kept (not recommended for large scale production runs)
 
 ce_type_L=MM
 ce_type_LS=MM
@@ -399,18 +423,18 @@ ce_stride_RLS=10
 # The stride which is applied during the CE, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 
-ce_timeout_L=100
-ce_timeout_LS=100
-ce_timeout_RLS=100
+ce_timeout_L=500
+ce_timeout_LS=500
+ce_timeout_RLS=500
 # Here should be taken into account that between the start of i-pi and CP2K there can be a time delay of a few seconds (usually around 5 seconds)
 # Timeout starts counting after CP2K (and possibly iqi) has been started
 
 
 ****************************************************************************** FEC ******************************************************************************
 
-fec_first_snapshot_index_L=10
-fec_first_snapshot_index_LS=10
-fec_first_snapshot_index_RLS=10
+fec_first_snapshot_index_L=1
+fec_first_snapshot_index_LS=1
+fec_first_snapshot_index_RLS=1
 fec_stride_L=1
 fec_stride_LS=1
 fec_stride_RLS=1
