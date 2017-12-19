@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hqf_ce_run_one_msp.sh
 
-Has to be run in the simulation main folder."
+Has to be run in the subsystem folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -39,7 +39,7 @@ error_response_std() {
     echo
     echo
 
-    # Changing to the root folder
+    # Changing to the root folder (during an error we could have been in a different folder than the starting WD)
     for i in {1..10}; do
         if [ -d input-files ]; then
 
@@ -55,12 +55,18 @@ error_response_std() {
     echo "Error: Cannot find the input-files directory..."
     exit 1
 }
+
 trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
 clean_up() {
 
+    # Printing some information
     echo
     echo " * Cleaning up..."
+
+    # Removing remaining empty folders if there should some (ideally not)
+    sleep 3
+    find ./ -empty -delete
 
     # Terminating all remaining processes.
     echo " * Terminating all remaining processes..."
@@ -73,6 +79,8 @@ clean_up() {
 
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* >/dev/null 2>&1 || true
+        # Removing remaining empty folders if there should some (ideally not)
+        find ./ -empty -delete
 
         # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime

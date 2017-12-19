@@ -177,6 +177,8 @@ while read line; do
             if [[ "${energy_bw_U1_U2}" == *[0-9]* ]] && [[ "${energy_bw_U1_U1}" == *[0-9]* ]]; then
                 echo "${energy_bw_U1_U2}" >> ${fec_folder}/${TD_window}/U1_U2
                 echo "${energy_bw_U1_U1}" >> ${fec_folder}/${TD_window}/U1_U1
+            else
+                echo " * Warning: The energy values of snapshot ${snapshot_id}  seem to be invalid. Ignoring this snapshot..."
             fi
             snapshot_counter=$((snapshot_counter+1))
 
@@ -218,10 +220,7 @@ while read line; do
     # Loop for the each snapshot pair of the backward direction
     echo " * Preparing the snapshots of the backward direction"
     snapshot_counter=1
-    for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_bw}); do
-
-        # Variables
-        snapshot_id=${snapshot_folder/*\-}
+    for snapshot_id in $(awk '{print $1}' ${common_energy_file_bw} | sort -n); do
 
         # Checking if this snapshot should be skipped
         if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
@@ -244,6 +243,8 @@ while read line; do
             if [[ "${energy_bw_U2_U1}" == *[0-9]* ]] && [[ "${energy_bw_U2_U2}" == *[0-9]* ]]; then
                 echo "${energy_bw_U2_U1}" >> ${fec_folder}/${TD_window}/U2_U1
                 echo "${energy_bw_U2_U2}" >> ${fec_folder}/${TD_window}/U2_U2
+            else
+                echo " * Warning: The energy values of snapshot ${snapshot_id}  seem to be invalid. Ignoring this snapshot..."
             fi
             snapshot_counter=$((snapshot_counter+1))
 

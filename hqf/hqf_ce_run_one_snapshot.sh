@@ -56,7 +56,7 @@ save_energy_value() {
 
         # Removing all previous entries
         echo -e " * All previous entries will be removed..."
-        sed -i "/^ \+[0-9]\+ /d" "${common_energy_file}"
+        sed -i "/^ ${snapshot_id} /d" "${common_energy_file}"
         echo -e " * Removal completed. Continuing..."
     fi
 
@@ -84,7 +84,7 @@ cleanup_exit() {
     cd ..
     if [ ${success_flag} == true ]; then
         # Deleting the snapshot folder
-        sleep 3
+        sleep 5
         rm -f -r ${snapshot_name} >/dev/null || true
     fi
 
