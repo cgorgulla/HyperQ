@@ -137,9 +137,9 @@ for tds_index in $(seq 1 ${tds_count}); do
     # Checking if serial insertion is activated
     if [ "${tdcycle_si_activate^^}" == "TRUE" ]; then
 
-        # Moving the dummy atom indices file
-        mv ../../system1.tds-${tds_index}.dummy.indices system1.dummy.indices
-        mv ../../system2.tds-${tds_index}.dummy.indices system2.dummy.indices
+        # Copying the dummy atom indices file (Not moving, parallel robustness, and convenience for us if we want to see all the files)
+        cp ../../system1.tds-${tds_index}.dummy.indices system1.dummy.indices
+        cp ../../system2.tds-${tds_index}.dummy.indices system2.dummy.indices
 
         # Preparing the psf files for the real system
         hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf system1.dummy.indices system1.cp2k.psf
