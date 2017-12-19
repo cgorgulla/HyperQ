@@ -80,7 +80,7 @@ handle_md_continuation() {
             #find ipi -iname "*restart*" -type f -empty -delete # We will not remove empty restart files, because our cross evaluations depend on all of them
 
             # Variables
-            restart_file_no=$(ls -1v ipi/ | { grep "ipi.out.run.*restart_.*.gz" || true; } | wc -l)
+            restart_file_no=$(ls -1v ipi/ | { grep "ipi.out.run.*restart_.*.bz2" || true; } | wc -l)
 
             # Checking the number of restart files
             if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
@@ -88,7 +88,7 @@ handle_md_continuation() {
                 echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
 
                 # Variables
-                restart_file=$(ls -1v ipi/ | { grep "restart.*.gz" || true; } | tail -n 1)
+                restart_file=$(ls -1v ipi/ | { grep "restart.*.bz2" || true; } | tail -n 1)
                 run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
                 run_new=$((run_old + 1))
 
@@ -103,7 +103,7 @@ handle_md_continuation() {
                 sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
 
                 # Preparing the restart file
-                zcat ipi/${restart_file} > ipi/ipi.in.sub.restart
+                bzcat ipi/${restart_file} > ipi/ipi.in.sub.restart
 
                 # Setting the correct current step value
                 current_step_value=$(grep -m 1 "<step>" ipi/${restart_file} | grep -o "[0-9]\+")

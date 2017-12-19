@@ -239,8 +239,8 @@ else
 fi
 
 # Setting file permissions
-chmod u+x batchsystem/job-files/main/*
-chmod u+x batchsystem/job-files/subjobs/*
+chmod u+x batchsystem/job-files/main/*  || true # If a sed temporary file is there this can make chmod choking...
+chmod u+x batchsystem/job-files/subjobs/* || true
 
 # Updating and submitting the relevant jobs
 if [ -f ${temp_folder}/jobs-to-start ]; then

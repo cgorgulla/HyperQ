@@ -104,9 +104,9 @@ command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snap
 
 # Getting the energy eval folders
 if [ "${tdcycle_type}" == "hq" ]; then
-    crosseval_folders="$(ls -vrd */)"
+    crosseval_folders="$(ls -vrd tds*-*/)"
 elif [ "${tdcycle_type}" == "lambda" ]; then
-    crosseval_folders="$(ls -vd */)"
+    crosseval_folders="$(ls -vd tds*-*/)"
 fi
 crosseval_folders=${crosseval_folders//\/}
 
@@ -119,7 +119,7 @@ for crosseval_folder in ${crosseval_folders}; do
 
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
-        for snapshot_folder in $(ls -v); do
+        for snapshot_folder in $(ls -v | grep snapshot); do
 
             # Checking if the workflow is run by the BS module
             if [ -n "${HQ_BS_JOBNAME}" ]; then
@@ -147,11 +147,32 @@ for crosseval_folder in ${crosseval_folders}; do
 
             # Checking if the snapshot was computed already
             if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [ -f ${snapshot_folder}/ipi/ipi.out.properties ]; then
-                    propertylines_word_count=$(grep "^ *[0-9]" ${snapshot_folder}/ipi/ipi.out.properties | wc -w)
-                    if [ "${propertylines_word_count}" -ge "3" ]; then
-                         echo " * The snapshot ${snapshot_folder/*-} has been computed already, skipping."
-                         continue
+
+                # Variables
+                restart_ID=${snapshot_folder/*-}
+
+                # Checking if the snapshot has already been completed successfully
+                if energy_line_old="$(grep "^ ${restart_ID}" ce_potential_energies.txt &> /dev/null)"; then
+
+                    # Printing some information
+                    echo -e " * Info: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
+
+                    # Checking if the entry contains two words
+                    if [ "$(echo ${energy_line_old} | wc -w)" == "2" ]; then
+
+                        # Printing some information
+                        echo -e " * Info: This entry does seem to be valid. Removing the existing folder and continuing with next snapshot..."
+
+                        # Removing the folder
+                        rm -r snapshot-${restart_ID} 1> /dev/null || true
+
+                        # Skipping the snapshot
+                        continue
+                    else
+
+                        # Printing some information
+                        echo -e " * Info: This entry does seem to be invalid. Removing this entry from the common energy file and continuing with next snapshot..."
+                        sed -i "/^ ${restart_ID} /d" ce_potential_energies.txt
                     fi
                 fi
             fi
@@ -159,7 +180,7 @@ for crosseval_folder in ${crosseval_folders}; do
             # Loop for allowing only the specified number of parallel runs
             while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
                 jobs
-                echo -e " * Waiting for a free slot to start cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder} (hqf_ce_run_one_msp.sh)"
+                echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder} (hqf_ce_run_one_msp.sh)"
                 sleep 1.$RANDOM
                 echo
             done;
@@ -175,6 +196,10 @@ for crosseval_folder in ${crosseval_folders}; do
             trap 'error_response_std $LINENO' ERR
             i=$((i+1))
             cd ..
+
+            # Removing empty remaining folders if there should some (ideally not)
+            find ${snapshot_folder} -empty -delete
+
         done
     else
         echo -e " * Warning: No snapshots found in folder ${crosseval_folder}, skipping."

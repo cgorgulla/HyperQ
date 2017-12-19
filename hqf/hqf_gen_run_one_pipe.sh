@@ -204,7 +204,7 @@ export HQ_STARTDATE_ONEPIPE
 if [ -z "${HQ_STARTDATE_BS}" ]; then
 
     # Setting the HQ_STARTDATE_BS to the HQ_STARTDATE_ONEPIPE
-    HQ_STARTDATE_BS=${HQ_STARTDATE_ONEPIPE}
+    HQ_STARTDATE_BS=${HQ_STARTDATE_ONEPIPE} # Todo only use the latter in hq
     export HQ_STARTDATE_BS
 fi
 

@@ -64,7 +64,7 @@ cleanup_exit() {
     echo " * Cleaning up..."
 
     # Removing output files to reduce total number of files
-    if [ "${md_verbosity^^}" == "LOW" ]; then
+    if [ "${md_keep_logfiles^^}" == "FALSE" ]; then
 
         # i-PI
         rm ipi/RESTART >/dev/null 2>&1 || true
@@ -113,7 +113,7 @@ cleanup_exit() {
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Removing output files to reduce total number of files
-        if [ ${md_verbosity^^} = LOW ]; then
+        if [ ${md_keep_logfiles^^} = FALSE ]; then
             # i-PI
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
@@ -131,7 +131,7 @@ cleanup_exit() {
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.md.*.${tds_folder//tds.} 1>/dev/null 2>&1 || true
 
         # Removing output files to reduce total number of files
-        if [ ${md_verbosity^^} = LOW ]; then
+        if [ ${md_keep_logfiles^^} = FALSE ]; then
             # i-PI
             rm ipi/RESTART >/dev/null 2>&1 || true
             # CP2K
@@ -165,7 +165,7 @@ tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_verbosity="$(grep -m 1 "^md_verbosity=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_keep_logfiles="$(grep -m 1 "^md_keep_logfiles=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
@@ -192,7 +192,7 @@ if [[ "${md_programs}" == *"ipi"* ]]; then
     # Starting ipi
     echo " * Starting ipi"
     # We always keep the screen output file because we use it as an major indicator whether i-PI is still running or not. Therefore we also use the stdbuf command only for this program
-    stdbuf -oL ipi ipi.in.main.xml | gzip > ipi.out.run${run}.screen.gz 2> ipi.out.run${run}.err &
+    stdbuf -oL ipi ipi.in.main.xml > ipi.out.run${run}.screen 2> ipi.out.run${run}.err &
     pid_ipi=$!
 
     # Updating variables
@@ -230,10 +230,10 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
 
                 # Starting cp2k
                 echo " * Starting CP2K for ${bead_folder}..."
-                if [ "${md_verbosity^^}" == "NORMAL" ]; then
-                    OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main | gzip > cp2k.out.run${run}.screen.gz 2>cp2k.out.run${run}.err &
+                if [ "${md_keep_logfiles^^}" == "TRUE" ]; then
+                    OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main > cp2k.out.run${run}.screen 2>cp2k.out.run${run}.err &
                     pid=$!
-                elif [ "${md_verbosity^^}" == "LOW" ]; then
+                elif [ "${md_keep_logfiles^^}" == "FALSE" ]; then
                     sed -i "s|PRINT_LEVEL .*|PRINT_LEVEL silent|g" cp2k.in.*
                     OMP_NUM_THREADS=${ncpus_cp2k_md} ${cp2k_command} -i cp2k.in.main >/dev/null 2>cp2k.out.run${run}.err &
                     pid=$!
@@ -278,15 +278,15 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
 
     # Starting i-QI
     echo " * Starting iqi"
-    if [ "${md_verbosity^^}" == "NORMAL" ]; then
-        iqi iqi.in.main.xml | gzip > iqi.out.run${run}.screen.gz 2> iqi.out.run${run}.err &
+    if [ "${md_keep_logfiles^^}" == "TRUE" ]; then
+        iqi iqi.in.main.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
         pid=$!
-    elif [ "${md_verbosity^^}" == "LOW" ]; then
+    elif [ "${md_keep_logfiles^^}" == "FALSE" ]; then
         iqi ipi.in.main.xml 2> iqi.out.run${run}.err
         pid_ipi=$!
     else
         # Printing some information
-        echo " * Error: The variables md_verbosity has an unsupported value (${md_verbosity}). Exiting..."
+        echo " * Error: The variables md_keep_logfiles has an unsupported value (${md_keep_logfiles}). Exiting..."
 
         # Exiting
         exit 1
@@ -342,10 +342,10 @@ while true; do
     fi
 
     # Checking the condition of the output files
-    if [ -f ipi/ipi.out.run${run}.screen.gz ]; then
+    if [ -f ipi/ipi.out.run${run}.screen ]; then
 
         # Variables
-        time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen.gz)))
+        time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
 
         # Checking the time diff
         if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+30))" ]]; then
@@ -356,7 +356,7 @@ while true; do
         elif [[ "${time_diff}" -ge "$((md_timeout+30))" ]]; then
         
             # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
-            touch ipi/ipi.out.run${run}.screen.gz
+            touch ipi/ipi.out.run${run}.screen
         fi
     fi
     if [ -f ipi/ipi.out.run${run}.err ]; then
@@ -454,7 +454,7 @@ while true; do
         else
 
             # Variables
-            time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen.gz)))
+            time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
             
             # Still waiting until we reach md_timeout, just in case the process check was erroneous 
             if [ "${time_diff}" -ge "${md_timeout}" ]; then
@@ -468,7 +468,7 @@ while true; do
 
     # Checking if there are new restart files and compressing them if there are some
     for restart_file in $(find ipi -iregex ".*ipi.out.run.*restart_[0-9]+$"); do
-        gzip $restart_file
+        bzip2 -f $restart_file
     done
 
     # Sleeping before next round

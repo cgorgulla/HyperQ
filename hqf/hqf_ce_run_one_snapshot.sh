@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hqf_ce_run_one_snapshot.sh
 
-Has to be run in the simulation main folder."
+Has to be run in the snapshot main folder."
 
 # Checking the arguments
 if [ "${1}" == "-h" ]; then
@@ -28,6 +28,7 @@ fi
 
 # Standard error response 
 error_response_std() {
+
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
@@ -40,22 +41,51 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 
+# Save energy value
+save_energy_value() {
+
+    # Printing some information
+    echo -e "\n\nSaving the energy value in the common energy file\n"
+
+    # Checking if for this snapshot there is already an entry in the energy file
+    echo -e " * Checking if for this snapshot there is already an entry in the energy file"
+    if energy_line_old="$(grep "^ ${snapshot_id} " "${common_energy_file}" &> /dev/null)"; then
+
+        # Printing some information
+        echo -e " * Warning: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
+
+        # Removing all previous entries
+        echo -e " * All previous entries will be removed..."
+        sed -i "/^ \+[0-9]\+ /d" "${common_energy_file}"
+        echo -e " * Removal completed. Continuing..."
+    fi
+
+    # Saving the energy value
+    echo " ${snapshot_id} ${energy_value}" >> "${common_energy_file}"
+
+    # Printing some information
+    echo "\n\nSnapshot ${snapshot_id} completed successfully after ${snapshot_time_total} seconds."
+
+    # Setting the success flag
+    success_flag="true"
+
+    # Exiting
+    exit 0
+}
+
 # Exit cleanup
 cleanup_exit() {
 
+    # Printing some information
     echo
     echo " * Cleaning up..."
 
-    # Removing output files to reduce total number of files
-    if [ "${ce_verbosity^^}" == "NORMAL" ]; then
-
-        # i-PI
-        rm ipi/RESTART >/dev/null 2>&1 || true
-
-        # CP2K
-        for bead_folder in $(ls -v cp2k/); do
-            rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
-        done
+    # Removing the snapshot folder if the run was successful
+    cd ..
+    if [ ${success_flag} == true ]; then
+        # Deleting the snapshot folder
+        sleep 3
+        rm -f -r ${snapshot_name} >/dev/null || true
     fi
 
     # Terminating all remaining processes
@@ -73,14 +103,10 @@ cleanup_exit() {
 
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
-        # Removing output files to reduce total number of files
-        if [ ${ce_verbosity^^} = NORMAL ]; then
-            # i-PI
-            rm ipi/RESTART >/dev/null 2>&1 || true
-            # CP2K
-            for bead_folder in $(ls -v cp2k/); do
-                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
-            done
+        # Removing the snapshot folder if the run was successful
+        if [ ${success_flag} == true ]; then
+            # Deleting the snapshot folder
+            rm -f -r ${snapshot_name} >/dev/null || true
         fi
 
         # Terminating the child processes of the main processes
@@ -90,14 +116,10 @@ cleanup_exit() {
 
         # Removing the socket files if still existent (again because sometimes a few are still left)
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.*.${crosseval_folder//tds.}.r-${snapshot_id} >/dev/null 2>&1 || true
-        # Removing output files to reduce total number of files
-        if [ ${ce_verbosity^^} == NORMAL ]; then
-            # i-PI
-            rm ipi/RESTART >/dev/null 2>&1 || true
-            # CP2K
-            for bead_folder in $(ls -v cp2k/); do
-                rm cp2k/${bead_folder}/cp2k.out* >/dev/null 2>&1 || true
-            done
+        # Removing the snapshot folder if the run was successful
+        if [ ${success_flag} == true ]; then
+            # Deleting the snapshot folder
+            rm -f -r ${snapshot_name} >/dev/null || true
         fi
 
         # Terminating everything else which is still running and which was started by this script, which will include the current exit-code
@@ -127,9 +149,10 @@ ce_timeout="$(grep -m 1 "^ce_timeout_${subsystem}=" ../../../../../input-files/c
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-ce_verbosity="$(grep -m 1 "^ce_verbosity=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 snapshot_time_start=$(date +%s)
 sim_counter=0
+success_flag="false"
+common_energy_file="../ce_potential_energies.txt"
 
 # Checking if the snapshot was computed already
 if [ "${ce_continue^^}" == "TRUE" ]; then
@@ -194,11 +217,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
                 sed -i "s|HOST.*cp2k.*|HOST ${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}|g" cp2k.in.*
 
                 # Checking the input file
-                if [ "${ce_verbosity^^}" == "DEBUG" ]; then
-                    ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
-                else
-                    ${cp2k_command} -e cp2k.in.main >/dev/null
-                fi
+                ${cp2k_command} -e cp2k.in.main > cp2k.out.config 2>cp2k.out.config.err
 
                 # Starting cp2k
                 ${cp2k_command} -i cp2k.in.main > cp2k.out.screen 2>cp2k.out.err &
@@ -257,21 +276,24 @@ while true; do
         echo " * Checking if the computation running in folder ${PWD} has completed."
     fi
 
-    # Checking the condition of the output files
+    # Checking the condition of the properties output files
     if [ -f ipi/ipi.out.properties ]; then
 
         # Variables
-        propertylines_word_count="$(grep "^ *[0-9]" ipi/ipi.out.properties | wc -w)"
+        propertylines_word_count="$(grep -E "^ +[0-9]" ipi/ipi.out.properties | wc -w)"
 
         # Checking the number of words
-        if [ "${propertylines_word_count}" -ge "3" ]; then
+        if [ "${propertylines_word_count}" -ge "4" ]; then
 
-             # Variables
-             snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
+            # Printing some information
+            echo " * The i-PI property output file seems to contain the required values."
 
-             # Printing some information
-             echo " * Snapshot ${snapshot_id} completed after ${snapshot_time_total} seconds."
-             break
+            # Variables
+            snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
+            energy_value="$(grep -E "^ +[0-9]" ipi/ipi.out.properties | awk '{print $4}')"
+
+            # Saving the energy value by calling the function save_energy_value, which will also exit the script
+            save_energy_value
         fi
     fi
 
@@ -290,7 +312,7 @@ while true; do
     fi
 #    # Checking for cp2k errors
 #    for bead_folder in $(ls -v cp2k/); do
-#        # We are not interpreting pseudoerrors as successful runs, we rely only on the property file of ipi. But we would need to check for pseudo errors in order to be able to get the real errors
+#        # We are not interpreting pseudo-errors as successful runs, we rely only on the property file of ipi. But we would need to check for pseudo errors in order to be able to get the real errors
 #        if [ -f cp2k/${bead_folder}/cp2k.out.err ]; then
 #            error_count="$( { grep -i error cp2k/${bead_folder}/cp2k.out.err || true; } | wc -l)"
 #            if [ ${error_count} -ge "1" ]; then
@@ -310,7 +332,37 @@ while true; do
 
         # Printing some information
         echo " * i-PI seems to have terminated without error."
-        break
+
+        # Checking the condition of the properties output files
+        if [ -f ipi/ipi.out.properties ]; then
+
+            # Variables
+            propertylines_word_count="$(grep -E "^ +[0-9]" ipi/ipi.out.properties | wc -w)"
+
+            # Checking the number of words
+            if [ "${propertylines_word_count}" -ge "4" ]; then
+
+                # Printing some information
+                echo " * The i-PI property output file seems to contain the required values."
+
+                # Variables
+                snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
+                energy_value="$(grep -E "^ +[0-9]" ipi/ipi.out.properties | awk '{print $4}')"
+
+                # Saving the energy value by calling the function save_energy_value, which will also exit the script
+                save_energy_value
+            else
+
+                # The properties output file does not exist
+                echo " * But the properties output file does not seem to contain the required potential energy..."
+                exit 1
+            fi
+        else
+
+            # The properties output file does not exist
+            echo " * But the properties output file does not exist..."
+            exit 1
+        fi
     fi
 
     # Sleeping shortly before next round

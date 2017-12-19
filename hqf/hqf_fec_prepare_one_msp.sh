@@ -88,7 +88,7 @@ if [ ! -d "${subsystem_folder}" ]; then
     exit 1
 fi
 
-# Checking if the ce_folder exists
+# Checking if the required file exists
 if [ ! -d "${ce_folder}" ]; then
     echo "\nError: The folder ${ce_folder} does not exist. Exiting\n\n" 1>&2
     exit 1
@@ -116,6 +116,8 @@ while read line; do
     stride_ipi_trajectory=$(grep "<checkpoint" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')
     #stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
     TD_window="${tds_folder_1}-${tds_folder_2}"
+    common_energy_file_fw="${ce_folder}/${crosseval_folder_fw}/ce_potential_energies.txt"
+    common_energy_file_bw="${ce_folder}/${crosseval_folder_bw}/ce_potential_energies.txt"
 
     # Checking if the checkpoint and potential in the ipi input file are equal
     if [ "${stride_ipi_properties}" -ne "${stride_ipi_trajectory}" ]; then
@@ -152,21 +154,17 @@ while read line; do
     # Loop for the each snapshot pair of the forward direction
     echo " * Preparing the snapshots of the forward direction"
     snapshot_counter=1
-    for snapshot_folder in $(ls -v ${ce_folder}/${crosseval_folder_fw}); do
+    for snapshot_id in $(awk '{print $1}' ${common_energy_file_fw} | sort -n); do
 
-
-        # Variables
-        snapshot_id=${snapshot_folder/*\-}
-
-        # Checking if this snapshout should be skipped
+        # Checking if this snapshot should be skipped
         if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
             echo " * Skipping snapshot ${snapshot_id} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
             snapshot_counter=$((snapshot_counter+1))
             continue
         fi
 
-        # Extracting the free energies of system 1 evaluated at system 2
-        energy_bw_U1_U2="$(grep -v "^#" ${ce_folder}/${crosseval_folder_fw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+        # Extracting the potential energy of system 1 evaluated at system 2
+        energy_bw_U1_U2="$(grep "^ ${snapshot_id} " ${common_energy_file_fw} | awk '{print $2}')"
 
         # Extracting the free energies of system 1 evaluated at system 1
         # Checking if reweighting should not be used
@@ -185,11 +183,15 @@ while read line; do
         # Checking if reweighting should be used
         elif [ "${umbrella_sampling^^}" == "TRUE" ]; then
 
-            # Checking if the required stationary evaluatioin file exists
-            if [ -f ${ce_folder}/${tds_folder_1}-${tds_folder_1}/${snapshot_folder}/ipi/ipi.out.properties ]; then
+            # Variables
+            crosseval_folder_system1="${tds_folder_1}-${tds_folder_1}"
+            common_energy_file_system1="${ce_folder}/${crosseval_folder_system1}/ce_potential_energies.txt"
+
+            # Checking if the required stationary evaluation file exists
+            if grep "^ ${snapshot_id} " ${common_energy_file_system1} &> /dev/null ]; then
 
                 # Extracting the energy values
-                energy_bw_U1_U1="$(grep -v "^#" ${ce_folder}/${tds_folder_1}-${tds_folder_1}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+                energy_bw_U1_U1="$(grep "^ ${snapshot_id} " ${common_energy_file_system1} | awk '{print $2}')"
                 energy_bw_U1_U1biased="$(awk '{print $4}' ${subsystem_folder}/${tds_folder_1}/ipi/ipi.out.all_runs.properties | tail -n+${snapshot_id} | head -n 1)"
 
             else
@@ -221,15 +223,15 @@ while read line; do
         # Variables
         snapshot_id=${snapshot_folder/*\-}
 
-        # Checking if this snapshout should be skipped
+        # Checking if this snapshot should be skipped
         if [ "${snapshot_counter}" -lt "${fec_first_snapshot_index}" ]; then
             echo " * Skipping snapshot ${snapshot_id} due to the setting fec_first_snapshot_index=${fec_first_snapshot_index}"
             snapshot_counter=$((snapshot_counter+1))
             continue
         fi
 
-        # Extracting the free energies of system 2 evaluated at system 1
-        energy_bw_U2_U1="$(grep -v "^#" ${ce_folder}/${crosseval_folder_bw}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+        # Extracting the potential energy of system 2 evaluated at system 1
+        energy_bw_U2_U1="$(grep "^ ${snapshot_id} " ${common_energy_file_bw} | awk '{print $2}')"
 
         # Extracting the free energies of system 1 evaluated at system 1
         # Checking if reweighting should not be used
@@ -248,11 +250,15 @@ while read line; do
         # Checking if reweighting should be used
         elif [ "${umbrella_sampling^^}" == "TRUE" ]; then
 
-            # Checking if the required stationary evaluatioin file exists
-            if [ -f ${ce_folder}/${tds_folder_2}-${tds_folder_2}/${snapshot_folder}/ipi/ipi.out.properties ]; then
+            # Variables
+            crosseval_folder_system2="${tds_folder_2}-${tds_folder_2}"
+            common_energy_file_system2="${ce_folder}/${crosseval_folder_system2}/ce_potential_energies.txt"
+
+            # Checking if the required stationary evaluation file exists
+            if grep "^ ${snapshot_id} " ${common_energy_file_system2} &> /dev/null ]; then
 
                 # Extracting the energy values
-                energy_bw_U2_U2="$(grep -v "^#" ${ce_folder}/${tds_folder_2}-${tds_folder_2}/${snapshot_folder}/ipi/ipi.out.properties | awk '{print $4}')"
+                energy_bw_U2_U2="$(grep "^ ${snapshot_id} " ${common_energy_file_system2} | awk '{print $2}')"
                 energy_bw_U2_U2biased="$(awk '{print $4}' ${subsystem_folder}/${tds_folder_2}/ipi/ipi.out.all_runs.properties | tail -n +${snapshot_id} | head -n 1)"
 
             else

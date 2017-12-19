@@ -57,6 +57,47 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
+handle_snapshot_continuation() {
+
+    # Variables
+    crosseval_folder_local="${1}"
+    restart_ID_local="${2}"
+
+    # Checking if this snapshot has already been prepared and should be skipped
+    if [[ -f ${crosseval_folder_local}/snapshot-${restart_ID_local}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_local}/snapshot-${restart_ID_local}/ipi/ipi.in.restart ]]; then
+
+        # Printing some information
+        echo " * Snapshot ${restart_ID_local} has already been prepared and ce_continue=true, skipping this snapshot..."
+
+        # Checking if the snapshot has already been completed successfully
+        if energy_line_old="$(grep "^ ${restart_ID_local}" ${crosseval_folder_local}/ce_potential_energies.txt &> /dev/null)"; then
+
+            # Printing some information
+            echo -e " * Info: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
+
+            # Checking if the entry contains two words
+            if [ "$(echo ${energy_line_old} | wc -w)" == "2" ]; then
+
+                # Printing some information
+                echo -e " * Info: This entry does seem to be valid. Removing  the existing folder and continuing with next snapshot..."
+
+                # Removing the folder
+                rm -r ${crosseval_folder_local}/snapshot-${restart_ID_local} 1> /dev/null || true
+            else
+
+                # Printing some information
+                echo -e " * Info: This entry does seem to be invalid. Removing this entry from the common energy file and continuing with next snapshot..."
+                sed -i "/^ ${restart_ID_local} /d" ${crosseval_folder_local}/ce_potential_energies.txt
+            fi
+        fi
+
+        # Continuing with the next snapshot
+        skip_snapshot="true"
+    else
+        skip_snapshot="false"
+    fi
+}
+
 prepare_restart() {
 
     # Standard error response
@@ -125,7 +166,7 @@ prepare_restart() {
     mkdir -p ${crosseval_folder}/snapshot-${restart_ID}/cp2k
 
     # Preparing the ipi files
-    zcat ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/${restart_file} > ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
+    bzcat ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/${restart_file} > ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     sed -i "/<step>/d" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.restart
     cp ../../../input-files/ipi/${inputfile_ipi_ce} ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
     sed -i "s|nbeads_placeholder|${nbeads}|g" ${crosseval_folder}/snapshot-${restart_ID}/ipi/ipi.in.main.xml
@@ -395,17 +436,25 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
     # Note: We are not removing any uncompressed or empty restart files because we are dependent on a complete set of restart files even if one is not proper, because the cell/property files contain the associated information in corresponding lines
 
     # Compressing all restart files which are uncompressed
-    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
-        gzip $restart_file
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/{${tds_folder_initialstate},${tds_folder_endstate}}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
+        bzip2 -f $restart_file
     done
-    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
-        gzip $restart_file
+
+    # Recompressing all restart files which were compressed with gz (backward compatibility) Todo: Remove later
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$") $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$"); do
+        # There were some problems with gunzip and bzip in the common way
+        temp_filename=/tmp/${HQ_STARTDATE_BS}_$(basename ${restart_file/.gz})
+        zcat $restart_file > ${temp_filename}
+        sleep 0.2
+        cat ${temp_filename} | bzip2 > ${restart_file/.gz/.bz2}
+        rm ${temp_filename}
+        rm ${restart_file}
     done
 
     # Determining the number of restart files of the two TDS simulations
     trap '' ERR
-    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0 | wc -l)   # works also for .gz endings. i-PI restart files have no preceding zeros in their restart IDs
-    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0 | wc -l)
+    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)   # works for .bz2 endings. i-PI restart files have no preceding zeros in their restart IDs
+    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)
     trap 'error_response_std $LINENO' ERR
     if [[ "${restartfile_count_MD1}" == "0" || "${restartfile_count_MD2}" == "0" ]]; then
 
@@ -427,13 +476,13 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
     # Preparing the restart files
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.restart_${counter}.gz || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
         counter=$((counter + 1))
     done
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.gz" | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.restart_${counter}.gz || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
         counter=$((counter + 1))
     done
 
@@ -460,17 +509,20 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
     done
 
     # Loop for preparing the restart files in tds_folder 1 (forward evaluation)
-    echo -e "\n * Preparing the snapshots for the fortward cross-evaluation."
+    echo -e "\n * Preparing the snapshots for the forward cross-evaluation."
     for restart_ID in $(seq ${ce_first_restart_ID} ${restartfile_count_MD1}); do
 
         # Applying the crosseval trajectory stride
         mod=$(( (restart_ID-ce_first_restart_ID) % ce_stride ))
         if [ "${mod}" -eq "0" ]; then
 
-            # Checking if this snapshot has already been prepared and should be skipped
+            # Checking if the continuation mode is enabled
             if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [[ -f ${crosseval_folder_fw}/snapshot-${restart_ID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_fw}/snapshot-${restart_ID}/ipi/ipi.in.restart ]]; then
-                    echo " * Snapshot ${restart_ID} has already been prepared and ce_continue=true, skipping this snapshot..."
+
+                # Checking if this snapshot has already been prepared and should be skipped
+                handle_snapshot_continuation ${crosseval_folder_fw} ${restart_ID}
+                if [ "${skip_snapshot}" == "true" ]; then
+                    # Continuing with the next snapshot
                     continue
                 fi
             fi
@@ -481,7 +533,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
             fi
 
             # Preparing the snapshot folder
-            restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
+            restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
             prepare_restart ${tds_folder_initialstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_fw} ${restart_ID} "endstate"
 
         else
@@ -504,8 +556,11 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
             # Checking if this snapshot has already been prepared and should be skipped
             if [ "${ce_continue^^}" == "TRUE" ]; then
-                if [[ -f ${crosseval_folder_bw}/snapshot-${restart_ID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_bw}/snapshot-${restart_ID}/ipi/ipi.in.restart ]]; then
-                    echo " * Snapshot ${restart_ID} has already been prepared and ce_continue=true, skipping this snapshot..."
+
+                # Checking if this snapshot has already been prepared and should be skipped
+                handle_snapshot_continuation ${crosseval_folder_bw} ${restart_ID}
+                if [ "${skip_snapshot}" == "true" ]; then
+                    # Continuing with the next snapshot
                     continue
                 fi
             fi
@@ -516,7 +571,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
             fi
 
             # Preparing the snapshot folder
-            restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
+            restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
             prepare_restart ${tds_folder_endstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_bw} ${restart_ID} "initialstate"
 
         else
@@ -547,8 +602,11 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
                     # Checking if this snapshot has already been prepared and should be skipped
                     if [ "${ce_continue^^}" == "TRUE" ]; then
-                        if [[ -f ${crosseval_folder_sn1}/snapshot-${restart_ID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_sn1}/snapshot-${restart_ID}/ipi/ipi.in.restart ]]; then
-                            echo " * Snapshot ${restart_ID} has already been prepared and ce_continue=true, skipping this snapshot..."
+
+                        # Checking if this snapshot has already been prepared and should be skipped
+                        handle_snapshot_continuation ${crosseval_folder_sn1} ${restart_ID}
+                        if [ "${skip_snapshot}" == "true" ]; then
+                            # Continuing with the next snapshot
                             continue
                         fi
                     fi
@@ -559,7 +617,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
                     fi
 
                     # Preparing the snapshot folder
-                    restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
+                    restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
                     prepare_restart ${tds_folder_initialstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_sn1} ${restart_ID} "initialstate"
 
                 else
@@ -583,8 +641,11 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
                 # Checking if this snapshot has already been prepared and should be skipped
                 if [ "${ce_continue^^}" == "TRUE" ]; then
-                    if [[ -f ${crosseval_folder_sn2}/snapshot-${restart_ID}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_sn2}/snapshot-${restart_ID}/ipi/ipi.in.restart ]]; then
-                        echo " * Snapshot ${restart_ID} has already been prepared and ce_continue=true, skipping this snapshot..."
+
+                    # Checking if this snapshot has already been prepared and should be skipped
+                    handle_snapshot_continuation ${crosseval_folder_sn2} ${restart_ID}
+                    if [ "${skip_snapshot}" == "true" ]; then
+                        # Continuing with the next snapshot
                         continue
                     fi
                 fi
@@ -595,7 +656,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
                 fi
 
                 # Preparing the snapshot folder
-                restart_file=ipi.out.all_runs.restart_${restart_ID}.gz
+                restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
                 prepare_restart ${tds_folder_endstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_sn2} ${restart_ID} "endstate"
 
             else
