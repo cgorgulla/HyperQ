@@ -187,7 +187,7 @@ else
     for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/ -type f -name "sub*"); do
         cp $file cp2k.in.${file/*\/}
     done
-    # The sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
+    # Copying the sub files in the specific folder at the end so that they can override the ones of the general CP2K input folder
     for file in $(find ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/ -type f -name "sub*"); do
         cp $file cp2k.in.${file/*\/}
     done

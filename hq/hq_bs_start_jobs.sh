@@ -176,8 +176,8 @@ else
 fi
 
 # Checking if we should check for already active jobs
-job_count=0
 JIDs_to_start=""
+jobs_omitted=0
 if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
 
     # Variables
@@ -206,8 +206,6 @@ if [[ "${check_active_jobs^^}" == *"TRUE"* ]]; then
             # Adding the JID
             JIDs_to_start="${JIDs_to_start} ${jid}"
 
-            # Increasing the counter
-            job_count=$((job_count+1))
         else
 
             # Printing some information
@@ -227,9 +225,6 @@ elif [ "${check_active_jobs^^}" == "FALSE" ]; then
 
         # Adding the JID
         JIDs_to_start="${JIDs_to_start} ${jid}"
-
-        # Increasing the counter
-        job_count=$((job_count+1))
     done
 else
 
@@ -270,6 +265,6 @@ fi
 
 # Displaying some information
 echo -e "\n * The starting of the jobs has been completed"
-echo -e "   * Number of jobs processed: $((last_jid-first_jid+1))"
-echo -e "   * Number of jobs started: ${job_count}"
+echo -e "   * Number of jobs processed: $(echo ${JIDs_to_check} | wc -w) "
+echo -e "   * Number of jobs started: $(echo ${JIDs_to_start} | wc -w)"
 echo -e "   * Number of jobs omitted: ${jobs_omitted}\n\n"
