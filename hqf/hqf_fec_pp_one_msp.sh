@@ -77,10 +77,12 @@ date="$(date --rfc-3339=seconds | tr ": " "_")"
 # Printing some information
 echo -e "\n *** Postprocessing the FEC between the systems ${system_1_basename} and ${system_2_basename} ***"
 
-# Folders
+# Basic files and folders
 mkdir -p previous-runs/${date}/
+echo -n "" > fec.out.ov
 
 # Extracting the final results of each TD Window
+tdw_index=1
 for TDWindow in tds*/; do
     TDWindow=${TDWindow%/}
     cat ${TDWindow}/bar.out.stride${fec_stride}.values | grep "Delta_F equation 2:" | awk '{print $4}' | tr -d "\n"  > fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
@@ -90,6 +92,15 @@ for TDWindow in tds*/; do
     # Copying the files and folders
     cp -r ${TDWindow} previous-runs/${date}/${TDWindow}
     cp fec.out.delta_F.window-${TDWindow}.stride${fec_stride} previous-runs/${date}/fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
+
+    # Increasing the TDW-index
+    tdw_index="$((tdw_index+1))"
+
+    # Writing information into the overview file
+    echo -e "-------------------------------- TDW ${tdw_index} -------------------------------" >> fec.out.ov
+    echo "Initial TDS ID: ${TDWindow/_*}" >> fec.out.ov
+    echo "Final TDS ID: ${TDWindow/*_}" >> fec.out.ov
+    grep -E "n_|Delta_" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
 done
 
 # Computing the total FE difference including all the TD windows

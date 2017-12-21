@@ -1,5 +1,5 @@
 @SET subsystem_folder subsystem_folder_placeholder
-@SET subconfiguration subconfiguration_placeholder
+@SET tdsname tdsname_placeholder
 @SET tds_potential_folder tds_potential_folder_placeholder
 @SET cell_dimensions_full cell_dimensions_full_placeholder
 @SET cell_dimensions_full_rounded cell_dimensions_full_rounded_placeholder

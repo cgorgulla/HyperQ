@@ -93,8 +93,8 @@ fi
 msp_list_file="${1}"
 command_general="${2}"
 output_filename="${3}"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count+1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$((tdw_count_total+1))"
 
 # Printing some information
 echo -e "\n *** Preparing the tasks for all MSPs in ${msp_list_file} ***\n"
@@ -114,8 +114,8 @@ while IFS= read -r line || [[ -n "$line" ]]; do
     echo -e " * Preparing the tasks for MSP ${msp}..."
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo "   * Preparing one task for each TDS..."
-        for tds_id in $(seq 1 ${tds_count}); do
-            echo "     * Preparing the task for TDS ${tds_id}/${tds_count}..."
+        for tds_id in $(seq 1 ${tds_count_total}); do
+            echo "     * Preparing the task for TDS ${tds_id}/${tds_count_total}..."
             command_specific="${command_general// MSP / ${msp} }"
             command_specific="${command_specific//TDS/${tds_id}:${tds_id}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"

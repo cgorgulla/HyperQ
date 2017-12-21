@@ -88,22 +88,22 @@ tds_range="${4}"
 msp_name=${system_1_basename}_${system_2_basename}
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 opt_continue="$(grep -m 1 "^opt_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count + 1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$((tdw_count_total + 1))"
 
 # Printing information
-echo -e "\n *** Preparing the optimization folder for fes ${msp_name} (hqf_opt_prepare_one_msp.sh) *** "
+echo -e "\n *** Preparing the optimization folder for MSP ${msp_name} (hqf_opt_prepare_one_msp.sh) *** "
 
 # Setting the range indices
 tds_index_first=${tds_range/:*}
 tds_index_last=${tds_range/*:}
 if [ "${tds_index_last}" == "K" ]; then
-    tds_index_last=${tds_count}
+    tds_index_last=${tds_count_total}
 fi
 
 # Checking if the range indices have valid values
@@ -112,19 +112,6 @@ if ! [ "${tds_index_first}" -le "${tds_index_first}" ]; then
     exit 1
 fi
 
-# Checking if the variables nbeads and tdw_count are compatible
-if [ "${tdcycle_type}" == "hq" ]; then
-    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible... "
-    trap '' ERR
-    mod="$(expr ${nbeads} % ${tdw_count})"
-    trap 'error_response_std $LINENO' ERR
-    if [ "${mod}" != "0" ]; then
-        echo "Check failed"
-        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
-        exit 1
-    fi
-    echo " OK"
-fi
 
 # Checking if the system names are proper by checking if the mapping file exists
 echo -e -n " * Checking if the mapping file exists... "
@@ -155,7 +142,7 @@ echo "OK"
 
 # Checking if the general files for this MSP have to be prepared
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${opt_continue^^}" == "TRUE" ]] && ls ./opt/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./opt/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./opt/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
+if [[ "${opt_continue^^}" == "TRUE" ]] && ls ./opt/${msp_name}/${subsystem}/system.a1c1.u_atoms &>/dev/null && ls ./opt/${msp_name}/${subsystem}/system.a1c1.q_atoms &>/dev/null && ls ./opt/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./opt/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the optimizations is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."

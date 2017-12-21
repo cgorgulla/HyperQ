@@ -29,6 +29,7 @@ fi
 
 # Standard error response
 error_response_std() {
+
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
@@ -162,6 +163,7 @@ fi
 system_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
+tds_index="${tds_folder/tds-}"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -207,7 +209,7 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
     # Variables
     ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
-    max_it=60
+    max_it=500
     iteration_no=0
 
     # Loop for waiting until the socket file exists
@@ -248,13 +250,31 @@ if [[ "${md_programs}" == *"cp2k"* ]]; then
             done
             break
         else
+
+            # Checking if there is an reported error by ipi in the error output file if existent
+            if [ -f ipi/ipi.out.run${run}.err ]; then
+
+                # Variables
+                error_count="$( { grep -i error ipi/ipi.out.run${run}.err  || true; } | wc -l)"
+
+                # Checking the error_count
+                if [ ${error_count} -ge "1" ]; then
+
+                    # Printing some information
+                    echo -e "Error detected in the ipi output files"
+                    echo "Exiting..."
+                    exit 1
+                fi
+            fi
+
+            # Checking the iteration number
             if [ "$iteration_no" -lt "$max_it" ]; then
                 echo " * The socket file for the MD simulation running in ${PWD} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
                 sleep 1
                 iteration_no=$((iteration_no+1))
             else
                 echo " * The socket file for MD simulation ${system_name} does not yet exist."
-                echo " * The maximum number of iterations ($max_it) MD simulation ${system_name} ${system_name} has been reached."
+                echo " * The maximum number of iterations ($max_it) for the MD simulation of TDS ${tds_index} of MSP ${system_name} has been reached."
                 echo " * Exiting..."
                 exit 1
             fi

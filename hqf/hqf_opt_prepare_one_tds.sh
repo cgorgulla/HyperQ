@@ -75,7 +75,7 @@ fi
 tds_index="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_opt_general="$(grep -m 1 "^inputfolder_cp2k_opt_general_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_opt_specific="$(grep -m 1 "^inputfolder_cp2k_opt_specific_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -85,8 +85,10 @@ opt_trajectory_stride="$(grep -m 1 "^opt_trajectory_stride_${subsystem}="  ../..
 opt_restart_stride="$(grep -m 1 "^opt_restart_stride_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 cp2k_random_seed="$(grep -m 1 "^cp2k_random_seed="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$(($tdw_count + 1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$(($tdw_count_total + 1))"
+tdsname="tds-${tds_index}"
+tds_msp_configuration="$(grep -m 1 "^tds_msp_configuration=" ${tdsname}/general/configuration.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Printing information
 echo -e "\n *** Preparing the simulation folder for TDS ${tds_index} (hqf_opt_prepare_one_tds.sh) "
@@ -129,26 +131,22 @@ elif ! [ "${cp2k_random_seed}" -eq "${cp2k_random_seed}" ]; then
 fi
 
 # Checking which tdcycle type should be used
-if [ "${tdcycle_type}" == "hq" ]; then
+if [ "${tdcycle_msp_transformation_type}" == "hq" ]; then
 
     # Variables
-    bead_step_size=$(expr $nbeads / $tdw_count)
-    bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
-    bead_count2="$(( (tds_index-1)*bead_step_size))"
-    bead_configuration="k_${bead_count1}_${bead_count2}"
-    lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-    tds_folder=tds.${bead_configuration}
-
-    echo -e " * Preparing the files and directories for the optimization with bead-configuration ${bead_configuration}"
+    bead_counts="${tds_msp_configuration/k_}"
+    bead_count1="${bead_counts/_*}"
+    bead_count2="${bead_counts/*_}"
+    lambda="$(grep -m 1 "^tds_msp_configuration_associated_lambda=" ${tdsname}/general/configuration.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Checking if this optimization should be continued
     if [[ "${opt_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}/cp2k" ]; then
-            echo " * The folder ${tds_folder}/cp2k already exists. Checking its contents..."
-            cd ${tds_folder}
+        if [ -d "${tdsname}/cp2k" ]; then
+            echo " * The folder ${tdsname}/cp2k already exists. Checking its contents..."
+            cd ${tdsname}
             if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
 
-                echo -e " * The folder ${tds_folder}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
+                echo -e " * The folder ${tdsname}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
 
                 # Editing the cp2k major input file
                 sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
@@ -161,20 +159,20 @@ if [ "${tdcycle_type}" == "hq" ]; then
                 fi
 
                 # Printing information
-                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tdsname} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder}/cp2k seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tdsname}/cp2k seems to not contain files from a previous run. Preparing it newly..."
                 cd ..
-                rm -r ${tds_folder}/cp2k
+                rm -r ${tdsname}/cp2k
             fi
         fi
     elif [[ "${opt_continue^^}" == "FALSE" ]]; then
-        if [ -d "${tds_folder}/cp2k" ]; then
-            rm -r "${tds_folder}"/cp2k
+        if [ -d "${tdsname}/cp2k" ]; then
+            rm -r "${tdsname}"/cp2k
         fi
     else
         echo -e "Error: The variable opt_continue has an unsupported value (${opt_continue}). Exiting..."
@@ -185,25 +183,25 @@ if [ "${tdcycle_type}" == "hq" ]; then
     if [[ "${opt_programs}" == *"cp2k"* ]]; then
 
         # Preparing the simulation folders
-        mkdir -p tds.${bead_configuration}/cp2k
+        mkdir -p ${tdsname}/cp2k
 
         # Copying the CP2K input files
-        if [ "${lambda_current}" == "0.000" ]; then
+        if [ "${lambda}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
-        elif [ "${lambda_current}" == "1.000" ]; then
+        elif [ "${lambda}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -211,9 +209,9 @@ if [ "${tdcycle_type}" == "hq" ]; then
         else
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda tds.${bead_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -221,37 +219,33 @@ if [ "${tdcycle_type}" == "hq" ]; then
         fi
 
         # Adjust the CP2K input files
-        sed -i "s/lambda_value_placeholder/${lambda_current}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder_placeholder|../..|" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_max_steps_placeholder|${opt_max_steps}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_trajectory_stride_placeholder|${opt_trajectory_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_restart_stride_placeholder|${opt_restart_stride}|g" tds.${bead_configuration}/cp2k/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/tdsname_placeholder/${tdsname}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../general|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_max_steps_placeholder|${opt_max_steps}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_trajectory_stride_placeholder|${opt_trajectory_stride}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_restart_stride_placeholder|${opt_restart_stride}|g" ${tdsname}/cp2k/cp2k.in.*
     fi
-elif [ "${tdcycle_type}" == "lambda" ]; then
+elif [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
 
     # Variables
-    lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-    lambda_configuration=lambda_${lambda_current}
-    tds_folder=tds.${lambda_configuration}
-
-    echo -e " * Preparing the files and directories for the optimization for lambda=${lambda_current}"
+    lambda="${tds_msp_configuration/lambda_}"
 
     # Checking if this optimization should be continued
     if [[ "${opt_continue^^}" == "TRUE" ]]; then
-        if [ -d "${tds_folder}/cp2k" ]; then
-            echo " * The folder ${tds_folder}/cp2k already exists. Checking its contents..."
-            cd ${tds_folder}
+        if [ -d "${tdsname}/cp2k" ]; then
+            echo " * The folder ${tdsname}/cp2k already exists. Checking its contents..."
+            cd ${tdsname}
             if [[ -s cp2k/cp2k.out.restart.bak-1 ]]; then
 
-                echo -e " * The folder ${tds_folder}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
+                echo -e " * The folder ${tdsname}/cp2k seems to contain files from a previous run. Preparing the folder for the next run...\n"
 
                 # Editing the cp2k major input file
                 sed -i 's/!\&EXT_RESTART/\&EXT_RESTART/g' cp2k/cp2k.in.main
@@ -265,20 +259,20 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
                 fi
 
                 # Printing information
-                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the optimization folder for the TDS with index ${tds_index} in the folder ${tdsname} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder}/cp2k seems to not contain files from a previous run. Preparing it newly..."
+                echo " * The folder ${tdsname}/cp2k seems to not contain files from a previous run. Preparing it newly..."
                 cd ..
-                rm -r ${tds_folder}/cp2k
+                rm -r ${tdsname}/cp2k
             fi
         fi
     elif [[ "${opt_continue^^}" == "FALSE" ]]; then
-        if [ -d "${tds_folder}/cp2k" ]; then
-            rm -r "${tds_folder}/cp2k"
+        if [ -d "${tdsname}/cp2k" ]; then
+            rm -r "${tdsname}/cp2k"
         fi
     else
         echo -e "Error: The variable opt_continue has an unsupported value (${opt_continue}). Exiting..."
@@ -289,26 +283,26 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     if [[ "${opt_programs}" == *"cp2k"* ]]; then
 
         # Preparing the simulation folder
-        mkdir -p tds.${lambda_configuration}/cp2k
+        mkdir -p ${tdsname}/cp2k
 
         # Copying the CP2K input files
         # Copying the main files
-        if [ "${lambda_current}" == "0.000" ]; then
+        if [ "${lambda}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys1 ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys1 ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
-        elif [ "${lambda_current}" == "1.000" ]; then
+        elif [ "${lambda}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.sys2 ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.sys2 ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -316,9 +310,9 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         else
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ${tdsname}/cp2k/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda tds.${lambda_configuration}/cp2k/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ${tdsname}/cp2k/cp2k.in.main
             else
                 echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -326,21 +320,21 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         fi
 
         # Adjust the CP2K input files
-        sed -i "s/lambda_value_placeholder/${lambda_current}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|subsystem_folder_placeholder|../..|" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|tds_potential_folder_placeholder|../general|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_max_steps_placeholder|${opt_max_steps}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_trajectory_stride_placeholder|${opt_trajectory_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
-        sed -i "s|opt_restart_stride_placeholder|${opt_restart_stride}|g" tds.${lambda_configuration}/cp2k/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/tdsname_placeholder/${tdsname}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../..|" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../general|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|cp2k_random_seed_placeholder|${cp2k_random_seed}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_max_steps_placeholder|${opt_max_steps}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_trajectory_stride_placeholder|${opt_trajectory_stride}|g" ${tdsname}/cp2k/cp2k.in.*
+        sed -i "s|opt_restart_stride_placeholder|${opt_restart_stride}|g" ${tdsname}/cp2k/cp2k.in.*
     fi
 fi
 
 # Printing program completion information
-echo -e "\n * The preparation of the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+echo -e "\n * The preparation of TDS ${tds_index} has been successfully completed.\n\n"

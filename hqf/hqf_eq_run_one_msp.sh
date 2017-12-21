@@ -167,54 +167,25 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 fes_eq_parallel_max="$(grep -m 1 "^fes_eq_parallel_max_${subsystem}" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_eq_run_one_eq="$(grep -m 1 "^command_prefix_eq_run_one_eq=" ../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
-tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count_total="$(grep -m 1 "^tdw_count_total="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count + 1))"
+tds_count_total="$((tdw_count_total + 1))"
 
-
-# Checking if the variables nbeads and tdw_count are compatible
-if [ "${tdcycle_type}" == "hq" ]; then
-    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible... "
-    trap '' ERR
-    mod="$(expr ${nbeads} % ${tdw_count})"
-    trap 'error_response_std $LINENO' ERR
-    if [ "${mod}" != "0" ]; then
-        echo "Check failed"
-        echo " * The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>."
-        exit 1
-    fi
-    echo " OK"
-fi
 
 # Setting the range indices
 tds_index_first=${tds_range/:*}
 tds_index_last=${tds_range/*:}
 if [ "${tds_index_last}" == "K" ]; then
-    tds_index_last=${tds_count}
+    tds_index_last=${tds_count_total}
 fi
 
 # Loop for each equilibration in the specified tds range
 for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
 
-    # Determining the eq folder
-    if [ "${tdcycle_type}" == "hq" ]; then
-
-        # Variables
-        bead_step_size=$(expr $nbeads / $tdw_count)
-        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
-        bead_count2="$(( (tds_index-1)*bead_step_size))"
-        bead_configuration="k_${bead_count1}_${bead_count2}"
-        tds_folder=tds.${bead_configuration}
-
-    elif [ "${tdcycle_type}" == "lambda" ]; then
-
-        # Variables
-        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        lambda_configuration=lambda_${lambda_current}
-        tds_folder=tds.${lambda_configuration}
-    fi
+    # Variables
+    tdsname=tds-${tds_index}
 
     # Loop for allowing only the specified number of parallel runs
     while [ "$(jobs | wc -l)" -ge "${fes_eq_parallel_max}" ]; do
@@ -222,8 +193,8 @@ for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
     done;
 
     # Starting the equilibration
-    cd ${tds_folder}
-    echo -e " * Starting the equilibration ${tds_folder}"
+    cd ${tdsname}
+    echo -e " * Starting the equilibration of TDS ${tds_index}"
     ${command_prefix_eq_run_one_eq} hqf_eq_run_one_tds.sh &
     pids[i]=$!
     tds_index=$((tds_index+1))

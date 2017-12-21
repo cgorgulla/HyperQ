@@ -93,18 +93,40 @@ mcs_time=1
 
 **************************************************************************** General ****************************************************************************
 
-tdcycle_type=lambda
-# Possible options: hq, lambda
-# If using lamdba, use the same input file for cp2k with the ending lamdba in the variables below for cp2k, for both the sys1 and sys2 files (Todo: improve description)
-
-tdw_count=1
-# The total number of thermodynamic windows
-# Minimal value: 1
-
 nbeads=1
 # Total number of path integral beads per particle
 # Minimum value: 1
 # Is only relevant for MD simulations and CE
+
+cell_dimensions_scaling_factor_L=2
+cell_dimensions_scaling_factor_LS=2
+cell_dimensions_scaling_factor_RLS=2
+# This value will be used for the variables cell_dimensions_scaled_rounded and cell_dimensions_scaled_odd_rounded in the simulation software input files (e.g. cp2k)
+
+*************************************************************************** TD Cycles ***************************************************************************
+
+tdw_count_total=1
+# The total number of thermodynamic windows
+# The following condition has to be satisfied: tdw_count_total = tdw_count_msp_transformation + 2*(tdw_count_es_transformation)
+# Minimum value: 1
+
+tdw_count_es_transformation=0
+# Possible values: any positive integer including 0
+
+tdcycle_es_transformation_scalingfactors=1
+# Possible values: Colon separated list of floating point numbers between 0. and 1 (e.g. 1:0)
+# The number of values specified has to be equal to tdw_count_es_transformation + 1
+# The order of values specified corresponds to the direction of decoupling starting at the endstates
+# Each specified scaling factor applies to one TDS
+# The last value will be used for all TDSs during the msp-transformation
+
+tdcycle_msp_transformation_type=hq
+# Possible options: hq, lambda
+# If using lambda, use the same input file for cp2k with the ending lambda in the variables below for cp2k, for both the sys1 and sys2 files (Todo: improve description)
+
+tdw_count_msp_transformation=1
+# The total number of thermodynamic windows during which the two molecular systems are transformed into each other
+# Minimum value: 1
 
 tdcycle_si_activate=true
 # Possible values: true, false
@@ -120,16 +142,6 @@ tdcycle_si_separate_neighbors=true
 tdcycle_si_consider_branches=true
 # Possible values: true, false
 # Only relevant if tdcycle_si_activate=true
-
-umbrella_sampling=false
-# Possible values: true, false
-# Will be used during cross_evaluation and the free energy computations
-# Requires the following settings: 
-
-cell_dimensions_scaling_factor_L=2
-cell_dimensions_scaling_factor_LS=2
-cell_dimensions_scaling_factor_RLS=2
-# This value will be used for the variables cell_dimensions_scaled_rounded and cell_dimensions_scaled_odd_rounded in the simulation software input files (e.g. cp2k)
 
 
 ****************************************************************************** CP2K *****************************************************************************
@@ -148,7 +160,7 @@ cell_dimensions_scaling_factor_RLS=2
 # * main.ipi.sys1
 # * main.ipi.sys2
 # Optional for GEO_OPT, EQ, MD, and CE are files of the form sub.*
-# Possible variables in the cp2k input files: cell_dimensions_full_rounded, cell_dimensions_half_rounded, cell_dimensions_odd_rounded, subconfiguration, lambda_value
+# Possible variables in the cp2k input files: cell_dimensions_full_rounded, cell_dimensions_half_rounded, cell_dimensions_odd_rounded, tdsname, lambda_value
 
 # Ligand (L) input folder
 inputfolder_cp2k_opt_general_L=hqf.general.type1
@@ -303,9 +315,9 @@ eq_type_RLS=MM
 # Possible values: MM, QM, QMMM
 # Currently obsolete
 
-eq_total_steps_L=10000
-eq_total_steps_LS=100000
-eq_total_steps_RLS=100000
+eq_total_steps_L=50000
+eq_total_steps_LS=50000
+eq_total_steps_RLS=50000
 # Input files for the simulations are adjusted automatically by replacing the term 'eq_total_steps_placeholder'
 
 eq_trajectory_stride_L=1000
@@ -432,6 +444,11 @@ ce_timeout_RLS=100
 
 
 ****************************************************************************** FEC ******************************************************************************
+
+umbrella_sampling=false
+# Possible values: true, false
+# Will be used during cross_evaluation and the free energy computations
+# Todo: change to mbar-2, mbar-3, direct, indirect...
 
 fec_first_snapshot_index_L=1
 fec_first_snapshot_index_LS=1

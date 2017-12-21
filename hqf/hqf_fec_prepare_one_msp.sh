@@ -110,12 +110,12 @@ while read line; do
     # Variables
     tds_folder_1="$(echo -n ${line} | awk '{print $1}')"
     tds_folder_2="$(echo -n ${line} | awk '{print $2}')"
-    crosseval_folder_fw="${tds_folder_1}-${tds_folder_2}"     # TDS folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
-    crosseval_folder_bw="${tds_folder_2}-${tds_folder_1}"     # Opposite of fw
+    crosseval_folder_fw="${tds_folder_1}_${tds_folder_2}"     # TDS folder1 (positions) is evaluated at folder two's potential: samplingfolder-potentialfolder
+    crosseval_folder_bw="${tds_folder_2}_${tds_folder_1}"     # Opposite of fw
     stride_ipi_properties=$(grep "potential" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')
     stride_ipi_trajectory=$(grep "<checkpoint" ${subsystem_folder}/${tds_folder_1}/ipi/ipi.in.main.xml | tr -s " " "\n" | grep "stride" | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}' | tr -d '"')
     #stride_ipi=$((stride_ipi_trajectory  / stride_ipi_properties))
-    TD_window="${tds_folder_1}-${tds_folder_2}"
+    TD_window="${tds_folder_1}_${tds_folder_2}"
     common_energy_file_fw="${ce_folder}/${crosseval_folder_fw}/ce_potential_energies.txt"
     common_energy_file_bw="${ce_folder}/${crosseval_folder_bw}/ce_potential_energies.txt"
 

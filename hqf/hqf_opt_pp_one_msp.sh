@@ -80,48 +80,34 @@ fi
 tds_range="${1}"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count + 1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$((tdw_count_total + 1))"
 
 # Setting the range indices
 tds_index_first=${tds_range/:*}
 tds_index_last=${tds_range/*:}
 if [ "${tds_index_last}" == "K" ]; then
-    tds_index_last=${tds_count}
+    tds_index_last=${tds_count_total}
 fi
 
 # Loop for each optimization in the specified tds range
 for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do
 
-    # Determining the opt folder
-    if [ "${tdcycle_type}" == "hq" ]; then
-
-        # Variables
-        bead_step_size=$(expr $nbeads / $tdw_count)
-        bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
-        bead_count2="$(( (tds_index-1)*bead_step_size))"
-        subconfiguration="k_${bead_count1}_${bead_count2}"
-
-    elif [ "${tdcycle_type}" == "lambda" ]; then
-
-        # Variables
-        lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        subconfiguration=lambda_${lambda_current}
-    fi
+    # Variables
+    tdsname=tds-${tds_index}
 
     # Variables
-    tds_folder=tds.${subconfiguration}
     original_pdb_filename="system.a1c1.pdb"
     original_psf_filename="system1.psf"
-    output_filename="system.${subconfiguration}.opt.pdb"
+    output_filename="system.${tdsname}.opt.pdb"
 
     # Postprocessing the optimization
-    echo -e " * Postprocessing folder ${tds_folder}"
+    echo -e " * Postprocessing folder ${tdsname}"
     if [ "${opt_programs}" == "cp2k" ]; then
-        hq_opt_pp_one_tds.sh ${original_pdb_filename} ${original_psf_filename} ${tds_folder}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
+        hq_opt_pp_one_tds.sh ${original_pdb_filename} ${original_psf_filename} ${tdsname}/cp2k/cp2k.out.trajectory.pdb ${output_filename}
     fi
 done
 

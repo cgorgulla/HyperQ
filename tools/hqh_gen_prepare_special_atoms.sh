@@ -68,9 +68,15 @@ set -o pipefail
 # Variables
 pdbx_file="$1"
 outputfile_basename="$2"
-
-# Body
 index=1  # is the serial in VMD (index+1)
+
+# Creating empty files (wiping existing files)
+echo -n "" > ${outputfile_basename}.m_atoms
+echo -n "" > ${outputfile_basename}.q_atoms
+echo -n "" > ${outputfile_basename}.u_atoms
+echo -n "" > ${outputfile_basename}.c_atoms
+
+# Loop for each atom
 while IFS= read -r line; do
     if ! [ "${line:0:5}" == "ATOM " ]; then
         continue

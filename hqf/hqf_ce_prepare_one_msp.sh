@@ -111,13 +111,13 @@ prepare_restart() {
     restart_ID=${5}
     evalstate=${6}
     inputfile_ipi_ce=$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
-    if [ "${tdcycle_type}" == "hq" ]; then
+    if [ "${tdcycle_msp_transformation_type}" == "hq" ]; then
         if [ "${evalstate}" == "endstate" ]; then
-            subconfiguration_local="${bead_configuration_endstate}"
+            tdsname_local="${tdsname_endstate}"
             bead_count1_local=${bead_count1_endstate}
             bead_count2_local=${bead_count2_endstate}
         elif [[ "${evalstate}" == "initialstate" ]]; then
-            subconfiguration_local="${bead_configuration_initialstate}"
+            tdsname_local="${tdsname_initialstate}"
             bead_count1_local=${bead_count1_initialstate}
             bead_count2_local=${bead_count2_initialstate}
         else
@@ -125,12 +125,12 @@ prepare_restart() {
             exit 1
         fi
 
-    elif [ "${tdcycle_type}" == "lambda" ]; then
+    elif [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
         if [ "${evalstate}" == "endstate" ]; then
-            subconfiguration_local="${lambda_configuration_endstate}"
+            tdsname_local="${tdsname_endstate}"
             lambda_currenteval_local="${lambda_endstate}"
         elif [[ "${evalstate}" == "initialstate" ]]; then
-            subconfiguration_local="${lambda_configuration_initialstate}"
+            tdsname_local="${tdsname_initialstate}"
             lambda_currenteval_local="${lambda_initialstate}"
         fi
     fi
@@ -176,7 +176,7 @@ prepare_restart() {
     # Preparing the CP2K files
     for bead in $(eval echo "{1..${nbeads}}"); do
         mkdir -p ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/
-        if [ "${tdcycle_type}" == "lambda" ]; then
+        if [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
 
             # Copying the CP2K input files
             # Copying the main files
@@ -213,10 +213,10 @@ prepare_restart() {
             fi
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/tdsname_placeholder/${tdsname_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
             sed -i "s/lambda_value_placeholder/${lambda_currenteval_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
 
-        elif [ "${tdcycle_type}" ==  "hq" ]; then
+        elif [ "${tdcycle_msp_transformation_type}" ==  "hq" ]; then
 
             # Copying the CP2K input files according to the bead type
             # Copying the main files
@@ -241,7 +241,7 @@ prepare_restart() {
             fi
 
             # Adjusting the CP2K files
-            sed -i "s/subconfiguration_placeholder/${subconfiguration_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/tdsname_placeholder/${tdsname_local}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         fi
 
         # Adjusting the CP2K files
@@ -251,7 +251,7 @@ prepare_restart() {
         sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
         sed -i "s|subsystem_folder_placeholder|../../../..|" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|tds_potential_folder_placeholder|../../../../tds.${subconfiguration_local}/general|g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../../../../${tdsname_local}/general|g" ${crosseval_folder}/snapshot-${restart_ID}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the iqi files if required
@@ -285,10 +285,9 @@ system2_basename="${2}"
 subsystem=${3}
 msp_name=${system1_basename}_${system2_basename}
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfile_ipi_ce="$(grep -m 1 "^inputfile_ipi_ce_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_first_restart_ID="$(grep -m 1 "^ce_first_restart_ID_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -299,7 +298,8 @@ inputfolder_cp2k_ce_specific="$(grep -m 1 "^inputfolder_cp2k_ce_specific_${subsy
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count + 1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$((tdw_count_total + 1))"
 
 
 # Printing some information
@@ -362,86 +362,62 @@ cp ../../../md/${msp_name}/${subsystem}/system.*.initial.pdb ./
 # Creating the list of intermediate states
 #echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
 
-# Setting the bead_step_size if needed
-if [ "${tdcycle_type}" = "hq" ]; then
-
-    # Checking if nbeads and tdw_count are compatible
-    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible..."
-    trap '' ERR
-    mod="$(expr ${nbeads} % ${tdw_count})"
-    trap 'error_response_std $LINENO' ERR
-    if [ "${mod}" != "0" ]; then
-
-        # Printing error message
-        echo " * Error: The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>. Exiting..."
-
-        # Exiting
-        exit 1
-    fi
-    echo " OK"
-
-    # Computing the bead step size
-    bead_step_size=$((nbeads/tdw_count))
-fi
-
 # Loop for each TD window/step
-for window_no in $(seq 1 $((tds_count-1)) ); do
+for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
 
-    if [ "${tdcycle_type}" = "hq" ]; then
-        
-        # Setting the variables
-        bead_count1_initialstate="$((nbeads-(window_no-1)*bead_step_size))"
-        bead_count1_endstate="$((nbeads-window_no*bead_step_size))"
-        bead_count2_initialstate="$(( (window_no-1) * bead_step_size ))"
-        bead_count2_endstate="$((window_no*bead_step_size))"
-        bead_configuration_initialstate="k_${bead_count1_initialstate}_${bead_count2_initialstate}"
-        bead_configuration_endstate="k_${bead_count1_endstate}_${bead_count2_endstate}"
-        tds_folder_initialstate="tds.k_${bead_count1_initialstate}_${bead_count2_initialstate}"
-        tds_folder_endstate="tds.k_${bead_count1_endstate}_${bead_count2_endstate}"
+    # Variables
+    tds_index_initialstate=${tdw_index}
+    tds_index_endstate=$((tdw_index+1))
+    tdsname_initialstate=tds-${tds_index_initialstate}
+    tdsname_endstate=tds-${tds_index_endstate}
+    tds_initialstate_msp_configuration="$(grep -m 1 "^tds_msp_configuration=" ${tdsname_initialstate}/general/configuration.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    tds_endstate_msp_configuration="$(grep -m 1 "^tds_msp_configuration=" ${tdsname_endstate}/general/configuration.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
-    elif [ "${tdcycle_type}" = "lambda" ]; then
+    if [ "${tdcycle_msp_transformation_type}" = "hq" ]; then
+
+        # Variables
+        bead_counts_initialstate="${tds_initialstate_msp_configuration/k_}"
+        bead_count1_initialstate="${bead_counts_initialstate/_*}"
+        bead_count2_initialstate="${bead_counts_initialstate/*_}"
+        bead_counts_endstate="${tds_endstate_msp_configuration/k_}"
+        bead_count1_endstate="${bead_counts_endstate/_*}"
+        bead_count2_endstate="${bead_counts_endstate/*_}"
+
+    elif [ "${tdcycle_msp_transformation_type}" = "lambda" ]; then
 
         # Adjusting lambda_initialstate and lambda_endstate
-        lambda_initialstate=$(echo "$((window_no-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        lambda_endstate=$(echo "${window_no}/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-        #lambda_initialstate=$(echo "$((window_no-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
-        #lambda_initialstate=${lambda_initialstate:0:5}
-        #lambda_endstate=$(echo "${window_no}/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 5 )
-        #lambda_endstate=${lambda_endstate:0:5}
-        lambda_configuration_initialstate=lambda_${lambda_initialstate}
-        lambda_configuration_endstate=lambda_${lambda_endstate}
-        tds_folder_initialstate="tds.lambda_${lambda_initialstate}"
-        tds_folder_endstate="tds.lambda_${lambda_endstate}"
+        lambda_initialstate=${tds_initialstate_msp_configuration/lambda_}
+        lambda_endstate=${tds_endstate_msp_configuration/lambda_}
     fi
 
     # Variables
-    crosseval_folder_fw="${tds_folder_initialstate}-${tds_folder_endstate}"     # TDS folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
-    crosseval_folder_bw="${tds_folder_endstate}-${tds_folder_initialstate}"     # Opposite of fw
+    crosseval_folder_fw="${tdsname_initialstate}_${tdsname_endstate}"     # TDS folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
+    crosseval_folder_bw="${tdsname_endstate}_${tdsname_initialstate}"     # Opposite of fw
 
-    echo "${tds_folder_initialstate} ${tds_folder_endstate}" >> TD_windows.list           # Does not include the stationary evaluations naturally
+    echo "${tdsname_initialstate} ${tdsname_endstate}" >> TD_windows.list           # Does not include the stationary evaluations naturally
     
     # Printing some information
-    echo -e " * Preparing TD window ${window_no}"
+    echo -e " * Preparing TD window ${tdw_index}"
     
     # Creating required folders
     mkdir -p ${crosseval_folder_fw}
     mkdir -p ${crosseval_folder_bw}
 
     # Removing old prepared restart files
-    rm ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*restart_0* || true
-    rm ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*restart_0* || true
-    rm ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*all_runs* || true
-    rm ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*all_runs* || true
+    rm ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/*restart_0* || true
+    rm ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/*restart_0* || true
+    rm ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/*all_runs* || true
+    rm ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/*all_runs* || true
 
     # Note: We are not removing any uncompressed or empty restart files because we are dependent on a complete set of restart files even if one is not proper, because the cell/property files contain the associated information in corresponding lines
 
     # Compressing all restart files which are uncompressed
-    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/{${tds_folder_initialstate},${tds_folder_endstate}}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/{${tdsname_initialstate},${tdsname_endstate}}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
         bzip2 -f $restart_file
     done
 
     # Recompressing all restart files which were compressed with gz (backward compatibility) Todo: Remove later
-    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$") $(find ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$"); do
+    for restart_file in $(find ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$") $(find ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+.gz$"); do
         # There were some problems with gunzip and bzip in the common way
         temp_filename=/tmp/${HQ_STARTDATE_BS}_$(basename ${restart_file/.gz})
         zcat $restart_file > ${temp_filename}
@@ -453,8 +429,8 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
     # Determining the number of restart files of the two TDS simulations
     trap '' ERR
-    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)   # works for .bz2 endings. i-PI restart files have no preceding zeros in their restart IDs
-    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)
+    restartfile_count_MD1=$(ls ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)   # works for .bz2 endings. i-PI restart files have no preceding zeros in their restart IDs
+    restartfile_count_MD2=$(ls ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0 | wc -l)
     trap 'error_response_std $LINENO' ERR
     if [[ "${restartfile_count_MD1}" == "0" || "${restartfile_count_MD2}" == "0" ]]; then
 
@@ -467,45 +443,45 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
     # Checking if there are enough restart files
     if [[ "${ce_first_restart_ID}" -gt "${restartfile_count_MD1}" ]]; then
-        echo " * Warning: For thermodynamic window ${window_no} there are less snapshots (${restartfile_count_MD1}) for the initial state (${tds_folder_initialstate}) required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
+        echo " * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD1}) for the initial state (${tdsname_initialstate}) required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
         continue
     elif [[ "${ce_first_restart_ID}" -gt "${restartfile_count_MD2}" ]]; then
-        echo " * Warning: For thermodynamic window ${window_no} there are less snapshots (${restartfile_count_MD2}) for the end state (${tds_folder_endstate}) than required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
+        echo " * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD2}) for the end state (${tdsname_endstate}) than required (ce_first_restart_ID=${ce_first_restart_ID}). Skipping this thermodynamic window."
         continue
     fi
 
     # Preparing the restart files
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
         counter=$((counter + 1))
     done
     counter=1
-    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
-        cp ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
+    for file in $(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ | grep "restart_[0-9]*.bz2" | grep -v restart_0) ; do
+        cp ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/$file ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ipi.out.all_runs.restart_${counter}.bz2 || true
         counter=$((counter + 1))
     done
 
     # Uniting all the ipi property files (previous all_runs files have already been cleaned)
     # Skipping the very first entry (corresponding to restart_0) because during successive runs the values might be duplicate (last value of previous run being the same as the first of the next one if the former has terminated without problems)
     # Even though now that we set the first step to 1 in the ipi input file, the very first run produces no property and restart files in the beginning. Only successive runs do that. Thus we miss the first real snapshot of the first run...
-    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*properties)"
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/*properties)"
     for property_file in ${property_files}; do
-        cat ${property_file} | (grep -v "^#" || true)  | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.properties
+        cat ${property_file} | (grep -v "^#" || true)  | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ipi.out.all_runs.properties
     done
-    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*properties)"
+    property_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/*properties)"
     for property_file in ${property_files}; do
-        cat ${property_files} | ( grep -v "^#" || true ) | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.properties
+        cat ${property_files} | ( grep -v "^#" || true ) | tail -n +2 > ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ipi.out.all_runs.properties
     done
 
     # Uniting all the ipi cell files (previous all_runs files have already been cleaned)
-    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/*cell)"
+    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/*cell)"
     for cell_file in ${cell_files}; do
-        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tds_folder_initialstate}/ipi/ipi.out.all_runs.cell
+        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ipi.out.all_runs.cell
     done
-    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/*cell)"
+    cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/*cell)"
     for cell_file in ${cell_files}; do
-        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tds_folder_endstate}/ipi/ipi.out.all_runs.cell
+        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ipi.out.all_runs.cell
     done
 
     # Loop for preparing the restart files in tds_folder 1 (forward evaluation)
@@ -534,7 +510,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
             # Preparing the snapshot folder
             restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
-            prepare_restart ${tds_folder_initialstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_fw} ${restart_ID} "endstate"
+            prepare_restart ${tdsname_initialstate} ${tdsname_endstate} ${restart_file} ${crosseval_folder_fw} ${restart_ID} "endstate"
 
         else
             echo " * Snapshot ${restart_ID} will be skipped due to the crosseval trajectory stride..."
@@ -546,7 +522,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
         fi
     done
 
-    # Loop for preparing the restart files in tds_folder_endstate (backward evaluation)
+    # Loop for preparing the restart files in tdsname_endstate (backward evaluation)
     echo -e "\n * Preparing the snapshots for the backward cross-evaluation."
     for restart_ID in $(seq ${ce_first_restart_ID} ${restartfile_count_MD2}); do
 
@@ -572,7 +548,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
             # Preparing the snapshot folder
             restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
-            prepare_restart ${tds_folder_endstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_bw} ${restart_ID} "initialstate"
+            prepare_restart ${tdsname_endstate} ${tdsname_initialstate} ${restart_file} ${crosseval_folder_bw} ${restart_ID} "initialstate"
 
         else
             echo " * Snapshot ${restart_ID} will be skipped due to the crosseval trajectory stride..."
@@ -586,14 +562,14 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
     if [ "${umbrella_sampling}" == "true" ]; then
         # Variables
-        crosseval_folder_sn1="${tds_folder_initialstate}-${tds_folder_initialstate}"    # Stationary
-        crosseval_folder_sn2="${tds_folder_endstate}-${tds_folder_endstate}"
+        crosseval_folder_sn1="${tdsname_initialstate}-${tdsname_initialstate}"    # Stationary
+        crosseval_folder_sn2="${tdsname_endstate}-${tdsname_endstate}"
 
         # Only if first TD window
-        if [[ "${window_no}" == "1" ]]; then
+        if [[ "${tdw_index}" == "1" ]]; then
 
-            # Loop for preparing the restart files in tds_folder_initialstate
-            echo -e "\n * Preparing the snapshots for the re-evaluation of the initial state (${tds_folder_initialstate})."
+            # Loop for preparing the restart files in tdsname_initialstate
+            echo -e "\n * Preparing the snapshots for the re-evaluation of the initial state (${tdsname_initialstate})."
             for restart_ID in $(seq ${ce_first_restart_ID} ${restartfile_count_MD1}); do
 
                 # Applying the crosseval trajectory stride
@@ -618,7 +594,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
                     # Preparing the snapshot folder
                     restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
-                    prepare_restart ${tds_folder_initialstate} ${tds_folder_initialstate} ${restart_file} ${crosseval_folder_sn1} ${restart_ID} "initialstate"
+                    prepare_restart ${tdsname_initialstate} ${tdsname_initialstate} ${restart_file} ${crosseval_folder_sn1} ${restart_ID} "initialstate"
 
                 else
                     echo " * Snapshot ${restart_ID} will be skipped due to the crosseval trajectory stride..."
@@ -631,8 +607,8 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
             done
         fi
         
-        # Loop for preparing the restart files in tds_folder_endstate
-        echo -e "\n * Preparing the snapshots for the re-evaluation of the end state (${tds_folder_endstate})."
+        # Loop for preparing the restart files in tdsname_endstate
+        echo -e "\n * Preparing the snapshots for the re-evaluation of the end state (${tdsname_endstate})."
         for restart_ID in $(seq ${ce_first_restart_ID} ${restartfile_count_MD2}); do
 
             # Applying the crosseval trajectory stride
@@ -657,7 +633,7 @@ for window_no in $(seq 1 $((tds_count-1)) ); do
 
                 # Preparing the snapshot folder
                 restart_file=ipi.out.all_runs.restart_${restart_ID}.bz2
-                prepare_restart ${tds_folder_endstate} ${tds_folder_endstate} ${restart_file} ${crosseval_folder_sn2} ${restart_ID} "endstate"
+                prepare_restart ${tdsname_endstate} ${tdsname_endstate} ${restart_file} ${crosseval_folder_sn2} ${restart_ID} "endstate"
 
             else
                 echo " * Snapshot ${restart_ID} will be skipped due to the crosseval trajectory stride..."

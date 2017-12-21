@@ -68,13 +68,13 @@ handle_md_continuation() {
     if [[ "${md_continue^^}" == "TRUE" ]]; then
 
         # Checking if the MD folder already exists
-        if [ -d "${tds_folder}"/ipi ]; then
+        if [ -d "${tdsname}"/ipi ]; then
 
             # Printing some information
-            echo " * The folder ${tds_folder} already exists. Checking its contents..."
+            echo " * The folder ${tdsname} already exists. Checking its contents..."
 
             # Changing into the TDS directory
-            cd ${tds_folder}
+            cd ${tdsname}
 
             # Removing empty restart files
             #find ipi -iname "*restart*" -type f -empty -delete # We will not remove empty restart files, because our cross evaluations depend on all of them
@@ -85,7 +85,7 @@ handle_md_continuation() {
             # Checking the number of restart files
             if [[ -f ipi/ipi.in.main.xml ]] && [[ "${restart_file_no}" -ge "1" ]]; then
 
-                echo " * The folder ${tds_folder} seems to contain files from a previous run. Preparing the folder for the next run..."
+                echo " * The folder ${tdsname} seems to contain files from a previous run. Preparing the folder for the next run..."
 
                 # Variables
                 restart_file=$(ls -1v ipi/ | { grep "restart.*.bz2" || true; } | tail -n 1)
@@ -110,16 +110,16 @@ handle_md_continuation() {
                 sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
 
                 # Printing information
-                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+                echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tdsname} has been successfully completed.\n\n"
 
                 # Finalization
                 cd ..
                 exit 0
             else
-                echo " * The folder ${tds_folder}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
+                echo " * The folder ${tdsname}/ipi seems to not contain files from a previous run. Preparing it (and the cp2k folder if present) newly..."
                 cd ..
-                rm -r ${tds_folder}/ipi
-                rm -r ${tds_folder}/cp2k || true
+                rm -r ${tdsname}/ipi
+                rm -r ${tdsname}/cp2k || true
             fi
         fi
     fi
@@ -144,7 +144,7 @@ inputfolder_cp2k_md_general="$(grep -m 1 "^inputfolder_cp2k_md_general_${subsyst
 inputfolder_cp2k_md_specific="$(grep -m 1 "^inputfolder_cp2k_md_specific_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 temperature="$(grep -m 1 "^temperature=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -153,14 +153,16 @@ md_trajectory_beads_stride="$(grep -m 1 "^md_trajectory_beads_stride_${subsystem
 md_forces_stride="$(grep -m 1 "^md_forces_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_restart_stride="$(grep -m 1 "^md_restart_stride_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_total_steps="$(grep -m 1 "^md_total_steps_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ipi_set_randomseed="$(grep -m 1 "^ipi_set_randomseed=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 eq_activate="$(grep -m 1 "^eq_activate=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdsname="tds-${tds_index}"
+tds_msp_configuration="$(grep -m 1 "^tds_msp_configuration=" ${tdsname}/general/configuration.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 
 # Printing information
-echo -e "\n *** Preparing the simulation folder for TDS ${tds_index} (hqf_md_prepare_one_tds.sh) "
+echo -e "\n *** Preparing the simulation files and folder for TDS ${tds_index} (hqf_md_prepare_one_tds.sh) "
 
 # Determining the coordinate source
 if [ "${eq_activate^^}" == "TRUE" ]; then
@@ -176,37 +178,18 @@ else
 fi
 
 # Preparing the individual MD folders for each thermodynamic state
-if [ "${tdcycle_type}" == "hq" ]; then
-
-    # Checking if nbeads and tdw_count are compatible
-    echo -e -n " * Checking if the variables <nbeads> and <tdw_count> are compatible..."
-    trap '' ERR
-    mod="$(expr ${nbeads} % ${tdw_count})"
-    trap 'error_response_std $LINENO' ERR
-    if [ "${mod}" != "0" ]; then
-        # Printing some information
-        echo " * Error: The variables <nbeads> and <tdw_count> are not compatible. <nbeads> has to be divisible by <tdw_count>. Exiting..."
-        # Exiting
-        exit 1
-    fi
-    echo " OK"
+if [ "${tdcycle_msp_transformation_type}" == "hq" ]; then
 
     # Variables
-    bead_step_size=$(expr ${nbeads} / ${tdw_count})
-    bead_count1="$(( nbeads - (tds_index-1)*bead_step_size))"
-    bead_count2="$(( (tds_index-1)*bead_step_size))"
-    bead_configuration="k_${bead_count1}_${bead_count2}"
-    tds_folder="tds.${bead_configuration}"
-    k_stepsize=$(echo "1 / $tdw_count" | bc -l)
-
-    # Printing some information
-    echo -e "\n * Preparing the files and directories for the TDS with bead-configuration ${bead_configuration}"
+    bead_counts="${tds_msp_configuration/k_}"
+    bead_count1="${bead_counts/_*}"
+    bead_count2="${bead_counts/*_}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${bead_configuration}.${coord_source}.pdb ./system.${bead_configuration}.initial.pdb
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${tdsname}.${coord_source}.pdb ./system.${tdsname}.initial.pdb
 
     # Getting the cell size in the cp2k input files
-    line=$(grep CRYST1 system.${bead_configuration}.initial.pdb)
+    line=$(grep CRYST1 system.${tdsname}.initial.pdb)
     IFS=' ' read -r -a line_array <<< "$line"
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
@@ -230,30 +213,30 @@ if [ "${tdcycle_type}" == "hq" ]; then
     handle_md_continuation
 
     # Creating directories
-    mkdir -p ${tds_folder}/cp2k
-    mkdir -p ${tds_folder}/ipi
+    mkdir -p ${tdsname}/cp2k
+    mkdir -p ${tdsname}/ipi
     for bead in $(eval echo "{1..$nbeads}"); do
-        mkdir -p ${tds_folder}/cp2k/bead-${bead}
+        mkdir -p ${tdsname}/cp2k/bead-${bead}
     done
 
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
-    cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subconfiguration_placeholder|${bead_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    cp ../../../input-files/ipi/${inputfile_ipi_md} ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|tdsname_placeholder|${tdsname}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder_placeholder|../..|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|temperature_placeholder|${temperature}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tdsname}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
-        sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
+        sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tdsname}/ipi/ipi.in.main.xml
     fi
 
     # Preparing the input files of CP2K
-    # Preparing the bead folders for the beads with at lambda=0 (k=0)
+    # Preparing the bead folders for the beads of system 1
     if [ "1" -le "${bead_count1}" ]; then
         for bead in $(eval echo "{1..${bead_count1}}"); do
 
@@ -261,27 +244,27 @@ if [ "${tdcycle_type}" == "hq" ]; then
             # Copying the main files
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             else
                 echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
 
             # Adjusting the CP2K input files
-            sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/tdsname_placeholder/${tdsname}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
-    # Preparing the bead folders for the beads at lambda=1 (k=1)
+    # Preparing the bead folders for the beads of system 2
     if [ "$((${bead_count1}+1))" -le "${nbeads}"  ]; then
         for bead in $(eval echo "{$((${bead_count1}+1))..${nbeads}}"); do
 
@@ -289,23 +272,23 @@ if [ "${tdcycle_type}" == "hq" ]; then
             # Copying the main files
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             else
                 echo "Error: The input file main.ipi.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
 
             # Adjusting the CP2K input files
-            sed -i "s/subconfiguration_placeholder/${bead_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/tdsname_placeholder/${tdsname}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|subsystem_folder_placeholder|../../..|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+            sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
         done
     fi
 
@@ -317,13 +300,13 @@ if [ "${tdcycle_type}" == "hq" ]; then
         inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
-        mkdir -p ${tds_folder}/iqi
-        cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
-        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
-        sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
+        mkdir -p ${tdsname}/iqi
+        cp ../../../input-files/iqi/${inputfile_iqi_md} ${tdsname}/iqi/iqi.in.main.xml
+        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tdsname}/iqi/
+        sed -i "s|subsystem_folder_placeholder|../..|g" ${tdsname}/iqi/iqi.in.main.xml
     fi
 
-elif [ "${tdcycle_type}" == "lambda" ]; then
+elif [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
 
     # Checking if the CP2K eq input file contains a lambda variable
     echo -n " * Checking if the lambda_value variable is present in the CP2K MD input file... "
@@ -344,19 +327,13 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     echo "OK"
 
     # Variables
-    lambda_stepsize=$(echo "print(1/${tdw_count})" | python3)
-    lambda_current=$(echo "$((tds_index-1))/${tdw_count}" | bc -l | xargs /usr/bin/printf "%.*f\n" 3 )
-    lambda_configuration=lambda_${lambda_current}
-    tds_folder="tds.lambda_${lambda_current}"
-
-    # Printing some information
-    echo -e "\n * Preparing the files and directories for the TDS with lambda-configuration ${lambda_configuration}"
+    lambda="${tds_msp_configuration/lambda_}"
 
     # Copying the coordinate input files from the equilibration
-    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${lambda_configuration}.${coord_source}.pdb ./system.${lambda_configuration}.initial.pdb
+    cp ../../../${coord_source}/${msp_name}/${subsystem}/system.${tdsname}.${coord_source}.pdb ./system.${tdsname}.initial.pdb
 
     # Getting the cell size in the cp2k input files
-    line=$(grep CRYST1 system.${lambda_configuration}.initial.pdb)
+    line=$(grep CRYST1 system.${tdsname}.initial.pdb)
     IFS=' ' read -r -a line_array <<< "$line"
     cell_A=${line_array[1]}
     cell_B=${line_array[2]}
@@ -381,26 +358,26 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
     handle_md_continuation
 
     # Creating directories
-    mkdir -p ${tds_folder}/cp2k
-    mkdir -p ${tds_folder}/ipi
+    mkdir -p ${tdsname}/cp2k
+    mkdir -p ${tdsname}/ipi
     for bead in $(eval echo "{1..$nbeads}"); do
-        mkdir ${tds_folder}/cp2k/bead-${bead}
+        mkdir ${tdsname}/cp2k/bead-${bead}
     done
 
     # Preparing the input files of the packages
     # Preparing the input files of i-PI
-    cp ../../../input-files/ipi/${inputfile_ipi_md} ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subconfiguration_placeholder|${lambda_configuration}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|temperature_placeholder|${temperature}|g" ${tds_folder}/ipi/ipi.in.main.xml
-    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tds_folder}/ipi/ipi.in.main.xml
+    cp ../../../input-files/ipi/${inputfile_ipi_md} ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_centroid_stride_placeholder|${md_trajectory_centroid_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_trajectory_beads_stride_placeholder|${md_trajectory_beads_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_forces_stride_placeholder|${md_forces_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_restart_stride_placeholder|${md_restart_stride}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|nbeads_placeholder|${nbeads}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|tdsname_placeholder|${tdsname}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|subsystem_folder_placeholder|../..|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|temperature_placeholder|${temperature}|g" ${tdsname}/ipi/ipi.in.main.xml
+    sed -i "s|md_total_steps_placeholder|${md_total_steps}|g" ${tdsname}/ipi/ipi.in.main.xml
     if [ "${ipi_set_randomseed^^}" == "TRUE" ]; then
-        sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tds_folder}/ipi/ipi.in.main.xml
+        sed -i "s|<seed>.*</seed>|<seed> $RANDOM </seed>|g" ${tdsname}/ipi/ipi.in.main.xml
     fi
 
     # Preparing the input files of CP2K
@@ -408,22 +385,22 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
 
         # Copying the CP2K input files
         # Copying the main files
-        if [ "${lambda_current}" == "0.000" ]; then
+        if [ "${lambda}" == "0.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys1 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys1 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             else
                 echo "Error: The input file main.ipi.sys1 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
             fi
-        elif [ "${lambda_current}" == "1.000" ]; then
+        elif [ "${lambda}" == "1.000" ]; then
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.sys2 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.sys2 ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             else
                 echo "Error: The input file main.ipi.sys2 could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -431,9 +408,9 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         else
             # Checking the specific folder at first to give it priority over the general folder
             if [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_specific}/main.ipi.lambda ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             elif [ -f ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ]; then
-                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ${tds_folder}/cp2k/bead-${bead}/cp2k.in.main
+                cp ../../../input-files/cp2k/${inputfolder_cp2k_md_general}/main.ipi.lambda ${tdsname}/cp2k/bead-${bead}/cp2k.in.main
             else
                 echo "Error: The input file main.ipi.lambda could not be found in neither of the two CP2K input folders. Exiting..."
                 exit 1
@@ -441,15 +418,15 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         fi
 
         # Adjusting the CP2K input files
-        sed -i "s/subconfiguration_placeholder/${lambda_configuration}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/lambda_value_placeholder/${lambda_current}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|subsystem_folder_placeholder|../../..|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
-        sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tds_folder}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/tdsname_placeholder/${tdsname}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/lambda_value_placeholder/${lambda}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_placeholder/${cell_A} ${cell_B} ${cell_C}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_full_rounded_placeholder/${cell_A_floor} ${cell_B_floor} ${cell_C_floor}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_odd_rounded_placeholder/${cell_A_floor_odd} ${cell_B_floor_odd} ${cell_C_floor_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_rounded_placeholder/${cell_A_scaled} ${cell_B_scaled} ${cell_C_scaled}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s/cell_dimensions_scaled_odd_rounded_placeholder/${cell_A_scaled_odd} ${cell_B_scaled_odd} ${cell_C_scaled_odd}/g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|subsystem_folder_placeholder|../../..|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
+        sed -i "s|tds_potential_folder_placeholder|../../general|g" ${tdsname}/cp2k/bead-${bead}/cp2k.in.*
     done
 
     # Preparing the input files of i-QI
@@ -460,12 +437,12 @@ elif [ "${tdcycle_type}" == "lambda" ]; then
         inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         # Preparing the files and folders
-        mkdir -p ${tds_folder}/iqi
-        cp ../../../input-files/iqi/${inputfile_iqi_md} ${tds_folder}/iqi/iqi.in.main.xml
-        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tds_folder}/iqi/
-        sed -i "s|subsystem_folder_placeholder|../..|g" ${tds_folder}/iqi/iqi.in.main.xml
+        mkdir -p ${tdsname}/iqi
+        cp ../../../input-files/iqi/${inputfile_iqi_md} ${tdsname}/iqi/iqi.in.main.xml
+        cp ../../../input-files/iqi/${inputfile_iqi_constraints} ${tdsname}/iqi/
+        sed -i "s|subsystem_folder_placeholder|../..|g" ${tdsname}/iqi/iqi.in.main.xml
     fi
 fi
 
 # Printing program completion information
-echo -e "\n * The preparation of the TDS with index ${tds_index} in the folder ${tds_folder} has been successfully completed.\n\n"
+echo -e "\n * The preparation of TDS ${tds_index} has been successfully completed.\n\n"

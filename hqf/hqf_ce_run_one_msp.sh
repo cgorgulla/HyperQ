@@ -106,17 +106,10 @@ subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_type="$(grep -m 1 "^tdcycle_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
-
-# Getting the energy eval folders
-if [ "${tdcycle_type}" == "hq" ]; then
-    crosseval_folders="$(ls -vrd tds*-*/)"
-elif [ "${tdcycle_type}" == "lambda" ]; then
-    crosseval_folders="$(ls -vd tds*-*/)"
-fi
-crosseval_folders=${crosseval_folders//\/}
+crosseval_folders="$(ls -vd tds*-*/ | tr -d "/")"
 
 # Running the MD simulations
 i=0

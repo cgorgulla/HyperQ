@@ -15,7 +15,7 @@ class Atom:
         self.totalDistance = None
 
 
-def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages, hydrogenSingleStep, separateNeighbors, considerBranches, direction):
+def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages, hydrogenSingleStep, separateNeighbors, considerBranches, direction, dummyOutputfilesBasename):
 
     # Variables
     dummyAtomIndicesAll = []
@@ -34,7 +34,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
         print("There are no dummy atoms for this molecular system. Proceeding...\n")
 
         # Printing information on the distances and also writing them to a file
-        open(systemBasename + ".dummy.distances", 'a').close()
+        open(systemBasename + ".tdcycle.si.info.dummies", 'a').close()
 
         # Creating empty dummy atom files
         for tdsIndex in range(1, tdsCountAllStages+1):
@@ -47,7 +47,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
             else:
                 errorMessage = "Error: The input argument <tds index output order> has an unsupported value."
                 raise ValueError(errorMessage)
-            open(systemBasename + ".tds-" + str(tdsOutputIndex) + ".dummy.indices", 'a').close()
+            open(dummyOutputfilesBasename + str(tdsOutputIndex) + ".dummy.indices", 'a').close()
         exit(0)
 
     # Creating the molecular system
@@ -408,7 +408,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
             errorMessage = "Error: The input argument <tds index output order> has an unsupported value."
             raise ValueError(errorMessage)
 
-        with open(systemBasename + ".tds-" + str(tdsOutputIndex) + ".dummy.indices", "w") as tdsDummyFile:
+        with open(dummyOutputfilesBasename + str(tdsOutputIndex) + ".dummy.indices", "w") as tdsDummyFile:
             for index in tdsDummyAtomIndices[tdsIndex]:
                 tdsDummyFile.write(str(index) + " ")
 
@@ -611,7 +611,7 @@ def run_cp2k_dummies(systemBasename, psfFilename, prmFilename, tdwCountAllStages
 
 
 def help():
-    print("\nUsage: hqh_fes_prepare_tds_si_dummies.py <systemBasename> <psf file> <prm file> <tdw_count> <hydrogen single step> <separate neighbors> <consider branches> <tds index output direction>\n")
+    print("\nUsage: hqh_fes_prepare_tds_si_dummies.py <systemBasename> <psf file> <prm file> <tdw_count> <hydrogen single step> <separate neighbors> <consider branches> <tds index output direction> <dummy atom output file basename>\n")
     print("Prepares the dummy atom indices for the serial insertion thermodynamic cycles.")
     print("Indices used internally are the ones of the psf files. -> atom order")
     print("The dummy atom indices are interpreted as the atom IDs used in the psf file.")
@@ -629,9 +629,9 @@ def help():
 if __name__ == '__main__':
 
     # Checking the number of arguments
-    if (len(sys.argv) != 9):
+    if (len(sys.argv) != 10):
         print("Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv))
-        print("Required are 8 input arguments. Exiting...")
+        print("Required are 9 input arguments. Exiting...")
         help()
         exit(1)
 

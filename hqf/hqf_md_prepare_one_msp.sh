@@ -88,8 +88,8 @@ md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[
 md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 md_continue="$(grep -m 1 "^md_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count="$(grep -m 1 "^tdw_count=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count="$((tdw_count + 1))"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_total="$((tdw_count_total + 1))"
 
 
 # Printing information
@@ -99,7 +99,7 @@ echo -e "\n *** Preparing the MD simulation ${msp_name} (hqf_md_prepare_one_msp.
 tds_index_first=${tds_range/:*}
 tds_index_last=${tds_range/*:}
 if [ "${tds_index_last}" == "K" ]; then
-    tds_index_last=${tds_count}
+    tds_index_last=${tds_count_total}
 fi
 
 # Checking if the range indices have valid values
@@ -110,7 +110,7 @@ fi
 
 # Checking if the general files for this MSP have to be prepared
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.[uc]_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./md/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
+if [[ "${md_continue^^}" == "TRUE" ]] && ls ./md/${msp_name}/${subsystem}/system.a1c1.u_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/system.a1c1.q_atoms &>/dev/null && ls ./md/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./md/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the MD simulation is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."

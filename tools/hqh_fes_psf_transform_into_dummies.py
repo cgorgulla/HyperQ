@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 import sys
 
-def main(psfFilenameIn, dummyAtomIndiciesFile, psfFilenameOut):
+def main(psfFilenameIn, dummyAtomIndices, electrostaticsScalingFactor, transformAtomNames, psfFilenameOut):
 
-    # Variables
-    dummyAtomIndices = []
-
-    # Reading in the dummy atom indices
-    with open(dummyAtomIndiciesFile, "r") as systemDummyAtomIndicesFile:
-        for line in systemDummyAtomIndicesFile:
-            dummyAtomIndices += map(int,line.split())
+    # Curating the input arguments
+    if dummyAtomIndices != "all" and dummyAtomIndices != "ligand" :
+        dummyAtomIndices = map(int,dummyAtomIndices.split())
+    electrostaticsScalingFactor = float(electrostaticsScalingFactor)
 
     with open(psfFilenameOut, "w") as psfFileOut:
         with open(psfFilenameIn, "r") as psfFileIn:
@@ -28,26 +25,32 @@ def main(psfFilenameIn, dummyAtomIndiciesFile, psfFilenameOut):
 
                         # Checking if the current atom is a dummy atom
                         atomID = int(lineSplit[0])
-                        if atomID in dummyAtomIndices:
+                        if (type(dummyAtomIndices) is list and atomID in dummyAtomIndices) or (type(dummyAtomIndices) is str and (dummyAtomIndices == "all" or (dummyAtomIndices == "ligand" and lineSplit[1] == "LIG"))):
 
-                            # Setting the charge to zero
-                            lineSplit[6] = "0.000000"
+                            # Scaling the charge
+                            lineSplit[6] = '{:8.6f}'.format(float(lineSplit[6])*electrostaticsScalingFactor)        # If the number is longer it will be used as such. Minus signs as well. The format number of digits is a minimum number for padding them if needed, or truncating decimal digits as far as I understand
 
                             # Setting the atom type dummy
-                            lineSplit[5] = "DUM"
+                            if transformAtomNames.lower() == "true":
+                                lineSplit[5] = "DUM"
 
                         # Reassembling the entire line
-                        line = '   {:>7} {:>3} {:>9} {:>8} {:>8} {:>8} {:>13} {:>8} {:>5}\n'.format(*lineSplit)
+                        line = '   {:>7} {:>3} {:>9} {:>8} {:>8} {:>8} {:>13} {:>8} {:>5}\n'.format(*lineSplit)         # This will align all the input arguments from the left, padding them if needed with spaces. also the charge (lineSplit[6]) will be handled as desired since it was already transformed into a string.
 
                 # Writing the line to the output file
                 psfFileOut.write(line)
 
 def help():
-    print "\nUsage: hqh_fes_psf_transform_into_dummies.py <psf input file> <dummy atom indices file> <psf output file>"
+    print "\nUsage: hqh_fes_psf_transform_into_dummies.py <psf input file> <dummy atom indices> <electrostatics scaling factor> <transform atom names> <psf output file>"
     print ""
     print "The indices in the <dummy atom indices file> are interpreted as the atom IDs in the specified psf input file."
-    print "The dummy atom indices file should contain indices in a single line separated by whitespaces."
+    print "The dummy atom indices argument can be:"
+    print "     *) a list of integers separated by whitespaces"
+    print "     *) 'ligand': All ligand atoms will be transformed"
+    print "     *) 'all': All atoms will be transformed (ligand, receptor and solvent)"
     print "The input psf file can be in any format (vmd or psf)."
+    print "The <electrostatics scaling factor> has to be a floating point number."
+    print "<transform atom types> can be either set to 'false' or 'true'. If true, the atom types will be set to 'DUM'"
     print "The output psf file is in cp2k format"
     print ""
     print ""
@@ -57,9 +60,9 @@ def help():
 if __name__ == '__main__':
 
     # Checking the number of arguments
-    if (len(sys.argv) != 4):
+    if (len(sys.argv) != 6):
         print "Error: " + str(len(sys.argv[1:])) + " arguments provided: " + str(sys.argv)
-        print "Required are 3 input arguments. Exiting..."
+        print "Required are 5 input arguments. Exiting..."
         help()
         exit(1)
 
