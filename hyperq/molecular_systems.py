@@ -275,7 +275,7 @@ class JointSystem:
                     if self.system1.atomCount["receptor"] != 0:
                         indexCorrection = 1  # if receptor fragment is present we need to add 1 to the fragment id
                     else:
-                        indexCorrection = 0  # otherweise not
+                        indexCorrection = 0  # otherwise not
                     cp2kFile.write(
                         "      MAP " + str(atomIndex1 - self.system1.atomCount["receptor"] + indexCorrection) + "\n")
                     cp2kFile.write("    &END FRAGMENT\n")

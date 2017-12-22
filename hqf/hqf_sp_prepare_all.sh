@@ -5,7 +5,7 @@ usage="Usage: hqf_sp_prepare_all.sh <subsystems> [lomap]
 
 The format is read from the file input-files/config.txt
 
-<subsystems> can be L, LS, HLS, PLS. Multiple subsystems can be specified by commas without whitespaces (e.g. L,LS,PLS)
+<subsystems> can be L, LS, RLS. Multiple subsystems can be specified by colons without whitespaces (e.g. L:LS:RLS)
 
 The lomap flag can be specified if the atom mappings for the thermodynamic cycles should be computed (with LOMAP). This requires a terminal connected to an X-server due to Lomap."
 
@@ -68,7 +68,7 @@ echo "************************************************************"
 # Variables
 input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-subsystems=${1//,/ }
+subsystems=${1//:/ }
 
 # Lomap flag
 if [[ "$@" == *"lomap"* ]]; then

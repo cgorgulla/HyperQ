@@ -84,26 +84,47 @@ echo -n "" > fec.out.ov
 # Extracting the final results of each TD Window
 tdw_index=1
 for TDWindow in tds*/; do
+
+    # Variables
     TDWindow=${TDWindow%/}
+
+    # Creating the short results output file
     cat ${TDWindow}/bar.out.stride${fec_stride}.values | grep "Delta_F equation 2:" | awk '{print $4}' | tr -d "\n"  > fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
     echo " kcal/mol" >> fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
-    #cat ${TDWindow}/fec.out.results.all | grep "Delta_F equation 2:"| awk '{print $4}' > fec.out.delta_F.window.${TDWindow}.all
 
-    # Copying the files and folders
-    cp -r ${TDWindow} previous-runs/${date}/${TDWindow}
-    cp fec.out.delta_F.window-${TDWindow}.stride${fec_stride} previous-runs/${date}/fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
-
-    # Increasing the TDW-index
-    tdw_index="$((tdw_index+1))"
-
-    # Writing information into the overview file
-    echo -e "-------------------------------- TDW ${tdw_index} -------------------------------" >> fec.out.ov
+    # Writing information into the general overview file
+    if [ "${tdw_index}" == "1" ]; then
+        echo -e "--------------------------------------------- General --------------------------------------------" >> fec.out.ov
+        echo "" >> fec.out.ov
+        grep -E "C_min" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "C_max" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "tolerance" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "F_min" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "F_max" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "Temp" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        grep -E "Reweighting" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+        echo "" >> fec.out.ov
+        echo "Total free energy difference over all TDWs: " >> fec.out.ov
+        echo "" >> fec.out.ov
+        echo "" >> fec.out.ov
+    fi
+    echo -e "---------------------------------------------- TDW ${tdw_index} ---------------------------------------------" >> fec.out.ov
+    echo "" >> fec.out.ov
     echo "Initial TDS ID: ${TDWindow/_*}" >> fec.out.ov
     echo "Final TDS ID: ${TDWindow/*_}" >> fec.out.ov
     grep -E "n_|Delta_" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
+    echo "" >> fec.out.ov
+    echo "" >> fec.out.ov
+
+    # Increasing the TDW-index
+    tdw_index="$((tdw_index+1))"
 done
 
-# Computing the total FE difference including all the TD windows
-awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | paste -sd+ | bc | tr -d "\n" > fec.out.delta_F.total.stride${fec_stride}
-echo " kcal/mol" >> fec.out.delta_F.total.stride${fec_stride}
-cp fec.out.delta_F.total.stride${fec_stride} previous-runs/${date}/fec.out.delta_F.total.stride${fec_stride}
+# Computing the total FE difference involving all the TD windows and writing the information to files
+total_FE_difference="$(awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | paste -sd+ | bc | tr -d "\n") kcal/mol"
+echo "${total_FE_difference}" > fec.out.delta_F.total.stride${fec_stride}
+sed -i "s|all TDWs: |all TDWs: ${total_FE_difference}|g" fec.out.ov
+
+# Copying all the files and folders to the backup/history folder
+cp -r tds* previous-runs/${date}/
+cp fec.out.* previous-runs/${date}/

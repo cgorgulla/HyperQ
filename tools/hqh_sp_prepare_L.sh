@@ -56,7 +56,7 @@ echo
 echo
 echo "   Preparing the entire system for ligand ${1} (hqh_sp_prepare_L.sh)   "
 echo "************************************************************************************"
-set -x
+
 # Variables
 ligand_basename=${1}
 dirname=$(dirname $0)

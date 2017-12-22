@@ -93,7 +93,7 @@ mcs_time=1
 
 **************************************************************************** General ****************************************************************************
 
-nbeads=1
+nbeads=4
 # Total number of path integral beads per particle
 # Minimum value: 1
 # Is only relevant for MD simulations and CE
@@ -103,35 +103,48 @@ cell_dimensions_scaling_factor_LS=2
 cell_dimensions_scaling_factor_RLS=2
 # This value will be used for the variables cell_dimensions_scaled_rounded and cell_dimensions_scaled_odd_rounded in the simulation software input files (e.g. cp2k)
 
+
 *************************************************************************** TD Cycles ***************************************************************************
 
-tdw_count_total=1
+tdw_count_total=6
 # The total number of thermodynamic windows
 # The following condition has to be satisfied: tdw_count_total = tdw_count_msp_transformation + 2*(tdw_count_es_transformation)
 # Minimum value: 1
 
-tdw_count_es_transformation=0
+#tdcycle_es_transformation_type=hq
+## Possible options: hq, lambda
+
+tdw_count_es_transformation=1
 # Possible values: any positive integer including 0
 
-tdcycle_es_transformation_scalingfactors=1
-# Possible values: Colon separated list of floating point numbers between 0. and 1 (e.g. 1:0)
+tdcycle_es_transformation_tds_configurations=1:0
+# Possible values: Colon separated list of configurations (e.g. 1:0.5:0 if tdcycle_es_transformation_type=lambda or 0:2:4 if tdcycle_es_transformation_type=hq)
+# If tdcycle_es_transformation_type is set to
+#           * lambda, then each configuration is a floating point number representing a scaling factor
+##           * hq, then each configuration is a non-negative integer representing the number of beads for which the es transformation (with scaling factor 0) should be applied
 # The number of values specified has to be equal to tdw_count_es_transformation + 1
 # The order of values specified corresponds to the direction of decoupling starting at the endstates
 # Each specified scaling factor applies to one TDS
 # The last value will be used for all TDSs during the msp-transformation
 
+es_transformation_atoms_to_transform=dawn
+# Possible values:
+# * dao : dummy atoms only
+# * dawn : dummy atoms with neighbors (directly bonded atoms)
+# * ligand : (the entire) ligand
+
 tdcycle_msp_transformation_type=hq
 # Possible options: hq, lambda
 # If using lambda, use the same input file for cp2k with the ending lambda in the variables below for cp2k, for both the sys1 and sys2 files (Todo: improve description)
 
-tdw_count_msp_transformation=1
+tdw_count_msp_transformation=4
 # The total number of thermodynamic windows during which the two molecular systems are transformed into each other
 # Minimum value: 1
 
 tdcycle_si_activate=true
 # Possible values: true, false
 
-tdcycle_si_hydrogen_single_step=true
+tdcycle_si_hydrogen_single_step=false
 # Possible values: true, false
 # Only relevant if tdcycle_si_activate=true
 
@@ -429,9 +442,9 @@ ce_first_restart_ID_L=1
 ce_first_restart_ID_LS=1
 ce_first_restart_ID_RLS=1
 
-ce_stride_L=10
-ce_stride_LS=10
-ce_stride_RLS=10
+ce_stride_L=1
+ce_stride_LS=1
+ce_stride_RLS=1
 # The stride which is applied during the CE, i.e. only every <stride_ce>th restart file of ipi from the MD simulations is used for the CEs
 # The restart files are indexed starting at one (1, 2, 3, ...)
 

@@ -13,11 +13,13 @@
       <w>jobfile</w>
       <w>jobfiles</w>
       <w>jobname</w>
+      <w>kcal</w>
       <w>parallelization</w>
       <w>parallelize</w>
       <w>parallelized</w>
       <w>pdbqt</w>
       <w>pdbx</w>
+      <w>qmmm</w>
       <w>runtimeletter</w>
       <w>setsid</w>
       <w>sjid</w>

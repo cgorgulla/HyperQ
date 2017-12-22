@@ -368,12 +368,12 @@ while true; do
         time_diff=$(($(date +%s) - $(date +%s -r ipi/ipi.out.run${run}.screen)))
 
         # Checking the time diff
-        if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+30))" ]]; then
+        if [[ "${time_diff}" -ge "${md_timeout}" ]] && [[ "${time_diff}" -le "$((md_timeout+100))" ]]; then
             
             # Printing some information
             echo " * i-PI seems to have completed the MD simulation."
             break
-        elif [[ "${time_diff}" -ge "$((md_timeout+30))" ]]; then
+        elif [[ "${time_diff}" -ge "$((md_timeout+100))" ]]; then
         
             # If the time diff is larger, then the workflow will most likely have been suspended and has now been resumed
             touch ipi/ipi.out.run${run}.screen
@@ -488,9 +488,9 @@ while true; do
 
     # Checking if there are new restart files and compressing them if there are some
     for restart_file in $(find ipi -iregex ".*ipi.out.run.*restart_[0-9]+$"); do
-        bzip2 -f $restart_file
+        bzip2 -f $restart_file || true # Very few times errors are occurring (e.g. "bzip2: I/O or other error, bailing out.  Possible reason follows. bzip2: No such file or directory. Input file = ipi/ipi.out.run1.restart_156, output file = ipi/ipi.out.run1.restart_156.bz2" even though the file existed already
     done
 
     # Sleeping before next round
-    sleep 10 || true   # true because the script might be terminated while sleeping, which would result in an error
+    sleep 50 || true   # true because the script might be terminated while sleeping, which would result in an error
 done

@@ -92,7 +92,8 @@ tdw_count_es_transformation="$(grep -m 1 "^tdw_count_es_transformation=" ../../.
 tds_count_es_transformation="$((tdw_count_es_transformation + 1))"
 tdw_count_msp_transformation="$(grep -m 1 "^tdw_count_msp_transformation=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count_msp_transformation="$((tdw_count_msp_transformation + 1))"
-tdcycle_es_transformation_scalingfactors="$(grep -m 1 "^tdcycle_es_transformation_scalingfactors=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_es_transformation_tds_configurations="$(grep -m 1 "^tdcycle_es_transformation_tds_configurations=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+es_transformation_atoms_to_transform="$(grep -m 1 "^es_transformation_atoms_to_transform=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 
 # Verifying that the variables have compatible values
@@ -110,8 +111,8 @@ else
     # Exiting
     exit 1
 fi
-echo -e " * Checking if the variables <tdw_count_es_transformation> and <tdcycle_es_transformation_scalingfactors> are compatible..."
-tdcycle_es_transformation_scalingfactor_count="$(echo ${tdcycle_es_transformation_scalingfactors} | tr ':' ' ' | wc -w)"
+echo -e " * Checking if the variables <tdw_count_es_transformation> and <tdcycle_es_transformation_tds_configurations> are compatible..."
+tdcycle_es_transformation_scalingfactor_count="$(echo ${tdcycle_es_transformation_tds_configurations} | tr ':' ' ' | wc -w)"
 if [ "${tdcycle_es_transformation_scalingfactor_count}" -eq "${tds_count_es_transformation}" ]; then
 
     # Printing the result
@@ -142,7 +143,7 @@ echo " tdw_count_es_transformation: ${tdw_count_es_transformation}" | tee -a tdc
 echo " tds_count_es_transformation: ${tds_count_es_transformation}" | tee -a tdc.ov
 echo " tdw_count_msp_transformation: ${tdw_count_msp_transformation}" | tee -a tdc.ov
 echo " tds_count_msp_transformation: ${tds_count_msp_transformation}" | tee -a tdc.ov
-echo " tdcycle_es_transformation_scalingfactors: ${tdcycle_es_transformation_scalingfactors}" | tee -a tdc.ov
+echo " tdcycle_es_transformation_tds_configurations: ${tdcycle_es_transformation_tds_configurations}" | tee -a tdc.ov
 echo -e "\n" | tee -a tdc.ov
 if [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
     printf " %13s %32s %22s %28s %27s\n" "TDS ID" "ES Transformation ID" "ES Scalingfactor" "MSP Transformation ID" "MSP Configuration" | tee -a tdc.ov
@@ -204,7 +205,7 @@ for tds_msp_transformation_index in $(seq 1 ${tds_count_msp_transformation}); do
 done
 
 # Determining the TDS es transformation configurations
-array_temp=(${tdcycle_es_transformation_scalingfactors//:/ })
+array_temp=(${tdcycle_es_transformation_tds_configurations//:/ })
 for tds_es_transformation_index in $(seq 1 ${tds_count_es_transformation}); do
 
     # Shifting the array indices by 1 and adding the prefix 'sf' for scaling-factor
@@ -261,6 +262,13 @@ if [ "${tdcycle_si_activate^^}" == "TRUE" ]; then
     hqh_fes_prepare_tds_si_dummies.py system2 system2.cp2k.psf system2.prm ${tdw_count_msp_transformation} ${tdcycle_si_hydrogen_single_step} ${tdcycle_si_separate_neighbors} ${tdcycle_si_consider_branches} increasing system2.tds_msp_transformation-
 fi
 
+
+# Preparing the dummy indices including the bonded atoms (neighbors)
+echo -n "" > system1.dummies_and_neighbors.indices
+echo -n "" > system2.dummies_and_neighbors.indices
+hqh_fes_prepare_dummy_neighbors.py system1 system1.cp2k.psf system1.dummy.indices system1.dummies_and_neighbors.indices
+hqh_fes_prepare_dummy_neighbors.py system2 system1.cp2k.psf system2.dummy.indices system2.dummies_and_neighbors.indices
+
 # Preparing the files and folders
 for tds_index in $(seq 1 ${tds_count_total}); do
 
@@ -283,8 +291,22 @@ for tds_index in $(seq 1 ${tds_count_total}); do
 
         # Carrying out the electrostatic transformation of the entire system
         es_configuration="${tds_es_configuration[${tds_index}]}"
-        hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "ligand" "${es_configuration/sf_}" "false" system1.cp2k.psf
-        hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "ligand" "${es_configuration/sf_}" "false" system2.cp2k.psf
+        if [ "${es_transformation_atoms_to_transform}" = "dao" ]; then
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummy.indices)" "${es_configuration/sf_}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummy.indices)" "${es_configuration/sf_}" "false" system2.cp2k.psf
+        elif [ "${es_transformation_atoms_to_transform}" = "dawn" ]; then
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummies_and_neighbors.indices)" "${es_configuration/sf_}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummies_and_neighbors.indices)" "${es_configuration/sf_}" "false" system2.cp2k.psf
+        elif [ "${es_transformation_atoms_to_transform}" = "ligand" ]; then
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "ligand" "${es_configuration/sf_}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "ligand" "${es_configuration/sf_}" "false" system2.cp2k.psf
+        else
+            # Printing error message
+            echo "Error: The variable es_transformation_atoms_to_transform has an unsupported value (${es_transformation_atoms_to_transform}). Exiting..."
+
+            # Exiting
+            exit 1
+        fi
 
         # Carrying out the transformation of some atoms into complete dummy atoms (atoms types to DUM in psf file, used by prm file)
         hqh_fes_psf_transform_into_dummies.py system1.cp2k.psf "$(cat system1.dummy.indices)" "0" "true" system1.cp2k.psf.tmp

@@ -14,7 +14,9 @@ class DummyAtoms:
         self.molecularSystem = molecularSystem
         
         # Bonds 
-        self.bondedAtoms = {dummyAtomIndex: set() for dummyAtomIndex in self.indices}
+        self.dummyAtomIndexToBondedAtoms = {dummyAtomIndex: set() for dummyAtomIndex in self.indices}
+        self.allBondedAtoms = set()
+        self.allBondedAtomsWithoutDummies = set()
         self.bonds = {index: [] for index in self.indices}
         for bond in molecularSystem.bonds:
             for dummyAtomIndex in self.indices:
@@ -22,7 +24,9 @@ class DummyAtoms:
                     self.bonds[dummyAtomIndex].append(bond)
                     for atomIndex in bond:
                         if atomIndex != dummyAtomIndex:
-                            self.bondedAtoms[dummyAtomIndex].add(int(atomIndex))
+                            self.dummyAtomIndexToBondedAtoms[dummyAtomIndex].add(int(atomIndex))
+                        self.allBondedAtoms.add(int(atomIndex))
+        self.allBondedAtomsWithoutDummies = self.allBondedAtoms - set(self.indices)
 
         # Angles
         self.angledAtoms = {dummyAtomIndex: set() for dummyAtomIndex in self.indices}
@@ -75,9 +79,6 @@ class DummyAtoms:
                 self.indicesH.append(dummyAtomIndex)
             else:
                 self.indicesNonH.append(dummyAtomIndex)
-        print("indices: ", self.indices)
-        print("indicesNonH: ", str(self.indicesNonH))
-        print("indicesH: ", str(self.indicesH))
 
         # Dummy atom distances
         self.atomIndexToDistance = None
@@ -98,7 +99,6 @@ class DummyAtoms:
             self.atomIndexToDistance[dummyAtomIndex] = self.compute_dummy_atom_distance(dummyAtomIndex)
         # Preparing the set of all distances
         self.distances = set(self.atomIndexToDistance.values())
-        print("self.distances: " + str(self.distances))
         # Preparing the distance to index dictionary for all dummies
         self.distanceToAtomIndices = {distance: set() for distance in self.distances}
         for dummyAtomIndex in self.indices:
@@ -107,7 +107,6 @@ class DummyAtoms:
         # Only non-hydrogen dummy atoms
         # Preparing the set of all distances
         self.distancesNonH = set(self.atomIndexToDistance[dummyAtomIndex] for dummyAtomIndex in self.indicesNonH)
-        print("self.distancesNonH: " + str(self.distancesNonH))
 
         # Preparing the distance to index dictionary for the non-hydrogen atoms only
         self.distanceToAtomIndicesNonH = {distance: set() for distance in self.distancesNonH}
@@ -131,7 +130,7 @@ class DummyAtoms:
             print "\nTesting the bonded neighbors of dummy atom: " + str(atomIndex)
             print " * Current distance from the root dummy atom is: " + str(distance)
             print " * Atoms already visited during the path search: " + ", ".join([str(item) for item in atomIndicesToIgnore])
-            for bondedAtomIndex in self.bondedAtoms[atomIndex] - atomIndicesToIgnore:
+            for bondedAtomIndex in self.dummyAtomIndexToBondedAtoms[atomIndex] - atomIndicesToIgnore:
                 print " * Testing bonded atom: " + str(bondedAtomIndex)
                 if bondedAtomIndex not in self.indices:
                     print "   * The tested bonded atom is not a dummy atom. Saving the current distance in the list of found path distances."
@@ -147,6 +146,14 @@ class DummyAtoms:
 
         # Returning the shortest dummy atom distance
         return min(dummyAtomDistances)
+
+    # Function for writing the bonded atoms of the dummies
+    def writeBondedAtoms(self, outputFilename):
+
+        # Writing the bonded atom indices to a file
+        with open(outputFilename, "w") as outputFile:
+            for atomIndex in self.allBondedAtoms:
+                outputFile.write(str(atomIndex) + " ")
 
 
 class MolecularSystem:
