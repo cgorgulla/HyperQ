@@ -328,9 +328,9 @@ eq_type_RLS=MM
 # Possible values: MM, QM, QMMM
 # Currently obsolete
 
-eq_total_steps_L=50000
-eq_total_steps_LS=50000
-eq_total_steps_RLS=50000
+eq_total_steps_L=100000
+eq_total_steps_LS=100000
+eq_total_steps_RLS=100000
 # Input files for the simulations are adjusted automatically by replacing the term 'eq_total_steps_placeholder'
 
 eq_trajectory_stride_L=1000
