@@ -339,7 +339,9 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     (( system_ID += 1 ))
 done
 cp ../../../input-files/mappings/curated/${system1_basename}_${system2_basename} ./system.mcs.mapping
-cp ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ./system.mcs.mapping.hr
+if [ -f ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ]; then
+    cp ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ./system.mcs.mapping.hr || true   # Parallel robustness
+fi
 if [ -f "TD_windows.list" ]; then
     rm TD_windows.list
 fi

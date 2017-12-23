@@ -99,6 +99,9 @@ tds_count_total="$((tdw_count_total+1))"
 # Printing some information
 echo -e "\n *** Preparing the tasks for all MSPs in ${msp_list_file} ***\n"
 
+# Preparing required folders
+mkdir -p batchsystem/task-lists
+
 # Loop for each system
 while IFS= read -r line || [[ -n "$line" ]]; do
 
