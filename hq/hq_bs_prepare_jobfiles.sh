@@ -195,7 +195,7 @@ while IFS='' read -r command_task; do
             sed -i "s/workflow_id_placeholder/${workflow_id}/g" ${job_file}
             sed -i "s/jtl_placeholder/${jtl}/g" ${job_file}
             sed -i "s/jid_placeholder/${jid}/g" ${job_file}
-            sed -i "s/jsn_placeholder/1/g" ${job_file}
+            sed -i "s/jsn_placeholder/0/g" ${job_file}                      # 0 because then we can always increase the jsn directly before starting new jobs manually
 
             # Creating the subjob-list file / clearing if already existent
             echo -n "" > ${subjoblist_file}
