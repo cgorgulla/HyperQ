@@ -3,10 +3,10 @@ set system_basename [lindex $argv 0]
 set subsystem [lindex $argv 1]
 
 # Reading in the config files
-set file [open "../../../config.uatoms.${subsystem}" r]
+set file [open "../../../special-atoms/uatoms.${subsystem}" r]
 set file_data_u_all [read $file]
 close $file
-set file [open "../../../config.qatoms.${subsystem}" r]
+set file [open "../../../special-atoms/qatoms.${subsystem}" r]
 set file_data_q_all [read $file]
 close $file
 

@@ -57,7 +57,7 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -69,11 +69,11 @@ echo -e "\n *** Postprocessing the MD simulations (hqmd_md_pp_one_ms.sh)"
 # Variables
 subsystem="$1"
 folder=md
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_pp_stride="$(grep -m 1 "^md_pp_stride=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_pp_stride="$(grep -m 1 "^md_pp_stride=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 if [ "${md_pp_stride}" -ne "{md_pp_stride}" ]; then
-    echo " * Warning: The variable md_pp_stride was not set in the config.txt file. Setting the value to 100."
+    echo " * Warning: The variable md_pp_stride was not set in the general.txt file. Setting the value to 100."
     md_pp_stride=100
 fi
 

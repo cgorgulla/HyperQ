@@ -6,7 +6,7 @@ usage="Usage: hq_bs_prepare_jobfiles.sh <task-list> <job-template> <subjob templ
 Arguments:
     <task list>: One task per line, one task is represented by one command. No empty lines should be present.
 
-    <job-template>: A batchsystem jobfile template which needs to have a file ending matching the batchsystem type specified in the input-files/config.txt file
+    <job-template>: A batchsystem jobfile template which needs to have a file ending matching the batchsystem type specified in the general hyperq config file.
 
     <subjob template>: Template filename for the subjobs.
 
@@ -66,12 +66,23 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -110,18 +121,18 @@ subjobs_per_job=$6
 tasks_per_subjob=$7
 parallelize_subjobs=$8
 parallelize_tasks=$9
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
-command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" input-files/config.txt | awk -F '[=#]' '{print $2}')
-command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" input-files/config.txt | awk -F '[=#]' '{print $2}')
-tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+batchsystem=$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+workflow_id=$(grep -m 1 "^workflow_id=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+command_prefix_bs_subjob=$(grep -m 1 "^command_prefix_bs_subjob=" ${HQ_CONFIGFILE_GENERAL} | awk -F '[=#]' '{print $2}')
+command_prefix_bs_task=$(grep -m 1 "^command_prefix_bs_task=" ${HQ_CONFIGFILE_GENERAL} | awk -F '[=#]' '{print $2}')
+tasks_parallel_delay_time=$(grep -m 1 "^tasks_parallel_delay_time=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 tasks_total="$(wc -l ${task_list} | awk '{print $1}')"
 
 # Checking if the batchsystem types match
 if [[ "${batchsystem}" != "${job_template/*.}" ]]; then
 
     # Printing an error message before exiting
-    echo -e "\n * Error: The batchsystem type specified in the file input-files/config.txt does not match the ending of the batchsystem template file. Exiting...\n\n"
+    echo -e "\n * Error: The batchsystem type specified in the file ${HQ_CONFIGFILE_GENERAL} does not match the ending of the batchsystem template file. Exiting...\n\n"
     exit 1
 fi 
 

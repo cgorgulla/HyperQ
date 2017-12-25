@@ -20,14 +20,6 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-# Bash options
-set -o pipefail
-
-# Verbosity
-if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
-    set -x
-fi
-
 # Printing some information
 echo
 echo
@@ -56,12 +48,31 @@ if [ "$#" -ne "0" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
+# Verbosity
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
+    set -x
+fi
+
 # Variables
 lomap_output_basename="lomap"
-lomap_ncpus="$(grep -m 1 "^lomap_ncpus" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-mcs_time="$(grep -m 1 "^mcs_time" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-draw_pairwise_mcs="$(grep -m 1 "^draw_pairwise_mcs" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_ncpus="$(grep -m 1 "^lomap_ncpus" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+mcs_time="$(grep -m 1 "^mcs_time" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+draw_pairwise_mcs="$(grep -m 1 "^draw_pairwise_mcs" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Creating required folders
 if [ -d "input-files/mappings" ]; then

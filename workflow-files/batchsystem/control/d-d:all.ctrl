@@ -27,7 +27,7 @@ job_initial_sleeping_time_max=120
 # 6) errors_pipeline
 # 7) job_success
 
-terminate_current_job=false
+terminate_job=false
 # Possible values: true, false
 # If true, the job current job will be terminated without failure as soon as possible.
 # Running simulations will be terminated, and pipelines will not progress to the next step.

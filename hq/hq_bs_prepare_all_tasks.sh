@@ -3,8 +3,6 @@
 # Usage information
 usage="Usage: hq_bs_prepare_all_tasks.sh <MSP list file> <command> <output file>
 
-Has to be run in the root folder.
-
 <MSP list file>: Text file containing a list of molecular system pairs (MSP), one pair per line, in form of system1_system2.
                  For each MSP in the file <MSP list file> a task defined by <command> will be created.
 
@@ -14,7 +12,9 @@ Has to be run in the root folder.
            i.e. the variable 'TDS' is replaced by 'i:i', where i runs over all TDSs.
            The command is primarily intended to be used in combination with hqf_gen_run_one_pipe.sh.
 
-<output file>: The tasks will be appended to the specified file. If this file does not exist yet, it will be created."
+<output file>: The tasks will be appended to the specified file. If this file does not exist yet, it will be created.
+
+Has to be run in the root folder."
 
 # Checking the input arguments
 if [ "${1}" == "-h" ]; then
@@ -58,12 +58,23 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -93,7 +104,7 @@ fi
 msp_list_file="${1}"
 command_general="${2}"
 output_filename="${3}"
-tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 tds_count_total="$((tdw_count_total+1))"
 
 # Printing some information

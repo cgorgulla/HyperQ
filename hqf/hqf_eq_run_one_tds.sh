@@ -112,8 +112,19 @@ trap "cleanup_exit" EXIT
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -123,9 +134,9 @@ fi
 tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 msp_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
-eq_programs=$(grep -m 1 "^eq_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
-eq_timeout=$(grep -m 1 "^eq_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
-eq_continue=$(grep -m 1 "^eq_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+eq_programs=$(grep -m 1 "^eq_programs_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+eq_timeout=$(grep -m 1 "^eq_timeout_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+eq_continue=$(grep -m 1 "^eq_continue=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 sim_counter=0
 
 # Checking if this equilibration has already been completed and should be skipped
@@ -154,8 +165,8 @@ if [[ "${eq_programs}" == "cp2k" ]] ;then
     fi
 
     # Variables
-    ncpus_cp2k_eq="$(grep -m 1 "^ncpus_cp2k_eq_${subsystem}=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
+    ncpus_cp2k_eq="$(grep -m 1 "^ncpus_cp2k_eq_${subsystem}=" ../../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../../${HQ_CONFIGFILE_MSP} | awk -F '[=#]' '{print $2}')"
     export OMP_NUM_THREADS=${ncpus_cp2k_eq}
 
     # Checking the input file
@@ -190,11 +201,11 @@ while true; do
         controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
 
         # Getting the relevant value
-        terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+        terminate_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_job true)"
         cd -
 
         # Checking the value
-        if [ "${terminate_current_job^^}" == "TRUE" ]; then
+        if [ "${terminate_job^^}" == "TRUE" ]; then
 
             # Printing some information
             echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."

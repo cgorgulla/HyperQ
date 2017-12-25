@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqh_sp_prepare_uatom_files.sh <system basename>"
+usage="Usage: hqh_sp_prepare_uatoms_files.sh <system basename>"
 
 # Standard error response 
 error_response_std() {
@@ -22,6 +22,17 @@ trap 'error_response_std $LINENO' ERR
 
 # Bash options
 set -o pipefail
+
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
 
 # Verbosity
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then

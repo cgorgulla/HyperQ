@@ -60,8 +60,19 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -73,8 +84,8 @@ psf_filename=${2}  # only needed for vmd
 trajectory_filename=${3}
 output_filename=${4}
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-opt_continue="$(grep -m 1 "^opt_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_continue="$(grep -m 1 "^opt_continue=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Checking if the optimization is in continuation mode
 if [[ "${opt_continue^^}" == "TRUE" ]] && [[ -f ${output_filename} ]]; then

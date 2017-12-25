@@ -68,8 +68,14 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -81,19 +87,77 @@ system_2_basename="${2}"
 subsystem=${3}
 tds_range=${4}
 msp_name=${system_1_basename}_${system_2_basename}
-inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-eq_type="$(grep -m 1 "^eq_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-eq_continue="$(grep -m 1 "^eq_continue=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count_total="$(grep -m 1 "^tdw_count_total=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_eq_general="$(grep -m 1 "^inputfolder_cp2k_eq_general_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+inputfolder_cp2k_eq_specific="$(grep -m 1 "^inputfolder_cp2k_eq_specific_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+cell_dimensions_scaling_factor="$(grep -m 1 "^cell_dimensions_scaling_factor_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+signpostings_activate="$(grep -m 1 "^signpostings_activate=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_programs="$(grep -m 1 "^eq_programs_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_type="$(grep -m 1 "^eq_type_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+eq_continue="$(grep -m 1 "^eq_continue=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count_total="$((tdw_count_total + 1))"
 
 # Printing information
-echo -e "\n *** Preparing the equilibration folder for MSP ${msp_name} (hqf_eq_prepare_one_msp.sh) *** "
+echo -e "\n\n *** Preparing the equilibration folder for MSP ${msp_name} (hqf_eq_prepare_one_msp.sh) ***\n"
+
+# Creating the main folder if not yet existing
+mkdir -p eq/${msp_name}/${subsystem} || true   # Parallel robustness
+
+# Checking if enough time has elapsed since other pipelines have prepared this workflow ro provided interferences between parallel running pipelines
+if [ "${signpostings_activate^^}" == "TRUE" ]; then
+
+    # Printing some information
+    echo -e "\nStarting signposting checks..."
+
+    # Variables
+    signpostings_minimum_waiting_time="$(grep -m 1 "^signpostings_minimum_waiting_time=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    signpostings_dispersion_time_maximum="$(grep -m 1 "^signpostings_dispersion_time_maximum=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    status="wait"
+
+    # Sleeping some initial random time to disperse multiple simultaneously arriving pipelines in time (which can happen e.g. if jobs have been dispatched at the same time by the batchsystem)
+    sleep $(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)
+    # Loop setup
+    while [[ "${status}" = "wait" ]]; do
+
+        # Checking if there is a signpost from previous pipelines
+        if [ -f eq/${msp_name}/${subsystem}/preparation.common.signpost.entrance ]; then
+
+            # Variables
+            modification_time="$(stat -c %Y eq/${msp_name}/${subsystem}/preparation.common.signpost.entrance || true)"
+            modification_time_difference="$(($(date +%s) - modification_time))"
+            if [ "${modification_time_difference}" -lt "${signpostings_minimum_waiting_time}" ]; then
+
+                # Variables
+                sleeping_time="$(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)"
+
+                # Printing some information
+                echo -e " * The minimum waiting time since the last signpost hast been set has not yet been passed."
+                echo -e " * Sleeping for ${sleeping_time} more seconds..."
+
+                # Sleeping some random time to disperse multiple waiting pipelines in time
+                sleep ${sleeping_time}
+            else
+                # Printing some information
+                echo -e " * The minimum waiting time since the last signpost hast been set has been passed."
+                echo -e " * Clearance obtained. Updating previous signpost and continuing...\n"
+
+                # Updating the signpost
+                touch eq/${msp_name}/${subsystem}/preparation.common.signpost.entrance
+                status="continue"
+            fi
+        else
+            # Printing some information
+            echo -e " * No signposting from previous runs has been found."
+            echo -e " * Clearance obtained. Setting signpost and continuing...\n"
+
+            # Setting the signpost
+            touch eq/${msp_name}/${subsystem}/preparation.common.signpost.entrance
+            status="continue"
+        fi
+    done
+fi
 
 # Setting the range indices
 tds_index_first=${tds_range/:*}
@@ -136,7 +200,7 @@ fi
 echo "OK"
 
 # Using the system.a1c1.[uc]_atom files as indicators since they are the last files created during the general preparation
-if [[ "${eq_continue^^}" == "TRUE" ]] && ls ./eq/${msp_name}/${subsystem}/system.a1c1.u_atoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/system.a1c1.q_atoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./eq/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
+if [[ "${eq_continue^^}" == "TRUE" && -f eq/${msp_name}/${subsystem}/preparation.common.signpost.success ]] && ls ./eq/${msp_name}/${subsystem}/system.a1c1.uatoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/system.a1c1.qatoms &>/dev/null && ls ./eq/${msp_name}/${subsystem}/cp2k.in.sub.forces.* &>/dev/null && ls ./eq/${msp_name}/${subsystem}/tds*/general/ &>/dev/null; then
 
     # Printing information
     echo " * The continuation mode for the equilibration is enabled, and the general files for the current MSP (${msp_name}) have already been prepared."
@@ -146,10 +210,6 @@ if [[ "${eq_continue^^}" == "TRUE" ]] && ls ./eq/${msp_name}/${subsystem}/system
     cd eq/${msp_name}/${subsystem}
 
 else
-
-    # Creating the main folder if not yet existing
-    echo -e " * Preparing the main folder"
-    mkdir -p eq/${msp_name}/${subsystem} || true   # Parallel robustness
 
     # Changing the pwd into the relevant folder
     cd eq/${msp_name}/${subsystem}
@@ -223,6 +283,9 @@ else
     # Preparing the shared input files
     hqh_fes_prepare_one_fes_common.sh
 fi
+
+# Preparing a success signpost
+touch preparation.common.signpost.success
 
 # Preparing the equilibration folder for each TDS
 for tds_index in $(seq ${tds_index_first} ${tds_index_last}); do

@@ -152,8 +152,19 @@ trap "cleanup_exit" EXIT
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -164,11 +175,11 @@ system_name="$(pwd | awk -F '/' '{print     $(NF-2)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF-1)}')"
 tds_folder="$(pwd | awk -F '/' '{print $(NF)}')"
 tds_index="${tds_folder/tds-}"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_continue="$(grep -m 1 "^md_continue=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_keep_logfiles="$(grep -m 1 "^md_keep_logfiles=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_timeout="$(grep -m 1 "^md_timeout_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_continue="$(grep -m 1 "^md_continue=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_keep_logfiles="$(grep -m 1 "^md_keep_logfiles=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 run=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run[0-9]*" | grep -o "[0-9]*")
 sim_counter=0
 
@@ -207,8 +218,8 @@ fi
 if [[ "${md_programs}" == *"cp2k"* ]]; then
 
     # Variables
-    ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
+    ncpus_cp2k_md="$(grep -m 1 "^ncpus_cp2k_md_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    cp2k_command="$(grep -m 1 "^cp2k_command=" ../../../../${HQ_CONFIGFILE_MSP} | awk -F '[=#]' '{print $2}')"
     max_it=500
     iteration_no=0
 
@@ -321,8 +332,8 @@ fi
 # Running NAMD
 if [[ "${md_programs}" == "namd" ]]; then
     cd namd
-    # ncpus_namd_md="$(grep -m 1 "^ncpus_namd_md=" ../../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    namd_command="$(grep -m 1 "^namd_command=" ../../../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
+    # ncpus_namd_md="$(grep -m 1 "^ncpus_namd_md=" ../../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    namd_command="$(grep -m 1 "^namd_command=" ../../../../../${HQ_CONFIGFILE_MSP} | awk -F '[=#]' '{print $2}')"
     ${namd_command} namd.in.md > namd.out.run${run}.screen 2>namd.out.run${run}.err & # removed +idlepoll +p${ncpus_namd_md}
     pid=$!
     pids[${sim_counter}]=$pid
@@ -347,11 +358,11 @@ while true; do
         controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
 
         # Getting the relevant value
-        terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+        terminate_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_job true)"
         cd -
 
         # Checking the value
-        if [ "${terminate_current_job^^}" == "TRUE" ]; then
+        if [ "${terminate_job^^}" == "TRUE" ]; then
 
             # Printing some information
             echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."

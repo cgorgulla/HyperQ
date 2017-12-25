@@ -60,8 +60,19 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -69,12 +80,12 @@ fi
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-temperature="$(grep -m 1 "^temperature=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+temperature="$(grep -m 1 "^temperature=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+delta_F_min="$(grep -m 1 "^delta_F_min=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+delta_F_max="$(grep -m 1 "^delta_F_max=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+C_absolute_tolerance="$(grep -m 1 "^C_absolute_tolerance=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 
 # Variables

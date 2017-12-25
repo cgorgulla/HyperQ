@@ -69,14 +69,14 @@ trap 'error_response_std $LINENO' ERR
 
 # Exit cleanup
 cleanup_exit() {
-    kill 0  1>/dev/null 2>&1 || true # Stops the proccesses of the same process group as the calling process
+    kill 0  1>/dev/null 2>&1 || true # Stops the processes of the same process group as the calling process
     #kill $(pgrep -f $DAEMON | grep -v ^$$\$)
     #return
 }
 trap "cleanup_exit" EXIT
 
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x

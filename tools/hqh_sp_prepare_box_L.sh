@@ -25,12 +25,23 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
-# Checking the input paramters
+# Checking the input parameters
 if [ "${1}" == "-h" ]; then
     echo
     echo -e "$usage"
@@ -56,7 +67,7 @@ fi
 script_dir=$(dirname $0)
 ligand_basename=$1
 output_basename=$2
-padding_size="$(grep -m 1 "^box_edge_length_L="  ../../../config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+padding_size="$(grep -m 1 "^box_edge_length_L="  ../../../../${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Preparing the box
 vmdc "${script_dir}/hqh_sp_prepare_box_L.vmd" -args $ligand_basename $output_basename ${script_dir}

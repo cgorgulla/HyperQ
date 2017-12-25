@@ -3,17 +3,17 @@ set system_basename [lindex $argv 0]
 set subsystem [lindex $argv 1]
 
 # Reading in the config files
-set file [open "../../../config.uatoms.${subsystem}" r]
+set file [open "../../../special-atoms/uatoms.${subsystem}" r]
 set file_data [read $file]
 close $file
-set uatom_selection "$file_data"
+set uatoms_selection "$file_data"
 
 # Opening molecules
 mol new ${system_basename}.pdb
 mol addfile ${system_basename}.psf
 
 # Setting atom selections
-set uatoms [atomselect top ${uatom_selection}]
+set uatoms [atomselect top ${uatoms_selection}]
 
 # Writing out files
 set data [${uatoms} get {serial}]

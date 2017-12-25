@@ -59,7 +59,7 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -68,8 +68,8 @@ fi
 # Variables
 system_basename="${1}"
 subsystem=${2}
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_type="$(grep -m 1 "^opt_type_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Printing information
 echo -e "\n *** Preparing the optimization folder for system ${system_basename} (hqmd_opt_prepare_one_ms.sh) *** "
@@ -100,7 +100,7 @@ if [[ "${opt_programs}" == "cp2k" ]]; then
         rm -r opt/cp2k
     fi
     mkdir -p opt/cp2k
-    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     cp ../../../input-files/cp2k/${inputfolder_cp2k_opt} opt/cp2k/cp2k.in.main
     sed -i "s/ABC *cell_dimensions_full_rounded/ABC ${A} ${B} ${C}/g" opt/cp2k/cp2k.in.main
 
@@ -110,7 +110,7 @@ fi
 # Preparation of the NAMD files
 if [[ "${opt_programs}" == *"namd"* ]]; then
     # Variables
-    inputfile_namd_opt="$(grep -m 1 "^inputfile_namd_opt_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfile_namd_opt="$(grep -m 1 "^inputfile_namd_opt_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Folders and files
     echo -e " * Preparing the files and directories which are NAMD specific"

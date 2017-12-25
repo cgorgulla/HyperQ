@@ -101,7 +101,7 @@ user_abort() {
 
     echo "Info: User abort, cleaning up..."
 
-    # Forwarding the signal to our child processess
+    # Forwarding the signal to our child processes
     pkill -SIGINT -P $$ || true
     pkill -SIGTERM -P $$ || true
     pkill -SIGQUIT -P $$ || true
@@ -173,10 +173,10 @@ bs_check_termination_request() {
         controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID})"
 
         # Getting the relevant value
-        terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true)"
+        terminate_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_job true)"
 
         # Checking the value
-        if [ "${terminate_current_job^^}" == "TRUE" ]; then
+        if [ "${terminate_job^^}" == "TRUE" ]; then
 
             # Printing some information
             echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
@@ -201,13 +201,6 @@ if [ ! -d input-files ]; then
     false
 fi
 
-# Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-export HQ_VERBOSITY_RUNTIME
-if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
-    set -x
-fi
-
 # Setting the start date of this pipeline
 HQ_STARTDATE_ONEPIPE="$(date +%Y%m%d%m%S-%N)"
 export HQ_STARTDATE_ONEPIPE
@@ -220,19 +213,51 @@ if [ -z "${HQ_STARTDATE_BS}" ]; then
     export HQ_STARTDATE_BS
 fi
 
-# Human readable start date
-#startdate_hr="$(date --rfc-3339=seconds | tr -s ": " "_")"
-
 # Variables
 msp_name="${1}"
 subsystem="${2}"
 pipeline_type="${3}"
 system1="${msp_name/_*}"
 system2="${msp_name/*_}"
-workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
-eq_activate="$(grep -m 1 "^eq_activate=" input-files/config.txt | awk -F '[=#]' '{print $2}')"
+HQ_CONFIGFILE_GENERAL="input-files/config/general.txt"
+export HQ_CONFIGFILE_GENERAL
+workflow_id="$(grep -m 1 "^workflow_id=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+command_prefix_gen_run_one_pipe_sub="$(grep -m 1 "^command_prefix_gen_run_one_pipe_sub=" ${HQ_CONFIGFILE_GENERAL} | awk -F '[=#]' '{print $2}')"
+eq_activate="$(grep -m 1 "^eq_activate=" ${HQ_CONFIGFILE_GENERAL} | awk -F '[=#]' '{print $2}')"
 logfile_folder_root="log-files/${HQ_STARTDATE_BS}/${msp_name}_${subsystem}"
+
+# Printing some information
+echo -e "\n\n\n                                           *** Running the pipeline ${pipeline_type} for MSP ${msp_name} *** \n"
+
+# Verbosity
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+export HQ_VERBOSITY_RUNTIME
+if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
+
+    # Printing some information
+    echo " * Activating the Bash command trace option..."
+
+    # Activating the xtrace option
+    set -x
+fi
+
+# Config file
+if [ -f input-files/config/${msp_name}.txt ]; then
+
+    # Printing some information
+    echo -e "\n * Info: For MSP ${msp_name} an individual configuration file has been found. Using this configuration file..\n"
+
+    # Setting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/${msp_name}.txt
+    export HQ_CONFIGFILE_MSP
+else
+    # Printing some information
+    echo -e "\n * Info: For MSP ${msp_name} no individual configuration file has been found. Using the general configuration file...\n"
+
+    # Setting the variable
+    HQ_CONFIGFILE_MSP=${HQ_CONFIGFILE_GENERAL}
+    export HQ_CONFIGFILE_MSP
+fi
 
 # Checking the pipeline type
 if [[ "${pipeline_type}" != *"_pro_"* && "${pipeline_type}" != *"_rop_"* && "${pipeline_type}" != *"_ppo_"* && "${pipeline_type}" != *"_pre_"* && "${pipeline_type}" != *"_req_"* \
@@ -281,6 +306,7 @@ if [ "$$" != "${pgid}" ]; then
 fi
 
 # Sleeping some time
+echo " * Starting initial pipeline sleeping period of 15 seconds..."
 sleep 15                # Indicates a successful run of this script. The batchsystem module recognizes tasks which finish within a few seconds and classifies them as having failed to start.
 
 # Logging the output of this script

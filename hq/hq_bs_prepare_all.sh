@@ -66,12 +66,23 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -104,7 +115,7 @@ subjob_template=$3
 subsystems=$4
 jobtypes=$5
 toprepare=$6
-nbeads="$(grep -m 1 "^nbeads=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Loop for each job type
 for jobtype in ${jobtypes//:/ }; do
@@ -145,7 +156,7 @@ for subsystem in ${subsystems//:/ }; do
 
             # Preparing the tasks
             if  [[ "${toprepare}" == "tasks" ]] || [[ "${toprepare}" == "all" ]]; then
-                hq_bs_prepare_all_tasks.sh input-files/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allopt_alleq_ TDS" batchsystem/task-lists/all.${subsystem}.opt_eq
+                hq_bs_prepare_all_tasks.sh input-files/mappings/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allopt_alleq_ TDS" batchsystem/task-lists/all.${subsystem}.opt_eq
             fi
 
             # Preparing the job files
@@ -159,7 +170,7 @@ for subsystem in ${subsystems//:/ }; do
 
             # Preparing the tasks
             if  [[ "${toprepare}" == "tasks" ]] || [[ "${toprepare}" == "all" ]]; then
-                hq_bs_prepare_all_tasks.sh input-files/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allmd_ TDS" batchsystem/task-lists/all.${subsystem}.md
+                hq_bs_prepare_all_tasks.sh input-files/mappings/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allmd_ TDS" batchsystem/task-lists/all.${subsystem}.md
             fi
 
             # Preparing the job files
@@ -173,7 +184,7 @@ for subsystem in ${subsystems//:/ }; do
 
             # Preparing the tasks
             if  [[ "${toprepare}" == "tasks" ]] || [[ "${toprepare}" == "all" ]]; then
-                hq_bs_prepare_all_tasks.sh input-files/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allce_allfec_" batchsystem/task-lists/all.${subsystem}.ce_fec
+                hq_bs_prepare_all_tasks.sh input-files/mappings/msp.all "hqf_gen_run_one_pipe.sh MSP ${subsystem} _allce_allfec_" batchsystem/task-lists/all.${subsystem}.ce_fec
             fi
 
             # Preparing the job files

@@ -30,16 +30,23 @@ fi
 # Bash options
 set -o pipefail
 
-# Variables
-line=$(grep -m 1 "^batchsystem=" input-files/config.txt)
-batchsystem="${line/batchsystem=}"
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
 
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -53,9 +60,14 @@ else
     fi
 fi
 
+# Variables
+line=$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL})
+batchsystem="${line/batchsystem=}"
+
 # Determining the batchsystem
 if [ "${batchsystem}" == "slurm" ]; then
-    squeue -o "%.18i %.9P %.70j %.8u %.8T %.10M %.9l %.6D %R" | grep ${USER:0:8}
+    sacct -ojobid%15,ncpus,jobname%70,partition,state 2>&1 | grep  "^ \+[0-9]\+" | grep -v "^ \+[0-9]\+\."          # On Odyssey this is needed to filter out all the associated job steps (internal and regular job steps, because we only want infos about the main jobs)
+    #squeue -o "%.18i %.9P %.70j %.8u %.8T %.10M %.9l %.6D %R" | grep ${USER:0:8}
 elif [ "${batchsystem}" == "mtp" ]; then
     qstat | grep ${USER:0:8} | grep -v " C "
 elif [ "${batchsystem}" == "lsf" ]; then
@@ -63,6 +75,6 @@ elif [ "${batchsystem}" == "lsf" ]; then
 elif [ "${batchsystem}" == "sge" ]; then
     qstat | grep ${USER:0:8}
 else
-    echo -e " * Unsupported batchsystem (${batchsystem}) specified in the file input-files/config.txt. Exiting... \n\n"
+    echo -e " * Unsupported batchsystem (${batchsystem}) specified in the file ${HQ_CONFIGFILE_GENERAL}. Exiting... \n\n"
     exit 1
 fi

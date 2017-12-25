@@ -103,6 +103,17 @@ cell_dimensions_scaling_factor_LS=2
 cell_dimensions_scaling_factor_RLS=2
 # This value will be used for the variables cell_dimensions_scaled_rounded and cell_dimensions_scaled_odd_rounded in the simulation software input files (e.g. cp2k)
 
+signpostings_activate=true
+# Possible values: false, true
+
+signpostings_minimum_waiting_time=180
+# Possible values: Positive integers including zero
+# Unit: Seconds
+
+signpostings_dispersion_time_maximum=180
+# Possible values: Positive integers (excluding 0)
+# Unit: Seconds
+
 
 *************************************************************************** TD Cycles ***************************************************************************
 
@@ -114,18 +125,22 @@ tdw_count_total=6
 #tdcycle_es_transformation_type=hq
 ## Possible options: hq, lambda
 
-tdw_count_es_transformation=1
+tdw_count_es_transformation=2
 # Possible values: any positive integer including 0
+# Has to satisfy the conditions:
+#      1) tdw_count_es_transformation = tdw_count_total - tdw_count_msp_transformation
+#      2) tdw_count_es_transformation = #(tdcycle_es_transformation_tds_configurations_initial) + #(tdcycle_es_transformation_tds_configurations_final) - 2
 
-tdcycle_es_transformation_tds_configurations=1:0
+tdcycle_es_transformation_tds_configurations_initial=1:0
+tdcycle_es_transformation_tds_configurations_final=0:1
 # Possible values: Colon separated list of configurations (e.g. 1:0.5:0 if tdcycle_es_transformation_type=lambda or 0:2:4 if tdcycle_es_transformation_type=hq)
 # If tdcycle_es_transformation_type is set to
 #           * lambda, then each configuration is a floating point number representing a scaling factor
 ##           * hq, then each configuration is a non-negative integer representing the number of beads for which the es transformation (with scaling factor 0) should be applied
-# The number of values specified has to be equal to tdw_count_es_transformation + 1
+# The number of values specified in both variables together has to be equal to tdw_count_es_transformation + 2
 # The order of values specified corresponds to the direction of decoupling starting at the endstates
 # Each specified scaling factor applies to one TDS
-# The last value will be used for all TDSs during the msp-transformation
+# The last value of tdcycle_es_transformation_tds_configurations_initial (usually the same as the first value of (tdcycle_es_transformation_tds_configurations_final) will be used for all the TDSs which are part of the msp-transformation
 
 es_transformation_atoms_to_transform=dawn
 # Possible values:
@@ -261,7 +276,7 @@ opt_continue=true
 #   * during _pro_
 #       * non-existent TDS-folders will be newly created
 #       * and existing TDS-folders which contain already restart files will be prepared for the next run provided the there are no opt-pp-files for this TDS yet, in which case it will be skipped
-#       * the general MSP folder will only be newly prepared if at least one of the files system.a1c1.[uc]_atoms is present
+#       * the general MSP folder will only be newly prepared if at least one of the files system.a1c1.[uc]-atoms is present
 #   * during _rop_
 #       * the simulation will only be started if there are no opt-pp-files yet for this TDS
 #   * during _ppo_
@@ -523,7 +538,7 @@ command_prefix_ce_run_one_snapshot=bash
 ************************************************************************** Batchsystem **************************************************************************
 
 batchsystem=slurm
-# Supported: lsf, slurm, sge, mtp (for moab/torque/pbs)
+# Supported: lsf, slurm, sge, mtp (for MOAB/torque/pbs)
 
 tasks_parallel_delay_time=10
 # Possible values: Non-negative integer

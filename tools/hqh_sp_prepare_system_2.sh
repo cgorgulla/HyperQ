@@ -21,14 +21,6 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-# Bash options
-set -o pipefail
-
-# Verbosity
-if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
-    set -x
-fi
-
 # Checking the input parameters
 if [ "${2}" == "-h" ]; then
     echo
@@ -51,6 +43,25 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
+# Verbosity
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
+    set -x
+fi
+
 # Printing some information
 echo
 echo
@@ -61,10 +72,10 @@ echo "**************************************************************************
 dirname=$(dirname $0)
 ligand_basename=${1}
 subsystem=${2}
-opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-opt_type="$(grep -m 1 "^opt_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_programs="$(grep -m 1 "^opt_programs_${subsystem}=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+opt_type="$(grep -m 1 "^opt_type_${subsystem}=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Adjusting the pdb and psf files
 cd input-files/systems/${ligand_basename}/${subsystem}
@@ -73,10 +84,10 @@ hqh_sp_patch_pdb_psf.sh system_complete.reduced
 
 # Preparing the special atoms
 # uatoms
-echo -e "\n *** Determining the uatom indices (prepare_uatom_files.vmd) ***"
-vmdc ${dirname}/hqh_sp_prepare_uatom_files.vmd -args system_complete.reduced ${subsystem}
-echo -e "\n *** Preparing the uatom indices (hqh_sp_prepare_uatom_files.sh) ***"
-hqh_sp_prepare_uatom_files.sh system_complete.reduced
+echo -e "\n *** Determining the uatoms indices (prepare_uatoms_files.vmd) ***"
+vmdc ${dirname}/hqh_sp_prepare_uatoms_files.vmd -args system_complete.reduced ${subsystem}
+echo -e "\n *** Preparing the uatoms indices (hqh_sp_prepare_uatoms_files.sh) ***"
+hqh_sp_prepare_uatoms_files.sh system_complete.reduced
 
 # qatoms
 echo -e "\n *** Determining the qatom indices (hqh_sp_prepare_qatom_files.vmd) ***"

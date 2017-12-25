@@ -1,29 +1,56 @@
 <component name="ProjectDictionaryState">
   <dictionary name="jadzia">
     <words>
+      <w>allce</w>
+      <w>alleq</w>
+      <w>allfec</w>
+      <w>allmd</w>
+      <w>allopt</w>
+      <w>aprun</w>
+      <w>atomselect</w>
+      <w>atomselection</w>
+      <w>autocompletion</w>
       <w>batchsystem</w>
       <w>batchsystems</w>
+      <w>compl</w>
       <w>crossevaluations</w>
       <w>dihedrals</w>
+      <w>dirname</w>
       <w>equilibrations</w>
       <w>filenames</w>
+      <w>fparameter</w>
+      <w>hetatm</w>
+      <w>hlrn</w>
       <w>hydrogens</w>
+      <w>hyperq</w>
       <w>impropers</w>
       <w>infos</w>
+      <w>inputfiles</w>
       <w>jobfile</w>
       <w>jobfiles</w>
       <w>jobname</w>
       <w>kcal</w>
+      <w>lambdavalue</w>
+      <w>moab</w>
+      <w>nonruntime</w>
+      <w>nonsolvent</w>
+      <w>onepipe</w>
+      <w>outputfile</w>
       <w>parallelization</w>
       <w>parallelize</w>
       <w>parallelized</w>
+      <w>pdbfile</w>
       <w>pdbqt</w>
       <w>pdbx</w>
+      <w>pkill</w>
       <w>qmmm</w>
       <w>runtimeletter</w>
       <w>setsid</w>
+      <w>signpostings</w>
       <w>sjid</w>
       <w>slurm</w>
+      <w>specialatoms</w>
+      <w>srun</w>
       <w>startdate</w>
       <w>stepsize</w>
       <w>stepsizes</w>
@@ -31,6 +58,8 @@
       <w>subjob</w>
       <w>subjobs</w>
       <w>tolower</w>
+      <w>waterbox</w>
+      <w>xtrace</w>
     </words>
   </dictionary>
 </component>

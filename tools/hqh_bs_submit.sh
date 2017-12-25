@@ -30,12 +30,23 @@ fi
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -68,7 +79,7 @@ trap 'error_response_std $LINENO' ERR
 
 # Variables
 jobfile=${1}
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
+batchsystem=$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL} | awk -F '=' '{print tolower($2)}')
 
 # Submitting the job
 if [ "${batchsystem}" == "slurm" ]; then

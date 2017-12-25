@@ -3,7 +3,7 @@
 # Usage information
 usage="Usage: hqf_sp_prepare_all.sh <subsystems> [lomap]
 
-The format is read from the file input-files/config.txt
+The format is read from the file general hyperq config file.
 
 <subsystems> can be L, LS, RLS. Multiple subsystems can be specified by colons without whitespaces (e.g. L:LS:RLS)
 
@@ -51,8 +51,19 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -66,8 +77,8 @@ echo "   Preparing all input structures  (hqf_sp_prepare_all.sh)   "
 echo "************************************************************"
 
 # Variables
-input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+input_file_format="$(grep -m 1 "^input_file_format=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 subsystems=${1//:/ }
 
 # Lomap flag
@@ -266,11 +277,11 @@ for subsystem in ${subsystems}; do
     elif [[ "${subsystem}" == "RLS" ]]; then
 
         # Variables
-        receptor_type="$(grep -m 1 "^receptor_type=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        receptor_type="$(grep -m 1 "^receptor_type=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
         if [[ "${receptor_type}" == "H" ]]; then
             # Variables
-            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+            receptor_mode="$(grep -m 1 "^receptor_mode=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
             if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
                 echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
                 echo -e " *        Supported values are: common, individual"
@@ -280,7 +291,7 @@ for subsystem in ${subsystems}; do
 
             # Preparing the receptor files
             if [[ ${receptor_mode} == "common" ]]; then
-                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+                receptor_basename="$(grep -m 1 "^receptor_basename=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
                 cd input-files/receptor
                 hqh_sp_prepare_H.sh ${receptor_basename}
                 cd ../..
@@ -320,7 +331,7 @@ for subsystem in ${subsystems}; do
         elif [[ "${receptor_type}" == "P" ]]; then
 
             # Variables
-            receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+            receptor_mode="$(grep -m 1 "^receptor_mode=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
             if [[ "${receptor_mode}" != "common" && "${receptor_mode}" != "individual" ]]; then
                 echo -e " * Error: The variable receptor_mode has an unsupported value (${receptor_mode})."
                 echo -e " *        Supported values are: common, individual"
@@ -331,7 +342,7 @@ for subsystem in ${subsystems}; do
             for file in $(ls -v input-files/ligands/pdb); do
                 ligand_basename="${file/.pdb}"
                 if [[ ${receptor_mode} == "common" ]]; then
-                    receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+                    receptor_basename="$(grep -m 1 "^receptor_basename=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
                 elif [[ ${receptor_mode} == "individual" ]]; then
                     receptor_basename="${ligand_basename}"
                 fi
@@ -398,7 +409,7 @@ done
 # Preparing the molecule pairings via MCS searches using Lomap
 if [ "${lomap}" == "true" ]; then
     hqh_sp_prepare_td_pairings.sh
-    awk '{print $3"_"$4}' input-files/mappings/td.pairings > input-files/msp.all
+    awk '{print $3"_"$4}' input-files/mappings/td.pairings > input-files/mappings/msp.all
 fi
 
 echo -e " * The structures of all the molecules has been prepared\n\n"

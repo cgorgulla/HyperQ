@@ -60,6 +60,17 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -69,9 +80,9 @@ fi
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 runtype="$(pwd | awk -F '/' '{print $(NF-2)}')"
-sim_type="$(grep -m 1 "^${runtype}_type_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-nbeads="$(grep -m 1 "^nbeads=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdw_count_total="$(grep -m 1 "^tdw_count_total=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+sim_type="$(grep -m 1 "^${runtype}_type_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+nbeads="$(grep -m 1 "^nbeads=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count_total="$(grep -m 1 "^tdw_count_total=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count_total="$((tdw_count_total + 1))"
 system_1_basename="${msp_name/_*}"
 system_2_basename="${msp_name/*_}"
@@ -226,4 +237,4 @@ hqh_fes_prepare_jointpdbx.py system1.pdb system2.pdb system.mcs.mapping
 hqh_fes_prepare_tds_structure_files.sh
 
 # Preparing the special atom types (for analysis purposes only)
-hqh_gen_prepare_special_atoms.sh system.a1c1.pdbx system.a1c1
+hqh_gen_prepare_specialatoms.sh system.a1c1.pdbx system.a1c1

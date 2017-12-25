@@ -2,7 +2,7 @@
 
 usage="Usage: hqmd_sp_prepare_all.sh <subsystems>
 
-The format is read from the file input-files/config.txt
+The format is read from the file ${HQ_CONFIGFILE_MSP}
 
 <subsystems> can be L, LS, RLS.
 
@@ -48,7 +48,7 @@ if [ "$#" -ne "1" ]; then
 fi
 
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" /input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" /${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -62,8 +62,8 @@ echo "   Preparing all input structures  (hqmd_sp_prepare_all.sh)   "
 echo "************************************************************"
 
 # Variables
-input_file_format="$(grep -m 1 "^input_file_format=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+input_file_format="$(grep -m 1 "^input_file_format=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 subsystems=${1//,/ }
 
 # Converting the input files into the required formats
@@ -197,7 +197,7 @@ for subsystem in ${subsystems}; do
             hqh_sp_prepare_L.sh ${ligand_basename}
         done
     elif [[ "${subsystem}" == "LS" ]]; then
-        waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
         for file in $(ls -v input-files/ligands/pdb); do
             ligand_basename="${file/.*}"
             # Creating folders
@@ -208,15 +208,15 @@ for subsystem in ${subsystems}; do
             hqh_sp_prepare_LS.sh ${ligand_basename}
         done
     elif [[ "${subsystem}" == "RLS" ]]; then
-        waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-        receptor_mode="$(grep -m 1 "^receptor_mode=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        waterbox_padding_size_RLS="$(grep -m 1 "^waterbox_padding_size_RLS=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+        receptor_mode="$(grep -m 1 "^receptor_mode=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
         if [[ -z "${receptor_mode}" ]]; then
             receptor_mode="common"
         fi
         for file in $(ls -v input-files/ligands/pdb); do
             ligand_basename="${file/.pdb}"
             if [[ ${receptor_mode} == "common" ]]; then
-                receptor_basename="$(grep -m 1 "^receptor_basename=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+                receptor_basename="$(grep -m 1 "^receptor_basename=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
             elif [[ ${receptor_mode} == "individual" ]]; then
                 receptor_basename="${ligand_basename}"
             fi

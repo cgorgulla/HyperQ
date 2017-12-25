@@ -38,12 +38,23 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -81,7 +92,7 @@ set -o pipefail
 # Variables
 jtl=${1}
 jid=${2}
-batchsystem="$(hqh_gen_inputfile_getvalue.sh input-files/config.txt batchsystem true)"
+batchsystem="$(hqh_gen_inputfile_getvalue.sh ${HQ_CONFIGFILE_GENERAL} batchsystem true)"
 controlfile="$(hqh_bs_controlfile_determine.sh ${jtl} ${jid})"
 cpus_per_subjob="$(hqh_gen_inputfile_getvalue.sh ${controlfile} cpus_per_subjob true)"
 nodes_per_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} nodes_per_job true)"

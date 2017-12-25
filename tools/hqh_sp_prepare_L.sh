@@ -21,13 +21,6 @@ error_response_std() {
 }
 trap 'error_response_std $LINENO' ERR
 
-# Bash options
-set -o pipefail
-
-# Verbosity
-if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
-    set -x
-fi
 
 # Checking the input parameters
 if [ "${1}" == "-h" ]; then
@@ -51,6 +44,25 @@ if [ "$#" -ne "1" ]; then
     exit 1
 fi
 
+# Bash options
+set -o pipefail
+
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
+# Verbosity
+if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
+    set -x
+fi
+
 # Printing some information
 echo
 echo
@@ -60,7 +72,7 @@ echo "**************************************************************************
 # Variables
 ligand_basename=${1}
 dirname=$(dirname $0)
-ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ligand_FFparameter_source="$(grep -m 1 "^ligand_FFparameter_source=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Copying files, creating folders
 echo -e "\n * Copying files and folders"

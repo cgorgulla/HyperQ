@@ -20,6 +20,17 @@ echo
 # Shell options
 set -m                  # Allowing each task to be in its own process group (HQ assumes that, though it will check and work around if this should not be the case)
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -159,7 +170,7 @@ echo
 
 # Variables
 task_starting_time=$(date +%s)
-minimum_task_time=$(grep -m 1 "^minimum_task_time=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+minimum_task_time=$(grep -m 1 "^minimum_task_time=" ${HQ_CONFIGFILE_MSP} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 waiting_time=0
 task_count=0
 

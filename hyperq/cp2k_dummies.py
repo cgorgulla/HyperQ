@@ -498,6 +498,7 @@ def prepare_cp2k_FF(molecularSystem, FFParas):
                 # Making the atom order unique to facilitate the parameter retrieval
                 bondAtoms = [atomType1, atomType2]
                 bondAtoms = sorted([bondAtoms, list(reversed(bondAtoms))])[0]
+
                 Kb = FFParas.bondParas.Kb[tuple(bondAtoms)]
                 b0 = FFParas.bondParas.b0[tuple(bondAtoms)]
                 cp2kBondsFile.write("&BOND\n  ATOMS %s %s\n  K [kcalmol*angstrom^-2] %f\n  R0 [angstrom] %f\n&END BOND\n" % (atomName1, atomName2, Kb, b0))

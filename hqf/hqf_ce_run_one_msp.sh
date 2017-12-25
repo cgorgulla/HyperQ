@@ -91,8 +91,19 @@ clean_up() {
 }
 trap 'clean_up' EXIT
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -104,11 +115,11 @@ echo -e "\n *** Starting the cross evaluations (hqf_ce_run_one_msp.sh) ***"
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
-fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-ce_continue="$(grep -m 1 "^ce_continue=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../input-files/config.txt | awk -F '[=#]' '{print $2}')"
+fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+ce_continue="$(grep -m 1 "^ce_continue=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../${HQ_CONFIGFILE_MSP} | awk -F '[=#]' '{print $2}')"
 crosseval_folders="$(ls -vd tds*-*/ | tr -d "/")"
 
 # Running the MD simulations
@@ -131,12 +142,12 @@ for crosseval_folder in ${crosseval_folders}; do
                 echo ${controlfile}
 
                 # Getting the relevant value
-                terminate_current_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_current_job true || true)"
-                echo ${terminate_current_job}
+                terminate_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_job true || true)"
+                echo ${terminate_job}
                 cd -
 
                 # Checking the value
-                if [ "${terminate_current_job^^}" == "TRUE" ]; then
+                if [ "${terminate_job^^}" == "TRUE" ]; then
 
                     # Printing some information
                     echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."

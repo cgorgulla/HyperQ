@@ -4,7 +4,7 @@
 usage="Usage: hq_bs_start_jobs.sh <job-type-letter> <JID ranges> <increase job serial number> <check for active jobs> <sync with controlfile> <delay time>
 
 Starts the job files in batchsystem/job-files/main/jtl-<jtl>.jid-<jid>.<batchsystem>
-The variable <batchsystem> is determined by the corresponding setting in the file input-files/config.txt
+The variable <batchsystem> is determined by the corresponding setting in the general hyperq config file.
 
 Arguments:
     <increase job serial number>: Possible values: true or false
@@ -79,12 +79,23 @@ trap 'cleanup_exit' EXIT
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -117,8 +128,8 @@ increase_jsn=${3}
 check_active_jobs=${4}
 sync_job_file=${5}
 delay_time=${6}
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
+batchsystem=$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print tolower($2)}')
+workflow_id=$(grep -m 1 "^workflow_id=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')
 time_nanoseconds="$(date +%Y%m%d%m%S-%N)"
 temp_folder=/tmp/${USER}/hq_bs_start_jobs/${time_nanoseconds}
 

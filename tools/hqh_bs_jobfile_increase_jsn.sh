@@ -4,7 +4,7 @@
 usage="Usage: hqh_bs_jobfile_increase_jsn.sh <job-type-letter> <job ID>
 
 Increases the job serial number of a the jobfile batchsystem/job-files/main/<job-id>.<batch-system>
-The variable <batchsystem> is determined by the corresponding setting in the file input-files/config.txt
+The variable <batchsystem> is determined by the corresponding setting in the general hyperq config file.
 
 Arguments:
     <job-type-letter>: The job-type-letter corresponding to the jobs to be started (a lower case letter)
@@ -36,12 +36,23 @@ if [ "$#" -ne "2" ]; then
     exit 1
 fi
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
 # Checking if standalone mode (-> non-runtime)
 if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
 
     # Variables
-    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
 
     # Checking the value
     if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
@@ -78,8 +89,8 @@ set -o pipefail
 # Variables
 jtl=${1}
 jid=${2}
-batchsystem=$(grep -m 1 "^batchsystem=" input-files/config.txt | awk -F '=' '{print tolower($2)}')
-workflow_id=$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
+batchsystem=$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL} | awk -F '=' '{print tolower($2)}')
+workflow_id=$(grep -m 1 "^workflow_id=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 jsn=$(grep -m 1 "^HQ_BS_JSN=" batchsystem/job-files/main/jtl-${jtl}.jid-${jid}.${batchsystem} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')
 
 # Checking if the job type letter is valid

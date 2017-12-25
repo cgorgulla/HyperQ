@@ -59,7 +59,7 @@ error_response_std() {
 trap 'error_response_std $LINENO' ERR
 
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -68,9 +68,9 @@ fi
 # Variables
 system_basename="${1}"
 subsystem="${2}"
-md_type="$(grep -m 1 "^md_type_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-md_programs="$(grep -m 1 "^md_programs_${subsystem}=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-workflow_id="$(grep -m 1 "^workflow_id=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_type="$(grep -m 1 "^md_type_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+workflow_id="$(grep -m 1 "^workflow_id=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_folder="md"
 
 # Printing information
@@ -104,9 +104,9 @@ cp ../../../opt/${system_basename}/${subsystem}/system1.opt.out.pdb ./
 # Preparation of the CP2K files
 if [[ "${md_programs}" == *"cp2k"* ]]; then
     # Variables
-    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    inputfolder_cp2k_md="$(grep -m 1 "^inputfolder_cp2k_md_${subsystem}="  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    nbeads="$(grep -m 1 "^nbeads"  ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfolder_cp2k_opt="$(grep -m 1 "^inputfolder_cp2k_opt_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfolder_cp2k_md="$(grep -m 1 "^inputfolder_cp2k_md_${subsystem}="  ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    nbeads="$(grep -m 1 "^nbeads"  ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Folders
     echo -e " * Preparing the files and directories which are cp2k specific"
@@ -141,7 +141,7 @@ fi
 # Preparation of the ipi files
 if [[ "${md_programs}" == *"ipi"* ]]; then
     # Variables
-    inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfile_ipi_md="$(grep -m 1 "^inputfile_ipi_md_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Folders ans files
     echo -e " * Preparing the files and directories which are i-PI specific"
@@ -157,8 +157,8 @@ fi
 # Preparation of the iqi files
 if [[ "${md_programs}" == *"iqi"* ]]; then
     # Variables
-    inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-    inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfile_iqi_md="$(grep -m 1 "^inputfile_iqi_md_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfile_iqi_constraints="$(grep -m 1 "^inputfile_iqi_constraints_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Folders and files
     echo -e " * Preparing the files and directories which are i-QI specific"
@@ -176,7 +176,7 @@ fi
 # Preparation of the NAMD files
 if [[ "${md_programs}" == *"namd"* ]]; then
     # Variables
-    inputfile_namd_md="$(grep -m 1 "^inputfile_namd_md_${subsystem}=" ../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+    inputfile_namd_md="$(grep -m 1 "^inputfile_namd_md_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
     # Folders and files
     echo -e " * Preparing the files and directories which are NAMD specific"

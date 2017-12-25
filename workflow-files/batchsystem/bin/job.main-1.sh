@@ -12,8 +12,19 @@ echo
 # Shell options
 shopt -s nullglob       # Required for our code
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_GENERAL}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_GENERAL was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_GENERAL=input-files/config/general.txt
+    export HQ_CONFIGFILE_GENERAL
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -23,7 +34,7 @@ fi
 starting_time="$(date)"
 start_time_seconds="$(date +%s)"
 export HQ_STARTDATE_BS="$(date +%Y%m%d%m%S-%N)"
-batchsystem="$(grep -m 1 "^batchsystem=" input-files/config.txt| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+batchsystem="$(grep -m 1 "^batchsystem=" ${HQ_CONFIGFILE_GENERAL}| awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
 
 # Creating the runtime error
 mkdir -p runtime/${HQ_STARTDATE_BS}
@@ -31,6 +42,7 @@ mkdir -p runtime/${HQ_STARTDATE_BS}
 # Checking the version of BASH, we need at least 4.3 (wait -n)
 bash_version=${BASH_VERSINFO[0]}${BASH_VERSINFO[1]}
 if [ ${bash_version} -lt 43 ]; then
+
     # Printing some information
     echo
     echo "Error: The Bash version seems to be too old. At least version 4.3 is required."
@@ -57,6 +69,7 @@ sync_control_parameters() {
     # Getting the control parameters
     job_success_actions="$(grep -m 1 "^job_success_actions=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     prevent_new_job_submissions="$(grep -m 1 "^prevent_new_job_submissions=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
+    terminate_job="$(grep -m 1 "^terminate_job=" ${controlfile} | awk -F '=' '{print tolower($2)}' | tr -d '[:space:]')"
     HQ_BS_SIGNAL_TYPE1="$(grep -m 1 "^signals_type1=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     HQ_BS_SIGNAL_TYPE2="$(grep -m 1 "^signals_type2=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
     HQ_BS_SIGNAL_TYPE3="$(grep -m 1 "^signals_type3=" ${controlfile} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -125,7 +138,7 @@ submit_new_job() {
     new_job_jtl=${1}
 
     # Checking if the next job should really be submitted
-    if [[ "${prevent_new_job_submissions}" == "false" ]]; then
+    if [[ "${prevent_new_job_submissions}" == "false" ]] && [[ "${terminate_job}" == "false" ]]; then
 
         # Checking how much time has passed since the job has been started
         end_time_seconds="$(date +%s)"
@@ -468,6 +481,17 @@ fi
 
 
 ##################################################################################### Body #####################################################################################
+
+### Checking if the current job should be terminated
+if [[ "${terminate_job}" == "true" ]]; then
+
+    # Printing some information
+    echo -e "\n * The variable terminate_job in the controlfile ${controlfile} is set to 'true'. Exiting..."
+
+    # Exiting
+    exit 0
+fi
+
 
 ### Random Sleep ###
 # Sleeping a random amount of time to avoid race conditions when jobs are started simultaneously

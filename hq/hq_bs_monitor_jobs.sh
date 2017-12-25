@@ -10,7 +10,9 @@ Arguments:
 
     <JTL>: Colon-separated list of JTLs, e.g. a:b:c
 
-    <refresh_time>: Time in seconds between updates of the information."
+    <refresh_time>: Time in seconds between updates of the information.
+
+Can be run in any folder."
 
 # Checking the input parameters
 if [ "${1}" == "-h" ]; then
@@ -80,25 +82,6 @@ center_text(){
 # Bash options
 shopt -s nullglob
 
-# Verbosity
-# Checking if standalone mode (-> non-runtime)
-#if [[ -z "${HQ_VERBOSITY_RUNTIME}" && -z "${HQ_VERBOSITY_NONRUNTIME}" ]]; then
-#
-#    # Variables
-#    export HQ_VERBOSITY_NONRUNTIME="$(grep -m 1 "^verbosity_nonruntime=" input-files/config.txt | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-#
-#    # Checking the value
-#    if [ "${HQ_VERBOSITY_NONRUNTIME}" = "debug" ]; then
-#        set -x
-#    fi
-#
-## It seems the script was called by another script (non-standalone mode)
-#else
-#    if [[ "${HQ_VERBOSITY_RUNTIME}" == "debug" || "${HQ_VERBOSITY_NONRUNTIME}" == "debug" ]]; then
-#        set -x
-#    fi
-#fi
-
 # Variables
 wfids=${1}
 jtls=${2//:/}
@@ -118,10 +101,10 @@ while true; do
     printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in BS (compl)" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
     for wfid in ${wfids//:/ }; do
 
-        # Variables
-        job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
-        job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)" # Todo: Fix to work for all batchsystems
-        running_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)" # Todo: Fix to work for all batchsystems
+        # Variables Todo: Fix to work for all batchsystems
+        job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)"
+        job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)"
+        running_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information

@@ -59,8 +59,19 @@ trap 'error_response_std $LINENO' ERR
 # Bash options
 set -o pipefail
 
+# Config file setup
+if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
+
+    # Printing some information
+    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+
+    # Setting and exporting the variable
+    HQ_CONFIGFILE_MSP=input-files/config/general.txt
+    export HQ_CONFIGFILE_MSP
+fi
+
 # Verbosity
-HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+HQ_VERBOSITY_RUNTIME="$(grep -m 1 "^verbosity_runtime=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 export HQ_VERBOSITY_RUNTIME
 if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
@@ -71,7 +82,7 @@ msp_name="$(pwd | awk -F '/' '{print $(NF-1)}')"
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
 system_1_basename="${msp_name/_*}"
 system_2_basename="${msp_name/*_}"
-fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../input-files/config.txt | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 
 # Printing some information
@@ -121,7 +132,7 @@ for TDWindow in tds*/; do
 done
 
 # Computing the total FE difference involving all the TD windows and writing the information to files
-total_FE_difference="$(awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | paste -sd+ | bc | tr -d "\n") kcal/mol"
+total_FE_difference="$(awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | xargs printf "%.5+" | sed "s/+$/\n/"  | bc -l) kcal/mol"         # bc -l requires a new line at the end
 echo "${total_FE_difference}" > fec.out.delta_F.total.stride${fec_stride}
 sed -i "s|all TDWs: |all TDWs: ${total_FE_difference}|g" fec.out.ov
 
