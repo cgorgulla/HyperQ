@@ -31,6 +31,7 @@
       <w>jobname</w>
       <w>kcal</w>
       <w>lambdavalue</w>
+      <w>lomap</w>
       <w>moab</w>
       <w>nonruntime</w>
       <w>nonsolvent</w>
@@ -44,6 +45,7 @@
       <w>pdbx</w>
       <w>pkill</w>
       <w>qmmm</w>
+      <w>receptorname</w>
       <w>runtimeletter</w>
       <w>selfconsistently</w>
       <w>setsid</w>

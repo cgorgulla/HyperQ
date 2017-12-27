@@ -151,7 +151,7 @@ es_transformation_atoms_to_transform=dawn
 
 tdcycle_msp_transformation_type=hq
 # Possible options: hq, lambda
-# If using lambda, use the same input file for cp2k with the ending lambda in the variables below for cp2k, for both the sys1 and sys2 files (Todo: improve description)
+# If using lambda, use the same input file for cp2k with the ending lambda in the variables below for cp2k, for both the sys1 and sys2 files (Todo : improve description)
 
 tdw_count_msp_transformation=4
 # The total number of thermodynamic windows during which the two molecular systems are transformed into each other
