@@ -98,7 +98,7 @@ while true; do
     echo -n "   "
     printf "*%.0s" {0..82}
     echo -e "\n"
-    printf "%20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in BS (compl)" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)"
+    printf " %20s %20s %20s %20s\n" "$(center_text WFID 20)" "$(center_text "Jobs in BS" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)" # Intentionally one whitespace at the beginning
     for wfid in ${wfids//:/ }; do
 
         # Variables Todo: Fix to work for all batchsystems
