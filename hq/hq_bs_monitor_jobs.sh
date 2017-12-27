@@ -102,10 +102,10 @@ while true; do
     for wfid in ${wfids//:/ }; do
 
         # Variables Todo: Fix to work for all batchsystems
-        job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)"
-        #job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)"
+        job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | wc -l)"
+        #job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | wc -l)"
         running_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)"
-        duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
+        duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
         printf "%25s %20s %19s %18s\n" "$(center_text ${wfid} 25)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 19)" "$(center_text "${duplicated_jobs_count}" 18)"
