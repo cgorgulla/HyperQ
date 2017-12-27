@@ -93,7 +93,7 @@ mkdir -p /tmp/$USER/
 
 # Body
 while true; do
-    hqh_bs_sqs.sh > ${temp_file_sqs}
+    sacct -ojobid%15,ncpus,jobname%70,partition,state 2>&1 | grep  "^ \+[0-9]\+" > ${temp_file_sqs}         # We don't use hqh_bs_sqs.sh because it does filter out the completed jobs currently
     echo -e "\n\n                               *** Job information (JTLs: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
