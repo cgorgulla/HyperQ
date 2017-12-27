@@ -117,7 +117,7 @@ signpostings_dispersion_time_maximum=180
 
 *************************************************************************** TD Cycles ***************************************************************************
 
-tdw_count_total=6
+tdw_count_total=4
 # The total number of thermodynamic windows
 # The following condition has to be satisfied: tdw_count_total = tdw_count_msp_transformation + tdw_count_es_transformation_initial + tdw_count_es_transformation_final
 # Minimum value: 1
@@ -126,11 +126,11 @@ tdw_count_total=6
 ## Possible options: hq, lambda
 
 tdw_count_es_transformation_initial=0
-tdw_count_es_transformation_final=2
+tdw_count_es_transformation_final=0
 # Possible values: any positive int
 
-tdc_es_tds_configurations_system1=1:1:1:1:1:1:1
-tdc_es_tds_configurations_system2=0:0:0:0:0:0.5:1
+tdc_es_tds_configurations_system1=1:1:1:1:1
+tdc_es_tds_configurations_system2=1:1:1:1:1
 # Possible values: Colon separated list of configurations (e.g. 1:0.5:0 if tdcycle_es_transformation_type=lambda or 0:2:4 if tdcycle_es_transformation_type=hq)
 # Usually * the first value for system 1 and the last value for system 2 are set to 1
 #         * the number of different values for system 1 equals tdw_count_es_transformation_initial + 1
