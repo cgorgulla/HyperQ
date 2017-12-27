@@ -93,7 +93,7 @@ mkdir -p /tmp/$USER/
 
 # Body
 while true; do
-    sacct -ojobid%15,ncpus,jobname%70,partition,state 2>&1 | grep  "^ \+[0-9]\+" > ${temp_file_sqs}         # We don't use hqh_bs_sqs.sh because it does filter out the completed jobs currently
+    hqh_bs_sqs.sh > ${temp_file_sqs}
     echo -e "\n\n                               *** Job information (JTLs: ${jtls//:/,}) ***"
     echo -n "   "
     printf "*%.0s" {0..82}
@@ -103,12 +103,12 @@ while true; do
 
         # Variables Todo: Fix to work for all batchsystems
         job_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | wc -l)"
-        job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)"
+        #job_count_completing="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep "COMPL" | wc -l)"
         running_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}].*RUNNING" | wc -l)"
         duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
-        printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count} (${job_count_completing})" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
+        printf "%20s %20s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
     done
 
     # Sleeping

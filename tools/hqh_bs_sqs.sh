@@ -66,7 +66,7 @@ batchsystem="${line/batchsystem=}"
 
 # Determining the batchsystem
 if [ "${batchsystem}" == "slurm" ]; then
-    sacct -ojobid%15,ncpus,jobname%70,partition,state 2>&1 | grep  "^ \+[0-9]\+" | grep -v "COMPL"          # On Odyssey this is needed to filter out all the associated job steps (internal and regular job steps, because we only want infos about the main jobs)
+    sacct -ojobid%15,ncpus,jobname%70,partition,state 2>&1 | grep  "^ \+[0-9]\+" | grep -v "^ \+[0-9]\+\." | grep -v "COMPL"        # On Odyssey this is needed to filter out all the associated job steps (internal and regular job steps, because we only want infos about the main jobs)
     #squeue -o "%.18i %.9P %.70j %.8u %.8T %.10M %.9l %.6D %R" | grep ${USER:0:8}
 elif [ "${batchsystem}" == "mtp" ]; then
     qstat | grep ${USER:0:8} | grep -v " C "

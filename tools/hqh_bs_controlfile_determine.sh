@@ -66,6 +66,7 @@ fi
 
 # Standard error response 
 error_response_std() {
+
     # Printing some information
     echo 1>&2
     echo "An error was trapped" 1>&2
