@@ -75,7 +75,7 @@ set -u
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -100,66 +100,71 @@ tdcycle_si_consider_branches="$(grep -m 1 "^tdcycle_si_consider_branches=" ../..
 nbeads="$(grep -m 1 "^nbeads=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdw_count_total="$(grep -m 1 "^tdw_count_total=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count_total="$((tdw_count_total + 1))"
-tdw_count_es_transformation="$(grep -m 1 "^tdw_count_es_transformation=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_count_es_transformation="$((tdw_count_es_transformation + 1))"
+tdw_count_es_transformation_initial="$(grep -m 1 "^tdw_count_es_transformation_initial=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdw_count_es_transformation_final="$(grep -m 1 "^tdw_count_es_transformation_final=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tds_count_es_transformation_initial="$((tdw_count_es_transformation_initial + 1))"
+tds_count_es_transformation_final="$((tdw_count_es_transformation_final + 1))"
 tdw_count_msp_transformation="$(grep -m 1 "^tdw_count_msp_transformation=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tds_count_msp_transformation="$((tdw_count_msp_transformation + 1))"
-tdcycle_es_transformation_tds_configurations_initial="$(grep -m 1 "^tdcycle_es_transformation_tds_configurations_initial=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tdcycle_es_transformation_tds_configurations_final="$(grep -m 1 "^tdcycle_es_transformation_tds_configurations_final=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 es_transformation_atoms_to_transform="$(grep -m 1 "^es_transformation_atoms_to_transform=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-tds_es_configuration_initial=(${tdcycle_es_transformation_tds_configurations_initial//:/ })
-tds_es_configuration_final=(${tdcycle_es_transformation_tds_configurations_final//:/ })
+tdc_es_tds_configurations_system1_raw="$(grep -m 1 "^tdc_es_tds_configurations_system1=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdc_es_tds_configurations_system2_raw="$(grep -m 1 "^tdc_es_tds_configurations_system2=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+tdc_es_tds_configurations_system1_raw=(${tdc_es_tds_configurations_system1_raw//:/ })
+tdc_es_tds_configurations_system2_raw=(${tdc_es_tds_configurations_system2_raw//:/ })
+tds_count_msp_transformation="$((tdw_count_msp_transformation + 1))"
+
 
 # Verifying that the variables have compatible values
 # Check 1
-echo -e " * Checking if the variables <tdw_count_total>, <tdw_count_es_transformation> and <tdw_count_msp_transformation> are compatible... "
-if [ "${tdw_count_total}" -eq "$(( tdw_count_es_transformation + tdw_count_msp_transformation))" ]; then
+echo -e " * Checking if the variables <tdw_count_total>, <tdw_count_es_transformation_initial>, <tdw_count_es_transformation_final>  and <tdw_count_msp_transformation> are compatible... "
+if [ "${tdw_count_total}" -eq "$(( tdw_count_es_transformation_initial + tdw_count_msp_transformation + tdw_count_es_transformation_final))" ]; then
 
     # Printing the result
     echo "Check passed. Continuing..."
 else
     # Printing error message
-    echo "Check failed. The variables <tdw_count_total> (${tdw_count_total}), <tdw_count_es_transformation> (${tdw_count_es_transformation}) and <tdw_count_msp_transformation> (${tdw_count_msp_transformation}) do not have valid/compatible values."
-    echo "The following condition is not met: tdw_count_total = tdw_count_es_transformation + tdw_count_msp_transformation"
+    echo "Check failed. The variables <tdw_count_total> (${tdw_count_total}), <tdw_count_es_transformation_initial> (${tdw_count_es_transformation_initial}), <tdw_count_es_transformation_final> (${tdw_count_es_transformation_final}) and <tdw_count_msp_transformation> (${tdw_count_msp_transformation}) do not have valid/compatible values."
+    echo "The following condition is not met: tdw_count_total = tdw_count_es_transformation_initial + tdw_count_msp_transformation + tdw_count_es_transformation_final"
     echo "Exiting..."
 
     # Exiting
     exit 1
 fi
 # Check 2
-echo -e " * Checking if the variables <tdw_count_es_transformation>, <tdcycle_es_transformation_tds_configurations_initial>, and <tdcycle_es_transformation_tds_configurations_final> are compatible..."
-tds_count_es_transformation_initial="${#tds_es_configuration_initial[@]}"
-tds_count_es_transformation_final="${#tds_es_configuration_final[@]}"
-tdw_count_es_transformation_initial="$((tds_count_es_transformation_initial - 1))"
-tdw_count_es_transformation_final="$((tds_count_es_transformation_final - 1))"
-if [ "${tdw_count_es_transformation}" -eq "$((tdw_count_es_transformation_initial + tdw_count_es_transformation_final))" ]; then
+echo -e " * Checking if the variables <tdc_es_tds_configurations_system1> and <tdc_es_tds_configurations_system2> have the proper length... "
+tds_count_es_transformation_system1="${#tdc_es_tds_configurations_system1_raw[@]}"
+tds_count_es_transformation_system2="${#tdc_es_tds_configurations_system2_raw[@]}"
+if [[ "${tds_count_total}" -eq "${tds_count_es_transformation_system1}" && "${tds_count_total}" -eq "${tds_count_es_transformation_system2}" ]]; then
 
     # Printing the result
     echo "Check passed. Continuing..."
 else
     # Printing error message
-    echo -e "\nCheck failed. The variables <tdw_count_es_transformation> (${tdw_count_es_transformation}), <tdcycle_es_transformation_tds_configurations_initial> (${tdcycle_es_transformation_tds_configurations_initial}), and <tdcycle_es_transformation_tds_configurations_final> (${tdcycle_es_transformation_tds_configurations_final}) do not have valid/compatible values...."
-    echo -e "The following condition is not met: tdw_count_es_transformation = tdcycle_es_transformation_tds_configurations_count - 2"
+    echo -e "\nCheck failed. At least one of the variables <tdc_es_tds_configurations_system1> (${tdc_es_tds_configurations_system1_raw[@]}) or <tdc_es_tds_configurations_system2> (${tdc_es_tds_configurations_system1_raw[@]}) does not have the proper length..."
+    echo -e "Each of them needs to have a length equal to <tdw_count_total>"
     echo -e "Exiting...\n"
 
     # Exiting
     exit 1
 fi
 # Check 3
-echo -e " * Checking if the variables <tdw_count_total>, <tdw_count_es_transformation> and <tdw_count_msp_transformation> are compatible... "
-if [ ${tds_es_configuration_initial[$((${tds_count_es_transformation_initial}-1))]} == ${tds_es_configuration_final[0]} ]; then
 
-    # Printing the result
-    echo "Check passed. Continuing..."
-else
-    # Printing error message
-    echo -e "\nCheck failed. The variables <tds_es_configuration_initial> (${tds_es_configuration_initial[*]}) and <tds_es_configuration_final> (${tds_es_configuration_final[*]}) do not have valid/compatible values."
-    echo -e "The last value of tds_es_configuration_initial (${tds_es_configuration_initial[$((${tds_count_es_transformation_initial}-1))]}) has to be equal to the first value of tds_es_configuration_final (${tds_es_configuration_final[0]})."
-    echo -e "Exiting...\n"
 
-    # Exiting
-    exit 1
-fi
+## Check ? (obsolete)
+#echo -e " * Checking if the variables <tdw_count_total>, <tdw_count_es_transformation> and <tdw_count_msp_transformation> are compatible... "
+#if [ ${tds_es_configuration_initial[$((${tds_count_es_transformation_initial}-1))]} == ${tds_es_configuration_final[0]} ]; then
+#
+#    # Printing the result
+#    echo "Check passed. Continuing..."
+#else
+#    # Printing error message
+#    echo -e "\nCheck failed. The variables <tds_es_configuration_initial> (${tds_es_configuration_initial[*]}) and <tds_es_configuration_final> (${tds_es_configuration_final[*]}) do not have valid/compatible values."
+#    echo -e "The last value of tds_es_configuration_initial (${tds_es_configuration_initial[$((${tds_count_es_transformation_initial}-1))]}) has to be equal to the first value of tds_es_configuration_final (${tds_es_configuration_final[0]})."
+#    echo -e "Exiting...\n"
+#
+#    # Exiting
+#    exit 1
+#fi
 
 # Preparing and folders
 for tds_index in $(seq 1 ${tds_count_total}); do
@@ -173,22 +178,20 @@ echo "---------------------------------------------------------------" | tee -a 
 echo " nbeads: ${nbeads}"  | tee -a tdc.ov
 echo " tdw_count_total: ${tdw_count_total}" | tee -a tdc.ov
 echo " tds_count_total: ${tds_count_total}" | tee -a tdc.ov
-echo " tdw_count_es_transformation: ${tdw_count_es_transformation}" | tee -a tdc.ov
-echo " tds_count_es_transformation: ${tds_count_es_transformation}" | tee -a tdc.ov
 echo " tdw_count_es_transformation_initial: ${tdw_count_es_transformation_initial}" | tee -a tdc.ov
 echo " tds_count_es_transformation_initial: ${tds_count_es_transformation_initial}" | tee -a tdc.ov
 echo " tdw_count_es_transformation_final: ${tdw_count_es_transformation_final}" | tee -a tdc.ov
 echo " tds_count_es_transformation_final: ${tds_count_es_transformation_final}" | tee -a tdc.ov
 echo " tdw_count_msp_transformation: ${tdw_count_msp_transformation}" | tee -a tdc.ov
 echo " tds_count_msp_transformation: ${tds_count_msp_transformation}" | tee -a tdc.ov
-echo " tdcycle_es_transformation_tds_configurations_initial: ${tdcycle_es_transformation_tds_configurations_initial}" | tee -a tdc.ov
-echo " tdcycle_es_transformation_tds_configurations_final: ${tdcycle_es_transformation_tds_configurations_final}" | tee -a tdc.ov
+echo " tdc_es_tds_configurations_system1: ${tdc_es_tds_configurations_system1_raw[@]}" | tee -a tdc.ov
+echo " tdc_es_tds_configurations_system2: ${tdc_es_tds_configurations_system2_raw[@]}" | tee -a tdc.ov
 echo -e "\n" | tee -a tdc.ov
 if [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
-    printf " %13s %32s %22s %28s %27s\n" "TDS ID" "ES Transformation ID" "ES Scalingfactor" "MSP Transformation ID" "MSP Configuration" | tee -a tdc.ov
+    printf " %13s %32s %32s %28s %27s\n" "TDS ID" "ES Configuration System 1" "ES Configuration System 2" "MSP Transformation ID" "MSP Configuration" | tee -a tdc.ov
     echo "--------------------------------------------------------------------------------------------------------------------------------------" | tee -a tdc.ov
 elif [ "${tdcycle_msp_transformation_type}" == "hq" ]; then
-    printf " %13s %32s %22s %28s %27s %35s\n" 'TDS ID' 'ES Transformation ID' 'ES Scalingfactor' 'MSP Transformation ID' 'MSP Configuration' 'Associated Lambda Configuration' | tee -a tdc.ov
+    printf " %13s %32s %32s %28s %27s %35s\n" 'TDS ID' 'ES Configuration System 2' 'ES Configuration System 2' 'MSP Transformation ID' 'MSP Configuration' 'Associated Lambda Configuration' | tee -a tdc.ov
     echo "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" | tee -a tdc.ov
 fi
 echo -e "\n\n\n"
@@ -243,31 +246,22 @@ for tds_msp_transformation_index in $(seq 1 ${tds_count_msp_transformation}); do
     fi
 done
 
-# Merging the initial and the final configurations
-for tds_es_transformation_index in $(seq 1 ${tds_count_es_transformation_initial}); do
-
-    # Shifting the array indices by 1 and adding the prefix 'sf' for scaling-factor
-    tds_es_configuration_local[${tds_es_transformation_index}]=${tds_es_configuration_initial[$((tds_es_transformation_index-1))]} # Called local not because it is in this loop but the index is relative to the es transformations only
-done
-for tds_es_transformation_index in $(seq 1 $((tds_count_es_transformation_final - 1 )) ); do # Minus one since the initial and the final configurations are overlapping by one TDS and will be merged
-
-    # Shifting the array indices by 1 and adding the prefix 'sf' for scaling-factor
-    tds_es_configuration_local[$((tds_count_es_transformation_initial + tds_es_transformation_index))]=${tds_es_configuration_final[$((tds_es_transformation_index))]} # Called local not because it is in this loop but the index is relative to the es transformations only. We don't need to subtract 1 here sine we are ignoring the first value
-done
+## Merging the initial and the final configurations
+#for tds_es_transformation_index in $(seq 1 ${tds_count_es_transformation_initial}); do
+#
+#    tds_es_configuration_local[${tds_es_transformation_index}]="$(printf "%.3f" ${tds_es_configuration_initial[$((tds_es_transformation_index-1))]})" # Called local not because it is in this loop but the index is relative to the es transformations only
+#done
+#for tds_es_transformation_index in $(seq 1 $((tds_count_es_transformation_final )) ); do
+#
+#    tds_es_configuration_local[$((tds_count_es_transformation_initial + tds_es_transformation_index))]="$(printf "%.3f" ${tds_es_configuration_final[$((tds_es_transformation_index - 1))]})" # Called local not because it is in this loop but the index is relative to the es transformations only
+#done
 
 # Creating the TDS configurations and associated configuration files
 for tds_index in $(seq 1 ${tds_count_total}); do
 
     # Determining the tds_es_configuration
-    if [[ "${tds_index}" -le "${tds_count_es_transformation_initial}" ]]; then
-        tds_es_transformation_index_local="${tds_index}"          # es and msp transformation indices are always relative to their type of transformation, i.e. local, thus we don't need this information in the variable name
-    elif [[ "${tds_index}" -ge "$((tds_count_total-tds_count_es_transformation_final+1))" ]]; then
-        tds_es_transformation_index_local="$((tds_index - tds_count_msp_transformation + 1 ))"           # Taking into account that there is one transformation region overlapping by 1 TDS. We are not subtracting tds_count_es_transformation_initial, because the tds_es_transformation_index_local includes it
-    else
-        tds_es_transformation_index_local="${tds_count_es_transformation_initial}"
-    fi
-    tds_to_es_transformation_index[${tds_index}]=${tds_es_transformation_index_local}
-    tds_es_configuration[${tds_index}]=${tds_es_configuration_local[${tds_es_transformation_index_local}]}
+    tds_es_configuration_system1[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system1_raw[$((tds_index-1))]})
+    tds_es_configuration_system2[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system2_raw[$((tds_index-1))]})
 
     # Determining the tds_msp_configuration
     if [[ "${tds_index}" -le "${tds_count_es_transformation_initial}" ]]; then
@@ -284,17 +278,17 @@ for tds_index in $(seq 1 ${tds_count_total}); do
     fi
 
     # Storing the configurations in text files
-    echo "tds_es_transformation_index=${tds_es_transformation_index_local}" > tds-${tds_index}/general/configuration.txt
-    echo "tds_es_configuration=${tds_es_configuration[${tds_index}]}" >> tds-${tds_index}/general/configuration.txt
+    echo "tds_es_configuration_system1=${tds_es_configuration_system1[${tds_index}]}" > tds-${tds_index}/general/configuration.txt
+    echo "tds_es_configuration_system2=${tds_es_configuration_system2[${tds_index}]}" >> tds-${tds_index}/general/configuration.txt
     echo "tds_msp_transformation_index=${tds_msp_transformation_index}" >> tds-${tds_index}/general/configuration.txt
     echo "tds_msp_configuration=${tds_msp_configuration[${tds_index}]}" >> tds-${tds_index}/general/configuration.txt
     if [ "${tdcycle_msp_transformation_type}" = "hq" ]; then
         echo "tds_msp_configuration_associated_lambda=${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" >> tds-${tds_index}/general/configuration.txt
     fi
     if [ "${tdcycle_msp_transformation_type}" = "lambda" ]; then
-        printf " %10s %25s %25.3f %25s %32s\n" "${tds_index}" "${tds_es_transformation_index_local}" "${tds_es_configuration[${tds_index}]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" | tee -a tdc.ov
+        printf " %10s %25s %32.3f %28s %32s\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" | tee -a tdc.ov
     elif [ "${tdcycle_msp_transformation_type}" = "hq" ]; then
-        printf " %10s %25s %25.3f %25s %32s %27.3f\n" "${tds_index}" "${tds_es_transformation_index_local}" "${tds_es_configuration[${tds_index}]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" "${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" | tee -a tdc.ov
+        printf " %10s %25s %32.3f %28s %32s %27.3f\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" "${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" | tee -a tdc.ov
     fi
 done
 
@@ -332,16 +326,15 @@ for tds_index in $(seq 1 ${tds_count_total}); do
         cp ../../system2.tds_msp_transformation-${tds_to_msp_transformation_index[${tds_index}]}.dummy.indices system2.dummy.indices
 
         # Carrying out the electrostatic transformation of the entire system
-        es_configuration_temp="${tds_es_configuration[${tds_index}]}"
         if [ "${es_transformation_atoms_to_transform}" = "dao" ]; then
-            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummy.indices)" "${es_configuration_temp}" "false" system1.cp2k.psf
-            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummy.indices)" "${es_configuration_temp}" "false" system2.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummy.indices)" "${tds_es_configuration_system1[${tds_index}]}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummy.indices)" "${tds_es_configuration_system2[${tds_index}]}" "false" system2.cp2k.psf
         elif [ "${es_transformation_atoms_to_transform}" = "dawn" ]; then
-            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummies_and_neighbors.indices)" "${es_configuration_temp}" "false" system1.cp2k.psf
-            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummies_and_neighbors.indices)" "${es_configuration_temp}" "false" system2.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "$(cat ../../system1.dummies_and_neighbors.indices)" "${tds_es_configuration_system1[${tds_index}]}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "$(cat ../../system2.dummies_and_neighbors.indices)" "${tds_es_configuration_system2[${tds_index}]}" "false" system2.cp2k.psf
         elif [ "${es_transformation_atoms_to_transform}" = "ligand" ]; then
-            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "ligand" "${es_configuration_temp}" "false" system1.cp2k.psf
-            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "ligand" "${es_configuration_temp}" "false" system2.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system1.cp2k.psf "ligand" "${tds_es_configuration_system1[${tds_index}]}" "false" system1.cp2k.psf
+            hqh_fes_psf_transform_into_dummies.py ../../system2.cp2k.psf "ligand" "${tds_es_configuration_system2[${tds_index}]}" "false" system2.cp2k.psf
         else
             # Printing error message
             echo "Error: The variable es_transformation_atoms_to_transform has an unsupported value (${es_transformation_atoms_to_transform}). Exiting..."

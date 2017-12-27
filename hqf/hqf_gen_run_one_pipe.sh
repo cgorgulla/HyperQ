@@ -118,10 +118,13 @@ cleanup_exit() {
     # Variables
     line_number=$1
 
-    # Printing some information
-    echo " * The current Bash script is: $(basename ${BASH_SOURCE[0]})"
-    echo -e " * The last line before the exit trap was line $line_number"
-    echo "Cleaning up..."
+    # Checking the verbosity mode
+    if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
+        # Printing some information
+        echo -e "\n * The current Bash script is: $(basename ${BASH_SOURCE[0]})"
+        echo -e " * The last line before the exit trap was line $line_number\n"
+        echo -e " * Cleaning up...\n"
+    fi
 
     # Removing remaining socket files
     rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.* 2>&1 > /dev/null
@@ -306,7 +309,7 @@ if [ "$$" != "${pgid}" ]; then
 fi
 
 # Sleeping some time
-echo " * Starting initial pipeline sleeping period of 15 seconds..."
+echo " * Beginning the initial pipeline sleeping period of 15 seconds..."
 sleep 15                # Indicates a successful run of this script. The batchsystem module recognizes tasks which finish within a few seconds and classifies them as having failed to start.
 
 # Logging the output of this script

@@ -78,11 +78,11 @@ clean_up() {
         trap '' SIGINT SIGQUIT SIGTERM SIGHUP ERR
 
         # Removing the socket files if still existent
-        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* >/dev/null 2>&1 || true
+        rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* &>/dev/null || true
         # Removing remaining empty folders if there should some (ideally not)
         find ./ -empty -delete
 
-        # Terminating everything which is still running and which was started by this script, which will also terminite the current exit code
+        # Terminating everything which is still running and which was started by this script, which will also terminate the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
         pkill -9 -P $$ || true &
         sleep 1
@@ -95,7 +95,7 @@ trap 'clean_up' EXIT
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -110,7 +110,7 @@ if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
 fi
 
 # Printing some information
-echo -e "\n *** Starting the cross evaluations (hqf_ce_run_one_msp.sh) ***"
+echo -e "\n\n *** Starting the cross evaluations (hqf_ce_run_one_msp.sh) ***\n"
 
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
@@ -176,7 +176,7 @@ for crosseval_folder in ${crosseval_folders}; do
                         echo -e " * Info: This entry does seem to be valid. Removing the existing folder and continuing with next snapshot..."
 
                         # Removing the folder
-                        rm -r snapshot-${restart_ID} 1> /dev/null || true
+                        rm -r snapshot-${restart_ID} &>/dev/null || true
 
                         # Skipping the snapshot
                         continue
@@ -191,8 +191,10 @@ for crosseval_folder in ${crosseval_folders}; do
 
             # Loop for allowing only the specified number of parallel runs
             while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
-                jobs
-                echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder} (hqf_ce_run_one_msp.sh)"
+                if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
+                    jobs
+                fi
+                echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder}"
                 sleep 1.$RANDOM
                 echo
             done;
@@ -200,7 +202,7 @@ for crosseval_folder in ${crosseval_folders}; do
             # Starting the cross evaluation
             sleep 0.$RANDOM
             cd ${snapshot_folder}/
-            echo -e "\n * Running the cross evaluation of snapshot ${snapshot_folder/*-}"
+            echo -e " * Running the cross evaluation of snapshot ${snapshot_folder/*-}"
             trap '' ERR
             ${command_prefix_ce_run_one_snapshot} hqf_ce_run_one_snapshot.sh &
             pid=$!
@@ -214,7 +216,7 @@ for crosseval_folder in ${crosseval_folders}; do
 
         done
     else
-        echo -e " * Warning: No snapshots found in folder ${crosseval_folder}, skipping."
+        echo -e " * Warning: No snapshots found in folder ${crosseval_folder}. Skipping this cross-eval folder..."
     fi
 
     cd ../
@@ -222,4 +224,4 @@ done
 
 wait
 
-echo -e " * All cross evaluations have been completed"
+echo -e "\n * All cross evaluations have been completed.\n\n"

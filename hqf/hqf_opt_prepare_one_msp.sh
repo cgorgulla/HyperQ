@@ -65,7 +65,7 @@ error_response_std() {
     done
 
     # Printing some information
-    echo "Error: Cannot find the input-files directory..."
+    echo -e "\n * Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -77,7 +77,7 @@ set -o pipefail
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -127,7 +127,7 @@ if [ "${signpostings_activate^^}" == "TRUE" ]; then
 
     # Sleeping some initial random time to disperse multiple simultaneously arriving pipelines in time (which can happen e.g. if jobs have been dispatched at the same time by the batchsystem)
     sleeping_time="$(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)"
-    echo -e " * Sleeping initial (random) period of ${sleeping_time} seconds..."
+    echo -e "   * Sleeping initial (random) period of ${sleeping_time} seconds..."
     sleep ${sleeping_time}
 
     # Loop setup
@@ -145,15 +145,15 @@ if [ "${signpostings_activate^^}" == "TRUE" ]; then
                 sleeping_time="$(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)"
 
                 # Printing some information
-                echo -e " * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has not yet been passed (current waiting time: ${modification_time_difference} seconds)"
-                echo -e " * Sleeping for ${sleeping_time} more seconds..."
+                echo -e "   * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has not yet been passed (current waiting time: ${modification_time_difference} seconds)"
+                echo -e "   * Sleeping for ${sleeping_time} more seconds..."
 
                 # Sleeping some random time to disperse multiple waiting pipelines in time
                 sleep ${sleeping_time}
             else
                 # Printing some information
-                echo -e " * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has been passed (current waiting time: ${modification_time_difference} seconds)"
-                echo -e " * Clearance obtained. Updating previous entrance signpost and continuing...\n"
+                echo -e "   * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has been passed (current waiting time: ${modification_time_difference} seconds)"
+                echo -e "   * Clearance obtained. Updating previous entrance signpost and continuing...\n"
 
                 # Updating the entrance signpost
                 touch opt/${msp_name}/${subsystem}/preparation.common.signpost.entrance
@@ -161,8 +161,8 @@ if [ "${signpostings_activate^^}" == "TRUE" ]; then
             fi
         else
             # Printing some information
-            echo -e " * No entrance signposting from previous runs has been found"
-            echo -e " * Clearance obtained. Setting the entrance signpost and continuing...\n"
+            echo -e "   * No entrance signposting from previous runs has been found"
+            echo -e "   * Clearance obtained. Setting the entrance signpost and continuing...\n"
 
             # Setting the signpost
             touch opt/${msp_name}/${subsystem}/preparation.common.signpost.entrance
@@ -201,7 +201,7 @@ if [ -f input-files/cp2k/${inputfolder_cp2k_opt_specific}/main.opt.lambda ]; the
 elif [ -f input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda ]; then
     lambdavalue_count="$(grep -c lambda_value input-files/cp2k/${inputfolder_cp2k_opt_general}/main.opt.lambda)"
 else
-    echo "Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
+    echo -e "\n * Error: The input file main.opt.lambda could not be found in neither of the two CP2K input folders. Exiting..."
     exit 1
 fi
 if  [ ! "${lambdavalue_count}" -ge "1" ]; then
@@ -238,7 +238,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -247,7 +247,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -256,7 +256,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -265,7 +265,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx || true    # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -276,7 +276,7 @@ else
         cp ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
-        echo "Error: An required input-file does not exist. Exiting...\n\n"
+        echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
         # Raising an error
         false

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqf_pp_run_one_msp.py
+usage="Usage: hqf_fec_pp_one_msp.sh
 
 The script has to be run in fec folder of the system."
 
@@ -28,6 +28,7 @@ fi
 
 # Standard error response 
 error_response_std() {
+
     # Printing some information
     echo
     echo "An error was trapped" 1>&2
@@ -63,7 +64,7 @@ set -o pipefail
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -86,7 +87,7 @@ fec_stride="$(grep -m 1 "^fec_stride_${subsystem}=" ../../../../${HQ_CONFIGFILE_
 date="$(date --rfc-3339=seconds | tr ": " "_")"
 
 # Printing some information
-echo -e "\n *** Postprocessing the FEC between the systems ${system_1_basename} and ${system_2_basename} ***"
+echo -e "\n\n *** Postprocessing the FEC of MSP ${msp_name} ***\n"
 
 # Basic files and folders
 mkdir -p previous-runs/${date}/
@@ -98,6 +99,10 @@ for TDWindow in tds*/; do
 
     # Variables
     TDWindow=${TDWindow%/}
+    tds_1="${TDWindow/_*}"
+    tds_1_id="${tds_1/tds-}"
+    tds_2="${TDWindow/*_}"
+    tds_2_id="${tds_2/tds-}"
 
     # Creating the short results output file
     cat ${TDWindow}/bar.out.stride${fec_stride}.values | grep "Delta_F equation 2:" | awk '{print $4}' | tr -d "\n"  > fec.out.delta_F.window-${TDWindow}.stride${fec_stride}
@@ -121,8 +126,8 @@ for TDWindow in tds*/; do
     fi
     echo -e "---------------------------------------------- TDW ${tdw_index} ---------------------------------------------" >> fec.out.ov
     echo "" >> fec.out.ov
-    echo "Initial TDS ID: ${TDWindow/_*}" >> fec.out.ov
-    echo "Final TDS ID: ${TDWindow/*_}" >> fec.out.ov
+    echo "Initial TDS ID: ${tds_1_id}" >> fec.out.ov
+    echo "Final TDS ID: ${tds_2_id}" >> fec.out.ov
     grep -E "n_|Delta_" ${TDWindow}/bar.out.stride1.values >> fec.out.ov
     echo "" >> fec.out.ov
     echo "" >> fec.out.ov
@@ -132,7 +137,7 @@ for TDWindow in tds*/; do
 done
 
 # Computing the total FE difference involving all the TD windows and writing the information to files
-total_FE_difference="$(awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | xargs printf "%.5+" | sed "s/+$/\n/"  | bc -l) kcal/mol"         # bc -l requires a new line at the end
+total_FE_difference="$(awk '{print $1}' fec.out.delta_F.window-*.stride${fec_stride} | xargs printf "%.5f+" | sed "s/+$/\n/"  | bc -l) kcal/mol"         # bc -l requires a new line at the end
 echo "${total_FE_difference}" > fec.out.delta_F.total.stride${fec_stride}
 sed -i "s|all TDWs: |all TDWs: ${total_FE_difference}|g" fec.out.ov
 

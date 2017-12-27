@@ -39,7 +39,7 @@ trap 'error_response_std $LINENO' ERR
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt

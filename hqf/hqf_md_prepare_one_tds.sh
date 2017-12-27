@@ -88,26 +88,27 @@ handle_md_continuation() {
                 echo " * The folder ${tdsname} seems to contain files from a previous run. Preparing the folder for the next run..."
 
                 # Variables
-                restart_file=$(ls -1v ipi/ | { grep "restart.*.bz2" || true; } | tail -n 1)
+                restart_file_compressed=$(ls -1v ipi/ | { grep "restart.*.bz2" || true; } | tail -n 1)
                 run_old=$(grep "output.*ipi.out.run" ipi/ipi.in.main.xml | grep -o "run.*" | grep -o "[0-9]*")
                 run_new=$((run_old + 1))
 
                 # Editing the ipi input file
                 sed -i "s/ipi.out.run${run_old}/ipi.out.run${run_new}/" ipi/ipi.in.main.xml
 
+                # Preparing the restart file
+                bzcat ipi/${restart_file_compressed} > ipi/ipi.in.sub.restart
+
                 # If the previous run was not started from a restart file, we need to replace the momenta and coordinate (file) tags
                 # We do not distinguish the cases with an if statement because this way is more robust
                 sed -i "/momenta/d" ipi/ipi.in.main.xml
-                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ipi/ipi.in.sub.restart </file>|g" ipi/ipi.in.main.xml
-                # If the previous run was started from a restart file, we only need to update the checkpoint tag
-                sed -i "s|<file.*chk.*|<file mode='chk'> ${restart_file} </file>|g" ipi/ipi.in.main.xml
+                sed -i "s|<file.*initial.pdb.*|<file mode='chk'> ipi.in.sub.restart </file>|g" ipi/ipi.in.main.xml          # the runtime WD will be in ipi/
+                # If the previous run was started from a restart file, we there is nothing to do since the restart filename does not change, only the restart file
+                sed -i "s|^.*chk.*|<file mode='chk'> ipi.in.sub.restart </file>|g" ipi/ipi.in.main.xml
 
-                # Preparing the restart file
-                bzcat ipi/${restart_file} > ipi/ipi.in.sub.restart
 
                 # Setting the correct current step value
-                current_step_value=$(grep -m 1 "<step>" ipi/${restart_file} | grep -o "[0-9]\+")
-                sed -i "s|<step> *[0-9]\+ *</step>|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
+                current_step_value=$(grep -m 1 "<step>" ipi/ipi.in.sub.restart | grep -o "[0-9]\+")
+                sed -i "s|<step>.*|<step>${current_step_value}</step>|g" ipi/ipi.in.main.xml
 
                 # Printing information
                 echo -e "\n * The preparation of the simulation for the TDS with index ${tds_index} in the folder ${tdsname} has been successfully completed.\n\n"

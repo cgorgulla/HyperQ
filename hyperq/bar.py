@@ -169,8 +169,8 @@ class BAR_DeltaU:
         print
         print " ***   Output data   ***"
         print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.C_values_accepted[self.diff_F_min_index]
-        print "Delta_F equation 1: ", self.diff_F_min_1, " kcal/mol"
-        print "Delta_F equation 2: ", self.diff_F_min_2, " kcal/mol"
+        print("Delta_F equation 1: {:.5f} kcal/mol".format(self.diff_F_min_1))
+        print("Delta_F equation 2: {:.5f} kcal/mol".format(self.diff_F_min_2))
         print
         print
 
@@ -200,8 +200,8 @@ class BAR_DeltaU:
             file.write("Reweighting: " + str(self.reweighting) + "\n\n")
             file.write(" ***   Results   ***\n")
             file.write("Min (Delta F_eqn1 - F_eqn2) found at location C=" + str(self.C_values_accepted[self.diff_F_min_index]) + "\n")
-            file.write("Delta_F equation 1: " + str(self.diff_F_min_1) + " kcal/mol" + "\n")
-            file.write("Delta_F equation 2: " + str(self.diff_F_min_2) + " kcal/mol" + "\n")
+            file.write("Delta_F equation 1: {:.5f} kcal/mol\n".format(self.diff_F_min_1))
+            file.write("Delta_F equation 2: {:.5f} kcal/mol\n".format(self.diff_F_min_2))
 
     def plot(self, mode):
 
@@ -290,8 +290,8 @@ class BAR_DeltaU_rfa:
         print
         print " ***   Input data   ***"
         print "Min (Delta F_eqn1 - F_eqn2) at value C=", self.C_opt
-        print "Delta_F equation 1: ", self.delta_F_1_final, " kcal/mol"
-        print "Delta_F equation 2: ", self.delta_F_2_final, " kcal/mol"
+        print("Delta_F equation 1: {:.5f} kcal/mol".format(self.delta_F_1_final))
+        print("Delta_F equation 2: {:.5f} kcal/mol".format(self.delta_F_2_final))
         print
         print
 
@@ -375,8 +375,8 @@ class BAR_DeltaU_rfa:
             file.write("Reweighting: " + str(self.reweighting) + "\n\n")
             file.write(" ***   Results   ***\n")
             file.write("Optimal C value: " + str(self.C_opt ) + "\n")
-            file.write("Delta_F equation 1: " + str(self.delta_F_1_final) + " kcal/mol" + "\n")
-            file.write("Delta_F equation 2: " + str(self.delta_F_2_final) + " kcal/mol" + "\n")
+            file.write("Delta_F equation 1: {:.5f} kcal/mol\n".format(self.delta_F_1_final))
+            file.write("Delta_F equation 2: {:.5f} kcal/mol\n".format(self.delta_F_2_final))
 
     def compute_overlap(self):
 

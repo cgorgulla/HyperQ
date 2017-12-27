@@ -59,7 +59,7 @@ trap 'error_response_std $LINENO' ERR
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -91,7 +91,7 @@ subsystem_folder="md/${msp_name}/${subsystem}"
 cutoff=1000
 
 # Printing some information
-echo -e "\n *** Preparing the FEC between the systems ${system_1_basename} and ${system_2_basename}"
+echo -e "\n\n *** Preparing the FEC between the systems ${system_1_basename} and ${system_2_basename} \n"
 
 # Checking if the subsystem_folder exists
 if [ ! -d "${subsystem_folder}" ]; then
@@ -116,6 +116,7 @@ fi
 #fi
 
 # Loop for each TD Window
+tdw_index=1
 while read line; do
     
     # Variables
@@ -135,6 +136,9 @@ while read line; do
         echo -n "Error: the checkpoint and potential need to have the same stride in the ipi input file\.n\n"
         exit 1
     fi
+
+    # Printing some information
+    echo -e -n "\n ** Preparing the files for TDW ${tdw_index} \n"
 
     # Creating required folders
     if [ -d ${fec_folder}/${TD_window} ]; then
@@ -382,4 +386,8 @@ while read line; do
             hqh_fec_plot_hist.py "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}_cutoff${cutoff}" "normal" "${fec_folder}/${TD_window}/U2_U2biased-U2_U2_stride${fec_stride}_cutoff${cutoff}.plot"
         fi
     fi
+
+    # Increasing the tdw_index variable
+    tdw_index=$((tdw_index+1))
+
 done <${ce_folder}/TD_windows.list

@@ -119,28 +119,29 @@ signpostings_dispersion_time_maximum=180
 
 tdw_count_total=6
 # The total number of thermodynamic windows
-# The following condition has to be satisfied: tdw_count_total = tdw_count_msp_transformation + 2*(tdw_count_es_transformation)
+# The following condition has to be satisfied: tdw_count_total = tdw_count_msp_transformation + tdw_count_es_transformation_initial + tdw_count_es_transformation_final
 # Minimum value: 1
 
 #tdcycle_es_transformation_type=hq
 ## Possible options: hq, lambda
 
-tdw_count_es_transformation=2
-# Possible values: any positive integer including 0
-# Has to satisfy the conditions:
-#      1) tdw_count_es_transformation = tdw_count_total - tdw_count_msp_transformation
-#      2) tdw_count_es_transformation = #(tdcycle_es_transformation_tds_configurations_initial) + #(tdcycle_es_transformation_tds_configurations_final) - 2
+tdw_count_es_transformation_initial=0
+tdw_count_es_transformation_final=2
+# Possible values: any positive int
 
-tdcycle_es_transformation_tds_configurations_initial=1:0
-tdcycle_es_transformation_tds_configurations_final=0:1
+tdc_es_tds_configurations_system1=1:1:1:1:1:1:1
+tdc_es_tds_configurations_system2=0:0:0:0:0:0.5:1
 # Possible values: Colon separated list of configurations (e.g. 1:0.5:0 if tdcycle_es_transformation_type=lambda or 0:2:4 if tdcycle_es_transformation_type=hq)
-# If tdcycle_es_transformation_type is set to
-#           * lambda, then each configuration is a floating point number representing a scaling factor
+# Usually * the first value for system 1 and the last value for system 2 are set to 1
+#         * the number of different values for system 1 equals tdw_count_es_transformation_initial + 1
+#         * the number of different values for system 2 equals tdc_es_tds_configurations_system2 + 1
+#         * the values for system 1 change at the beginning
+#         * the values for system 2 change at the end
+## If tdcycle_es_transformation_type is set to
+##           * lambda, then each configuration is a floating point number representing a scaling factor
 ##           * hq, then each configuration is a non-negative integer representing the number of beads for which the es transformation (with scaling factor 0) should be applied
-# The number of values specified in both variables together has to be equal to tdw_count_es_transformation + 2
-# The order of values specified corresponds to the direction of decoupling starting at the endstates
-# Each specified scaling factor applies to one TDS
-# The last value of tdcycle_es_transformation_tds_configurations_initial (usually the same as the first value of (tdcycle_es_transformation_tds_configurations_final) will be used for all the TDSs which are part of the msp-transformation
+# The number of values specified in both variables together has to be equal to tdw_count_total + 1
+# The order of values specified corresponds to the direction from the starting state (TDS 1) to the final state (last TDS)
 
 es_transformation_atoms_to_transform=dawn
 # Possible values:

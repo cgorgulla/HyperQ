@@ -60,7 +60,7 @@ error_response_std() {
     done
 
     # Printing some information
-    echo "Error: Cannot find the input-files directory..."
+    echo -e "\n * Error: Cannot find the input-files directory..."
     exit 1
 }
 trap 'error_response_std $LINENO' ERR
@@ -72,7 +72,7 @@ set -o pipefail
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo " * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt"
+    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -113,7 +113,7 @@ mkdir -p md/${msp_name}/${subsystem} || true   # Parallel robustness
 if [ "${signpostings_activate^^}" == "TRUE" ]; then
 
     # Printing some information
-    echo -e "\nStarting signposting checks..."
+    echo -e "\n * Signposting checks are activated. Starting checks..."
 
     # Variables
     signpostings_minimum_waiting_time="$(grep -m 1 "^signpostings_minimum_waiting_time=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -121,15 +121,18 @@ if [ "${signpostings_activate^^}" == "TRUE" ]; then
     status="wait"
 
     # Sleeping some initial random time to disperse multiple simultaneously arriving pipelines in time (which can happen e.g. if jobs have been dispatched at the same time by the batchsystem)
-    sleep $(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)
+    sleeping_time="$(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)"
+    echo -e "   * Sleeping initial (random) period of ${sleeping_time} seconds..."
+    sleep ${sleeping_time}
+
     # Loop setup
     while [[ "${status}" = "wait" ]]; do
 
-        # Checking if there is a signpost from previous pipelines
-        if [ -f md//${msp_name}/${subsystem}/preparation.common.signpost.entrance ]; then
+        # Checking if there is an entrance signpost from previous pipelines
+        if [ -f md/${msp_name}/${subsystem}/preparation.common.signpost.entrance ]; then
 
             # Variables
-            modification_time="$(stat -c %Y md//${msp_name}/${subsystem}/preparation.common.signpost.entrance || true)"
+            modification_time="$(stat -c %Y md/${msp_name}/${subsystem}/preparation.common.signpost.entrance || true)"
             modification_time_difference="$(($(date +%s) - modification_time))"
             if [ "${modification_time_difference}" -lt "${signpostings_minimum_waiting_time}" ]; then
 
@@ -137,27 +140,27 @@ if [ "${signpostings_activate^^}" == "TRUE" ]; then
                 sleeping_time="$(shuf -i 0-${signpostings_dispersion_time_maximum} -n1)"
 
                 # Printing some information
-                echo -e " * The minimum waiting time since the last signpost hast been set has not yet been passed."
-                echo -e " * Sleeping for ${sleeping_time} more seconds..."
+                echo -e "   * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has not yet been passed (current waiting time: ${modification_time_difference} seconds)"
+                echo -e "   * Sleeping for ${sleeping_time} more seconds..."
 
                 # Sleeping some random time to disperse multiple waiting pipelines in time
                 sleep ${sleeping_time}
             else
                 # Printing some information
-                echo -e " * The minimum waiting time since the last signpost hast been set has been passed."
-                echo -e " * Clearance obtained. Updating previous signpost and continuing...\n"
+                echo -e "   * The minimum waiting time (${signpostings_minimum_waiting_time} seconds) since the last entrance signpost hast been set has been passed (current waiting time: ${modification_time_difference} seconds)"
+                echo -e "   * Clearance obtained. Updating previous entrance signpost and continuing...\n"
 
-                # Updating the signpost
-                touch md//${msp_name}/${subsystem}/preparation.common.signpost.entrance
+                # Updating the entrance signpost
+                touch md/${msp_name}/${subsystem}/preparation.common.signpost.entrance
                 status="continue"
             fi
         else
             # Printing some information
-            echo -e " * No signposting from previous runs has been found."
-            echo -e " * Clearance obtained. Setting signpost and continuing...\n"
+            echo -e "   * No entrance signposting from previous runs has been found"
+            echo -e "   * Clearance obtained. Setting the entrance signpost and continuing...\n"
 
             # Setting the signpost
-            touch md//${msp_name}/${subsystem}/preparation.common.signpost.entrance
+            touch md/${msp_name}/${subsystem}/preparation.common.signpost.entrance
             status="continue"
         fi
     done
@@ -172,7 +175,7 @@ fi
 
 # Checking if the range indices have valid values
 if ! [ "${tds_index_first}" -le "${tds_index_first}" ]; then
-    echo " * Error: The input variable tds_range was not specified correctly. Exiting..."
+    echo -e "\n * Error: The input variable tds_range was not specified correctly. Exiting..."
     exit 1
 fi
 
@@ -202,7 +205,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.psf ./system${system_ID}.vmd.psf || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -211,7 +214,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdb ./system${system_ID}.pdb || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -220,7 +223,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.prm ./system${system_ID}.prm || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -229,7 +232,7 @@ else
             cp ../../../input-files/systems/${system_basename}/${subsystem}/system_complete.reduced.pdbx ./system${system_ID}.pdbx || true   # Parallel robustness
         else
             # Printing some error message
-            echo "Error: An required input-file does not exist. Exiting...\n\n"
+            echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
             # Raising an error
             false
@@ -240,7 +243,7 @@ else
         cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
-        echo "Error: An required input-file does not exist. Exiting...\n\n"
+        echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
 
         # Raising an error
         false
