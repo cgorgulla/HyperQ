@@ -98,7 +98,7 @@ while true; do
     echo -n "   "
     printf "*%.0s" {0..82}
     echo -e "\n"
-    printf " %15s %25s %20s %20s\n" "$(center_text "--- WFID ---" 15)" "$(center_text "Jobs in BS" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)" # Intentionally one whitespace at the beginning
+    printf "%16s %25s %20s %20s\n" "  ------ WFID ------  " "$(center_text "Jobs in BS" 20)" "$(center_text "Jobs running" 20)" "$(center_text "Jobs duplicate" 20)" # Intentionally one whitespace at the beginning
     for wfid in ${wfids//:/ }; do
 
         # Variables Todo: Fix to work for all batchsystems
@@ -108,7 +108,7 @@ while true; do
         duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
-        printf "%20s %18s %20s %20s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
+        printf "%20s %18s %20s %18s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
     done
 
     # Sleeping
