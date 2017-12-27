@@ -10,6 +10,7 @@
       <w>atomselect</w>
       <w>atomselection</w>
       <w>autocompletion</w>
+      <w>barostat</w>
       <w>batchsystem</w>
       <w>batchsystems</w>
       <w>compl</w>
@@ -17,8 +18,10 @@
       <w>dihedrals</w>
       <w>dirname</w>
       <w>equilibrations</w>
+      <w>evals</w>
       <w>filenames</w>
       <w>fparameter</w>
+      <w>genmix</w>
       <w>hetatm</w>
       <w>hlrn</w>
       <w>hydrogens</w>
@@ -31,6 +34,7 @@
       <w>jobname</w>
       <w>kcal</w>
       <w>lambdavalue</w>
+      <w>lbfgs</w>
       <w>lomap</w>
       <w>moab</w>
       <w>nonruntime</w>
@@ -60,6 +64,9 @@
       <w>subconfiguration</w>
       <w>subjob</w>
       <w>subjobs</w>
+      <w>subsys</w>
+      <w>timecon</w>
+      <w>timestep</w>
       <w>tolower</w>
       <w>waterbox</w>
       <w>wfid</w>

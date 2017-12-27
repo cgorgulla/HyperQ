@@ -69,7 +69,6 @@ trap 'error_response_std $LINENO' ERR
 
 # Bash options
 set -o pipefail
-set -u
 
 # Config file setup
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
@@ -303,7 +302,7 @@ fi
 echo -n "" > system1.dummies_and_neighbors.indices
 echo -n "" > system2.dummies_and_neighbors.indices
 hqh_fes_prepare_dummy_neighbors.py system1 system1.cp2k.psf system1.dummy.indices system1.dummies_and_neighbors.indices
-hqh_fes_prepare_dummy_neighbors.py system2 system1.cp2k.psf system2.dummy.indices system2.dummies_and_neighbors.indices
+hqh_fes_prepare_dummy_neighbors.py system2 system2.cp2k.psf system2.dummy.indices system2.dummies_and_neighbors.indices
 
 # Preparing the files and folders
 for tds_index in $(seq 1 ${tds_count_total}); do

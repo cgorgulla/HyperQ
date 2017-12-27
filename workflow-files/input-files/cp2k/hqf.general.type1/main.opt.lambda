@@ -67,7 +67,7 @@
       # e: H2      : Hamiltonian of system 2
       # f: H2d_p   : Hamiltonian of system 2 dummies partial
       VARIABLES a b c d e f
-      MIXING_FUNCTION ((a+b)+c)+(d+(e+f))
+      MIXING_FUNCTION ${lambda_value}*((a+b)+c)+(1-${lambda_value})*(d+(e+f))
     &END GENERIC
     @include ${subsystem_folder}/cp2k.in.mapping.m112122toJoint
   &END
