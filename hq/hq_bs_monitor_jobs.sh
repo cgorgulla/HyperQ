@@ -108,7 +108,7 @@ while true; do
         duplicated_jobs_count="$(cat ${temp_file_sqs} | grep "${wfid}:[${jtls}]" | grep -v "COMPL" | awk -F '[:. ]+' '{print $5, $6}' | sort -k 2 -V | uniq -c | grep -v " 1 " | wc -l)"
 
         # Printing status information
-        printf "%26s %18s %20s %18s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
+        printf "%25s %20s %19s %18s\n" "$(center_text ${wfid} 20)" "$(center_text "${job_count}" 20)" "$(center_text "${running_jobs_count}" 20)" "$(center_text "${duplicated_jobs_count}" 20)"
     done
 
     # Sleeping
