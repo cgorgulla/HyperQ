@@ -104,6 +104,4 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
 done < td.pairings
 cd ../../../
 
-cp input-files/mappings/hr/* input-files/mappings/hr_override/
-
 echo -e "\n * The preparation of the TD cycles has been completed.\n\n"

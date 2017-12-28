@@ -356,8 +356,11 @@ for system_basename in ${system1_basename} ${system2_basename}; do
     (( system_ID += 1 ))
 done
 if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+    echo " * Found a mapping file for this MSP in the hr_override folder. Using this file instead of the default one ..."
+    echo " * A mapping file for this MSP in the hr_override folder has been found. Using it instead of the default mapping file ..."
     grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
 elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+    echo " * No mapping file for this MSP in the hr_override folder has been found. Using the default mapping file instead ..."
     cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
 else
     # Printing some error message

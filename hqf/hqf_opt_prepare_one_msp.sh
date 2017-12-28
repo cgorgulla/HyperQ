@@ -187,10 +187,10 @@ fi
 
 # Checking if the system names are proper by checking if the mapping file exists
 echo -e -n " * Checking if the mapping file exists... "
-if [ -f input-files/mappings/curated/${system_1_basename}_${system_2_basename} ]; then
+if [[ -f input-files/mappings/curated/${system_1_basename}_${system_2_basename} || -f input-files/mappings/hr_override/${system_1_basename}_${system_2_basename} ]]; then
     echo " OK"
 else
-    echo "Check failed. The mapping file ${system_1_basename}_${system_2_basename} was not found in the input-files/mappings/curated folder."
+    echo "Check failed. The mapping file for MSP ${msp_name} was not found in the input-files/mappings folder. Exiting..."
     exit 1
 fi
 
@@ -284,8 +284,10 @@ else
         false
     fi
     if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+        echo " * A mapping file for this MSP in the hr_override folder has been found. Using it instead of the default mapping file ..."
         grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
     elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+        echo " * No mapping file for this MSP in the hr_override folder has been found. Using the default mapping file instead ..."
         cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message

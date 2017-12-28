@@ -106,6 +106,15 @@ tds_count_total="$((tdw_count_total + 1))"
 # Printing information
 echo -e "\n\n *** Preparing the MD simulation ${msp_name} (hqf_md_prepare_one_msp.sh) ***\n"
 
+# Checking if the system names are proper by checking if the mapping file exists
+echo -e -n " * Checking if the mapping file exists... "
+if [[ -f input-files/mappings/curated/${msp_name} || -f input-files/mappings/hr_override/${msp_name} ]]; then
+    echo " OK"
+else
+    echo "Check failed. The mapping file for MSP ${msp_name} was not found in the input-files/mappings folder. Exiting..."
+    exit 1
+fi
+
 # Creating the main folder if not yet existing
 mkdir -p md/${msp_name}/${subsystem} || true   # Parallel robustness
 
@@ -240,8 +249,10 @@ else
         (( system_ID += 1 ))
     done
     if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+        echo " * A mapping file for this MSP in the hr_override folder has been found. Using it instead of the default mapping file ..."
         grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
     elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+        echo " * No mapping file for this MSP in the hr_override folder has been found. Using the default mapping file instead ..."
         cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
