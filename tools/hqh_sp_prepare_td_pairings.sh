@@ -81,6 +81,7 @@ fi
 mkdir -p input-files/mappings/raw
 mkdir -p input-files/mappings/curated
 mkdir -p input-files/mappings/hr
+mkdir -p input-files/mappings/hr_override
 cd input-files/mappings/raw
 
 # Running Lomap
@@ -101,7 +102,8 @@ while IFS='' read -r line || [[ -n "$line" ]]; do
     # Preparing the human readable mapping files
     hqh_fes_prepare_human_mapping.py ../../ligands/pdb/${array[2]}.pdb ../../ligands/pdb/${array[3]}.pdb ../curated/${array[2]}_${array[3]}  ../hr/${array[2]}_${array[3]}
 done < td.pairings
-
 cd ../../../
+
+cp input-files/mappings/hr/* input-files/mappings/hr_override/
 
 echo -e "\n * The preparation of the TD cycles has been completed.\n\n"

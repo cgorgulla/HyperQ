@@ -272,8 +272,21 @@ else
         fi
         (( system_ID += 1 ))
     done
-    if [ -f ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ]; then
-        cp ../../../input-files/mappings/curated/${system_1_basename}_${system_2_basename} ./system.mcs.mapping || true   # Parallel robustness
+    if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+        cp ../../../input-files/mappings/hr_override/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
+    elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+        cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
+    else
+        # Printing some error message
+        echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"
+
+        # Raising an error
+        false
+    fi
+    if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+        grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
+    elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+        cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
         echo -e "\n * Error: An required input-file does not exist. Exiting...\n\n"

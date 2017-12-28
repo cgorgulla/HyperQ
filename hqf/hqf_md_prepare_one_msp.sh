@@ -239,7 +239,9 @@ else
         fi
         (( system_ID += 1 ))
     done
-    if [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
+    if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
+        grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
+    elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
         cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
     else
         # Printing some error message
