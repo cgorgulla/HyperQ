@@ -64,7 +64,7 @@ save_energy_value() {
     echo " ${snapshot_id} ${energy_value}" >> "${common_energy_file}"
 
     # Printing some information
-    echo "\n\nSnapshot ${snapshot_id} completed successfully after ${snapshot_time_total} seconds."
+    echo -e "\n\nSnapshot ${snapshot_id} completed successfully after ${snapshot_time_total} seconds."
 
     # Setting the success flag
     success_flag="true"

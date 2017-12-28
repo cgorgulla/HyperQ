@@ -101,7 +101,7 @@ fi
 
 # Checking if the required file exists
 if [ ! -d "${ce_folder}" ]; then
-    echo "\nError: The folder ${ce_folder} does not exist. Exiting\n\n" 1>&2
+    echo -e "\nError: The folder ${ce_folder} does not exist. Exiting\n\n" 1>&2
     exit 1
 fi
 

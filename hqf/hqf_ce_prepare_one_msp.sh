@@ -140,6 +140,12 @@ prepare_restart() {
     trap '' ERR
     line="$(tail -n +${restart_id} ../../../md/${msp_name}/${subsystem}/${tds_folder_coordinate_source}/ipi/ipi.out.all_runs.cell | head -n 1)"
     trap 'error_response_std $LINENO' ERR
+
+    if [ -z "${line}" ]; then
+        echo "Error: No cell dimensions could be fetched for this snapshot. Skipping..."
+        return
+    fi
+
     IFS=' ' read -r -a line_array <<< "$line"
     # Not rounding up since the values have already been rounded up before the MD simulation and this is just a single force evaluation
     cell_A=$(awk -v x="${line_array[0]}" 'BEGIN{printf("%9.1f", x)}')
@@ -490,11 +496,11 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
     # Uniting all the ipi cell files (previous all_runs files have already been cleaned)
     cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/*cell)"
     for cell_file in ${cell_files}; do
-        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ipi.out.all_runs.cell
+        tail -n +2 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_initialstate}/ipi/ipi.out.all_runs.cell
     done
     cell_files="$(ls -1v ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/*cell)"
     for cell_file in ${cell_files}; do
-        tail -n +3 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ipi.out.all_runs.cell
+        tail -n +2 ${cell_file} >> ../../../md/${msp_name}/${subsystem}/${tdsname_endstate}/ipi/ipi.out.all_runs.cell
     done
 
     # Loop for preparing the restart files in tds_folder 1 (forward evaluation)

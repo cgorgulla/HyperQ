@@ -133,14 +133,14 @@ fi
 echo -e " * Checking if the variables <tdc_es_tds_configurations_system1> and <tdc_es_tds_configurations_system2> have the proper length... "
 tds_count_es_transformation_system1="${#tdc_es_tds_configurations_system1_raw[@]}"
 tds_count_es_transformation_system2="${#tdc_es_tds_configurations_system2_raw[@]}"
-if [[ "${tds_count_total}" -eq "${tds_count_es_transformation_system1}" && "${tds_count_total}" -eq "${tds_count_es_transformation_system2}" ]]; then
+if [[ ( "${tds_count_es_transformation_system1}" -eq "${tds_count_es_transformation_initial}" || "${tds_count_es_transformation_system1}" -eq "${tds_count_total}" ) && ( "${tds_count_es_transformation_system2}" -eq "${tds_count_es_transformation_final}" || "${tds_count_es_transformation_system2}" -eq "${tds_count_total}" ) ]]; then
 
     # Printing the result
     echo "Check passed. Continuing..."
 else
     # Printing error message
     echo -e "\nCheck failed. At least one of the variables <tdc_es_tds_configurations_system1> (${tdc_es_tds_configurations_system1_raw[@]}) or <tdc_es_tds_configurations_system2> (${tdc_es_tds_configurations_system1_raw[@]}) does not have the proper length..."
-    echo -e "Each of them needs to have a length equal to <tdw_count_total>"
+    echo -e "Each of them needs to have a length equal to <tdw_count_total> or <tds_count_es_transformation_initial/final>"
     echo -e "Exiting...\n"
 
     # Exiting
