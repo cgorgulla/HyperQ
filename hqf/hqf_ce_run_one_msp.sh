@@ -190,7 +190,7 @@ for crosseval_folder in ${crosseval_folders}; do
             fi
 
             # Loop for allowing only the specified number of parallel runs
-            while [ "$(jobs | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
+            while [ "$(jobs | grep Run | wc -l)" -ge "${fes_ce_parallel_max}" ]; do
                 if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
                     jobs
                 fi
