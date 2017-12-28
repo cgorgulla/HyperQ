@@ -146,6 +146,21 @@ else
     # Exiting
     exit 1
 fi
+
+# Filling up the tdc_es_tds_configurations_system1/2_raw variables
+for index in $(seq 1 ${tds_count_es_transformation_system1} ); do
+    tds_es_configuration_system1[${index}]=${tdc_es_tds_configurations_system1_raw[$((index-1))]}
+done
+for index in $(seq $((tds_count_es_transformation_system1 + 1)) ${tds_count_total}); do
+    tds_es_configuration_system1[${index}]=${tdc_es_tds_configurations_system1_raw[$((tds_count_es_transformation_system1-1))]}
+done
+for index in $(seq 1 $((tds_count_total - tds_count_es_transformation_system2)) ); do
+    tds_es_configuration_system2[${index}]=${tdc_es_tds_configurations_system2_raw[0]}
+done
+for index in $(seq $((tds_count_total - tds_count_es_transformation_system2 + 1)) ${tds_count_total}); do
+    tds_es_configuration_system2[${index}]=${tdc_es_tds_configurations_system2_raw[$((index - (tds_count_total - tds_count_es_transformation_system2 + 1) ))]}
+done
+
 # Check 3
 
 
@@ -190,7 +205,7 @@ if [ "${tdcycle_msp_transformation_type}" == "lambda" ]; then
     printf " %13s %32s %32s %28s %27s\n" "TDS ID" "ES Configuration System 1" "ES Configuration System 2" "MSP Transformation ID" "MSP Configuration" | tee -a tdc.ov
     echo "--------------------------------------------------------------------------------------------------------------------------------------" | tee -a tdc.ov
 elif [ "${tdcycle_msp_transformation_type}" == "hq" ]; then
-    printf " %13s %32s %32s %28s %27s %35s\n" 'TDS ID' 'ES Configuration System 2' 'ES Configuration System 2' 'MSP Transformation ID' 'MSP Configuration' 'Associated Lambda Configuration' | tee -a tdc.ov
+    printf " %13s %32s %32s %28s %27s %35s\n" 'TDS ID' 'ES Configuration System 1' 'ES Configuration System 2' 'MSP Transformation ID' 'MSP Configuration' 'Associated Lambda Configuration' | tee -a tdc.ov
     echo "---------------------------------------------------------------------------------------------------------------------------------------------------------------------" | tee -a tdc.ov
 fi
 echo -e "\n\n\n"
@@ -258,9 +273,9 @@ done
 # Creating the TDS configurations and associated configuration files
 for tds_index in $(seq 1 ${tds_count_total}); do
 
-    # Determining the tds_es_configuration
-    tds_es_configuration_system1[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system1_raw[$((tds_index-1))]})
-    tds_es_configuration_system2[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system2_raw[$((tds_index-1))]})
+    ## Determining the tds_es_configuration
+    #tds_es_configuration_system1[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system1_raw[$((tds_index-1))]})
+    #tds_es_configuration_system2[${tds_index}]=$(printf "%.3f" ${tdc_es_tds_configurations_system2_raw[$((tds_index-1))]})
 
     # Determining the tds_msp_configuration
     if [[ "${tds_index}" -le "${tds_count_es_transformation_initial}" ]]; then
@@ -285,9 +300,9 @@ for tds_index in $(seq 1 ${tds_count_total}); do
         echo "tds_msp_configuration_associated_lambda=${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" >> tds-${tds_index}/general/configuration.txt
     fi
     if [ "${tdcycle_msp_transformation_type}" = "lambda" ]; then
-        printf " %10s %25s %32.3f %28s %32s\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" | tee -a tdc.ov
+        printf " %10s %25.3f %32.3f %28s %32s\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" | tee -a tdc.ov
     elif [ "${tdcycle_msp_transformation_type}" = "hq" ]; then
-        printf " %10s %25s %32.3f %28s %32s %27.3f\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" "${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" | tee -a tdc.ov
+        printf " %10s %25.3f %32.3f %28s %32s %27.3f\n" "${tds_index}" "${tds_es_configuration_system1[tds_index]}" "${tds_es_configuration_system2[tds_index]}" "${tds_msp_transformation_index_local}" "${tds_msp_configuration[${tds_index}]}" "${tds_msp_configuration_associated_lambda[${tds_index}]/lambda_}" | tee -a tdc.ov
     fi
 done
 
