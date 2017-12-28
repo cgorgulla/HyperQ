@@ -197,6 +197,31 @@ for crosseval_folder in ${crosseval_folders}; do
                 echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder}"
                 sleep 1.$RANDOM
                 echo
+
+                # Checking if the job should be terminated
+                # Checking if the workflow is run by the BS module
+                if [ -n "${HQ_BS_JOBNAME}" ]; then
+
+                    # Determining the control file responsible for us
+                    cd ../../../../
+                    controlfile="$(hqh_bs_controlfile_determine.sh ${HQ_BS_JTL} ${HQ_BS_JID} || true)"
+                    echo ${controlfile}
+
+                    # Getting the relevant value
+                    terminate_job="$(hqh_gen_inputfile_getvalue.sh ${controlfile} terminate_job true || true)"
+                    echo ${terminate_job}
+                    cd -
+
+                    # Checking the value
+                    if [ "${terminate_job^^}" == "TRUE" ]; then
+
+                        # Printing some information
+                        echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+
+                        # Exiting
+                        exit 0
+                    fi
+                fi
             done;
 
             # Starting the cross evaluation
