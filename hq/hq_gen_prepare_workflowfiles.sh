@@ -261,7 +261,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         rsync -a${verbosity_suffix} --exclude=".*" ${HQ_HOME}/workflow-files/input-files/iqi input-files
     fi
 
-    # Copying the system-related input files from another run
+    # Copying the system-related input files from another folder
     while true; do
         echo
         read -p "Should system-related input files (ligands, receptor, systems, mappings, special-atoms) be copied from another folder (replacing existing files)? " answer
@@ -294,7 +294,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         done
 
         # Printing some information
-        echo -e " * Copying the input files of the specified run..."
+        echo -e " * Copying the files..."
 
         # Copying the files
         if [ -d ${source_inputfiles_folder}/ligands ]; then
@@ -325,10 +325,10 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         echo
     fi
 
-    # Copying the hyperq config files from another run
+    # Copying the hyperq config files from another folder
     while true; do
         echo
-        read -p "Should the hyperq config files be copied from another run (replacing existing files)? " answer
+        read -p "Should the hyperq config files be copied from another folder (replacing existing files)? " answer
         echo
         case ${answer} in
             [Yy]* ) answer=true; break;;
@@ -344,7 +344,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
             # Printing some information
             echo
-            read -e -p " Please specify the relative path of the run which contains the file to be copied (autocompletion available): " source_inputfiles_folder
+            read -e -p " Please specify the relative path of the folder which contains config-folder to be copied (autocompletion available): " source_inputfiles_folder
             echo
 
             # Checking if the path exists
@@ -358,7 +358,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
         done
 
         # Printing some information
-        echo -e " * Copying the input files of the specified run..."
+        echo -e " * Copying the input files of the specified folder..."
 
         # Copying the files
         if [ -d ${source_inputfiles_folder}/input-files/config ]; then
@@ -657,7 +657,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
             # Printing some information
             echo
-            read -e -p " Please specify the relative path of the run which contains the files to be copied (autocompletion available): " source_inputfiles_folder
+            read -e -p " Please specify the relative path of the root folder of the run which contains the files to be copied (autocompletion available): " source_inputfiles_folder
             echo
 
             # Checking if the path exists
@@ -748,7 +748,7 @@ if [[ "${answer}" = "true" ]] || [[ "${answer_cleanup_all}" == "true" ]]; then
 
             # Printing some information
             echo
-            read -e -p " Please specify the relative path of the run which contains the files to be copied (autocompletion available): " source_inputfiles_folder
+            read -e -p " Please specify the relative path of the root folder run which contains the files to be copied (autocompletion available): " source_inputfiles_folder
             echo
 
             # Checking if the path exists

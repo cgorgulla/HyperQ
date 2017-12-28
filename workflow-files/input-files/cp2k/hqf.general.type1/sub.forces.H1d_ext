@@ -7,14 +7,14 @@
     &END NEIGHBOR_LISTS
     &FORCEFIELD
       IGNORE_MISSING_CRITICAL_PARAMS true
-      DO_NONBONDED false
+      DO_NONBONDED true
       @include ${potential_folder}/cp2k.in.bonds.system1
       @include ${potential_folder}/cp2k.in.angles.system1
       @include ${potential_folder}/cp2k.in.dihedrals.system1
-      !@include ${potential_folder}/cp2k.in.impropers.system1
-      !&NONBONDED
-      !  @include ${potential_folder}/cp2k.in.lj.system1
-      !&END NONBONDED
+      @include ${potential_folder}/cp2k.in.impropers.system1
+      &NONBONDED
+        @include ${potential_folder}/cp2k.in.lj.system1
+      &END NONBONDED
       &SPLINE
         EMAX_SPLINE 100000
         RCUT_NB 4.0

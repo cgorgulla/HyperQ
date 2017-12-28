@@ -16,7 +16,7 @@ fi
 if [ "$#" -ne "3" ]; then
     echo
     echo -e "Error in script $(basename ${BASH_SOURCE[0]})"
-    echo "Reason: The wrong number of arguments was provided when calling the script."
+    echo "Reason: The wrong number of arguments was provided when calling the script"
     echo "Number of expected arguments: 3"
     echo "Number of provided arguments: ${#}"
     echo "Provided arguments: $@"
@@ -462,10 +462,10 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
 
     # Checking if there are enough restart files
     if [[ "${ce_first_restart_id}" -gt "${restartfile_count_MD1}" ]]; then
-        echo "   * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD1}) for the initial state (${tdsname_initialstate}) required (ce_first_restart_id=${ce_first_restart_id}). Skipping this thermodynamic window."
+        echo "   * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD1}) for the initial state (${tdsname_initialstate}) required (ce_first_restart_id=${ce_first_restart_id}). Skipping this thermodynamic window..."
         continue
     elif [[ "${ce_first_restart_id}" -gt "${restartfile_count_MD2}" ]]; then
-        echo "   * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD2}) for the end state (${tdsname_endstate}) than required (ce_first_restart_id=${ce_first_restart_id}). Skipping this thermodynamic window."
+        echo "   * Warning: For thermodynamic window ${tdw_index} there are less snapshots (${restartfile_count_MD2}) for the end state (${tdsname_endstate}) than required (ce_first_restart_id=${ce_first_restart_id}). Skipping this thermodynamic window..."
         continue
     fi
 
@@ -504,7 +504,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
     done
 
     # Loop for preparing the restart files in tds_folder 1 (forward evaluation)
-    echo -e "\n   * Preparing the snapshots for the forward cross-evaluation."
+    echo -e "\n   * Preparing the snapshots for the forward cross-evaluation"
     for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD1}); do
 
         # Applying the crosseval trajectory stride
@@ -539,13 +539,13 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
             # Removing the snapshot folder if it exists already
             if [ -d ${crosseval_folder_fw}/snapshot-${restart_id}/ ]; then
                 rm -r ${crosseval_folder_fw}/snapshot-${restart_id}/
-                echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride."
+                echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride"
             fi
         fi
     done
 
     # Loop for preparing the restart files in tdsname_endstate (backward evaluation)
-    echo -e "\n   * Preparing the snapshots for the backward cross-evaluation."
+    echo -e "\n   * Preparing the snapshots for the backward cross-evaluation"
     for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD2}); do
 
         # Applying the crosseval trajectory stride
@@ -580,7 +580,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
             # Removing the snapshot folder if it exists already
             if [ -d ${crosseval_folder_bw}/snapshot-${restart_id}/ ]; then
                 rm -r ${crosseval_folder_bw}/snapshot-${restart_id}/
-                echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride."
+                echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride"
             fi
         fi
     done
@@ -594,7 +594,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
         if [[ "${tdw_index}" == "1" ]]; then
 
             # Loop for preparing the restart files in tdsname_initialstate
-            echo -e "\n   * Preparing the snapshots for the re-evaluation of the initial state (${tdsname_initialstate})."
+            echo -e "\n   * Preparing the snapshots for the re-evaluation of the initial state (${tdsname_initialstate})"
             for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD1}); do
 
                 # Applying the crosseval trajectory stride
@@ -629,14 +629,14 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
                     # Removing the snapshot folder if it exists already
                     if [ -d ${crosseval_folder_sn1}/snapshot-${restart_id}/ ]; then
                         rm -r ${crosseval_folder_sn1}/snapshot-${restart_id}/
-                        echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride."
+                        echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride"
                     fi
                 fi
             done
         fi
         
         # Loop for preparing the restart files in tdsname_endstate
-        echo -e "\n   * Preparing the snapshots for the re-evaluation of the end state (${tdsname_endstate})."
+        echo -e "\n   * Preparing the snapshots for the re-evaluation of the end state (${tdsname_endstate})"
         for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD2}); do
 
             # Applying the crosseval trajectory stride
@@ -671,7 +671,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
                 # Removing the snapshot folder if it exists already
                 if [ -d ${crosseval_folder_sn2}/snapshot-${restart_id}/ ]; then
                     rm -r ${crosseval_folder_sn2}/snapshot-${restart_id}/
-                    echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride."
+                    echo "       * Deleting the previously prepared crosseval folder of snapshot ${restart_id} due to the crosseval trajectory stride"
                 fi
             fi
         done

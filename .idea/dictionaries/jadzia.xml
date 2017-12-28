@@ -13,13 +13,17 @@
       <w>barostat</w>
       <w>batchsystem</w>
       <w>batchsystems</w>
+      <w>bondlength</w>
       <w>compl</w>
       <w>crossevaluations</w>
       <w>dihedrals</w>
       <w>dirname</w>
+      <w>emax</w>
       <w>equilibrations</w>
       <w>evals</w>
+      <w>ewald</w>
       <w>filenames</w>
+      <w>forcefield</w>
       <w>fparameter</w>
       <w>genmix</w>
       <w>hetatm</w>
@@ -38,6 +42,7 @@
       <w>lbfgs</w>
       <w>lomap</w>
       <w>moab</w>
+      <w>nonbonded</w>
       <w>nonruntime</w>
       <w>nonsolvent</w>
       <w>onepipe</w>
@@ -50,6 +55,7 @@
       <w>pdbx</w>
       <w>pkill</w>
       <w>qmmm</w>
+      <w>rcut</w>
       <w>receptorname</w>
       <w>runtimeletter</w>
       <w>selfconsistently</w>
