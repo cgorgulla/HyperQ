@@ -109,29 +109,34 @@ if [ "${HQ_VERBOSITY_RUNTIME}" = "debug" ]; then
     set -x
 fi
 
-# Printing some information
-echo -e "\n\n *** Starting the cross evaluations (hqf_ce_run_one_msp.sh) ***\n"
-
 # Variables
 subsystem="$(pwd | awk -F '/' '{print $(NF)}')"
-system_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
+msp_name="$(pwd | awk -F '/' '{print     $(NF-1)}')"
 fes_ce_parallel_max="$(grep -m 1 "^fes_ce_parallel_max_${subsystem}=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 workflow_id="$(grep -m 1 "^workflow_id=" ../../../${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 command_prefix_ce_run_one_snapshot="$(grep -m 1 "^command_prefix_ce_run_one_snapshot=" ../../../${HQ_CONFIGFILE_MSP} | awk -F '[=#]' '{print $2}')"
-crosseval_folders="$(ls -vd tds*-*/ | tr -d "/")"
+crosseval_folders="$(ls -vd tds-*_tds-*/ | tr -d "/")"
+
+# Printing some information
+echo -e "\n\n         *** Starting the cross evaluations of MSP (hqf_ce_run_one_msp.sh) ***\n"
 
 # Running the MD simulations
 i=0
 for crosseval_folder in ${crosseval_folders}; do
 
     cd ${crosseval_folder}
-    echo -e "\n ** Running the cross evaluations of folder ${crosseval_folder}"
+    echo -e "\n * Commencing with crosseval folder ${crosseval_folder}"
 
     # Testing whether at least one snapshot exists at all
     if stat -t snapshot* >/dev/null 2>&1; then
+
+        echo -e "\n   * For this crosseval folder $(ls -1 snapshot* | wc -l) snapshot folders have been found"
+
         for snapshot_folder in $(ls -v | grep snapshot); do
+
+            echo "     * Starting snapshot ${snapshot_folder/snapshot-}..."
 
             # Checking if the workflow is run by the BS module
             if [ -n "${HQ_BS_JOBNAME}" ]; then
@@ -150,7 +155,7 @@ for crosseval_folder in ${crosseval_folders}; do
                 if [ "${terminate_job^^}" == "TRUE" ]; then
 
                     # Printing some information
-                    echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+                    echo -e "\n       * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting...\n\n"
 
                     # Exiting
                     exit 0
@@ -161,30 +166,30 @@ for crosseval_folder in ${crosseval_folders}; do
             if [ "${ce_continue^^}" == "TRUE" ]; then
 
                 # Variables
-                restart_ID=${snapshot_folder/*-}
+                restart_id=${snapshot_folder/*-}
 
                 # Checking if the snapshot has already been completed successfully
-                if energy_line_old="$(grep "^ ${restart_ID}" ce_potential_energies.txt &> /dev/null)"; then
+                if energy_line_old="$(grep "^ ${restart_id} " ce_potential_energies.txt 2>/dev/null)"; then
 
                     # Printing some information
-                    echo -e " * Info: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
+                    echo -e "       * There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
 
                     # Checking if the entry contains two words
                     if [ "$(echo ${energy_line_old} | wc -w)" == "2" ]; then
 
                         # Printing some information
-                        echo -e " * Info: This entry does seem to be valid. Removing the existing folder and continuing with next snapshot..."
+                        echo -e "       * This entry does seem to be valid. Removing the existing folder and continuing with next snapshot..."
 
                         # Removing the folder
-                        rm -r snapshot-${restart_ID} &>/dev/null || true
+                        rm -r snapshot-${restart_id} &>/dev/null || true
 
                         # Skipping the snapshot
                         continue
                     else
 
                         # Printing some information
-                        echo -e " * Info: This entry does seem to be invalid. Removing this entry from the common energy file and continuing with next snapshot..."
-                        sed -i "/^ ${restart_ID} /d" ce_potential_energies.txt
+                        echo -e "       * This entry does seem to be invalid. Removing this entry from the common energy file and continuing with this snapshot..."
+                        sed -i "/^ ${restart_id} /d" ce_potential_energies.txt
                     fi
                 fi
             fi
@@ -194,7 +199,7 @@ for crosseval_folder in ${crosseval_folders}; do
                 if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
                     jobs
                 fi
-                echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder}"
+                echo -e "       * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder}"
                 sleep 3.$RANDOM
                 echo
 
@@ -216,7 +221,7 @@ for crosseval_folder in ${crosseval_folders}; do
                     if [ "${terminate_job^^}" == "TRUE" ]; then
 
                         # Printing some information
-                        echo " * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
+                        echo "       * According to the controlfile ${controlfile} the current batchsystem job should be terminated immediately. Stopping this simulation and exiting..."
 
                         # Exiting
                         exit 0
@@ -227,7 +232,7 @@ for crosseval_folder in ${crosseval_folders}; do
             # Starting the cross evaluation
             sleep 0.$RANDOM
             cd ${snapshot_folder}/
-            echo -e " * Running the cross evaluation of snapshot ${snapshot_folder/*-}"
+            echo -e "       * Running the cross evaluation of snapshot ${snapshot_folder/*-}..."
             trap '' ERR
             ${command_prefix_ce_run_one_snapshot} hqf_ce_run_one_snapshot.sh &
             pid=$!
@@ -241,7 +246,7 @@ for crosseval_folder in ${crosseval_folders}; do
 
         done
     else
-        echo -e " * Warning: No snapshots found in folder ${crosseval_folder}. Skipping this cross-eval folder..."
+        echo -e "   * Warning: No snapshots have been found for this crosseval folder (${crosseval_folder}). Skipping this folder..."
     fi
 
     cd ../

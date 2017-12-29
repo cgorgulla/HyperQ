@@ -64,38 +64,44 @@ handle_snapshot_continuation() {
     restart_id_local="${2}"
 
     # Checking if this snapshot has already been prepared and should be skipped
-    if [[ -f ${crosseval_folder_local}/snapshot-${restart_id_local}/ipi/ipi.in.main.xml ]] && [[ -f ${crosseval_folder_local}/snapshot-${restart_id_local}/ipi/ipi.in.restart ]]; then
+    if [[ ( -f ${crosseval_folder_local}/snapshot-${restart_id_local}/ipi/ipi.in.main.xml && -f ${crosseval_folder_local}/snapshot-${restart_id_local}/ipi/ipi.in.restart ) || "$(grep "^ ${restart_id_local} " ${crosseval_folder_local}/ce_potential_energies.txt 2>/dev/null | wc -w)" == "2" ]]; then
 
         # Printing some information
-        echo " * Snapshot ${restart_id_local} has already been prepared and ce_continue=true, skipping this snapshot..."
-
-        # Checking if the snapshot has already been completed successfully
-        if energy_line_old="$(grep "^ ${restart_id_local}" ${crosseval_folder_local}/ce_potential_energies.txt &> /dev/null)"; then
-
-            # Printing some information
-            echo -e " * Info: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
-
-            # Checking if the entry contains two words
-            if [ "$(echo ${energy_line_old} | wc -w)" == "2" ]; then
-
-                # Printing some information
-                echo -e " * Info: This entry does seem to be valid. Removing  the existing folder and continuing with next snapshot..."
-
-                # Removing the folder
-                rm -r ${crosseval_folder_local}/snapshot-${restart_id_local} &>/dev/null || true
-            else
-
-                # Printing some information
-                echo -e " * Info: This entry does seem to be invalid. Removing this entry from the common energy file and continuing with next snapshot..."
-                sed -i "/^ ${restart_id_local} /d" ${crosseval_folder_local}/ce_potential_energies.txt
-            fi
-        fi
+        echo "       * Snapshot ${restart_id_local} has already been prepared or completed successfully and ce_continue=true, skipping the preparation of this snapshot..."
 
         # Continuing with the next snapshot
         skip_snapshot="true"
     else
         skip_snapshot="false"
     fi
+
+    # Checking if there are entries in the common energy file in order to clean it up or to remove
+    if energy_line_old="$(grep "^ ${restart_id_local} " ${crosseval_folder_local}/ce_potential_energies.txt 2>/dev/null)"; then
+
+        # Printing some information
+        echo -e "       * There is already at least one entry in the common energy file for this snapshot: ${energy_line_old}"
+
+        # Checking if the entry contains two words
+        if [ "$(echo ${energy_line_old} | wc -w)" == "2" ]; then
+
+            # Printing some information
+            echo -e "       * This entry does seem to be valid. Continuing..."
+
+            # Removing the the snapshot folder if existing
+            if [ -d ${crosseval_folder_local}/snapshot-${restart_id_local} ]; then
+                echo "       * The folder for this snapshot does already exist. Removing..."
+                rm -r ${crosseval_folder_local}/snapshot-${restart_id_local}
+            fi
+
+        # The next case should only happen if there are invalid entries in the common energy file
+        else
+
+            # Printing some information
+            echo -e "       * This entry does seem to be invalid. Removing this entry from the common energy file and continuing with next snapshot..."
+            sed -i "/^ ${restart_id_local} /d" ${crosseval_folder_local}/ce_potential_energies.txt
+        fi
+    fi
+
 }
 
 prepare_restart() {
@@ -517,7 +523,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
     done
 
     # Loop for preparing the restart files in tds_folder 1 (forward evaluation)
-    echo -e "\n   * Preparing the snapshots for the forward cross-evaluation"
+    echo -e "\n   * Preparing the snapshots for the forward cross-evaluation\n"
     for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD1}); do
 
         # Applying the crosseval trajectory stride
@@ -558,7 +564,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
     done
 
     # Loop for preparing the restart files in tdsname_endstate (backward evaluation)
-    echo -e "\n   * Preparing the snapshots for the backward cross-evaluation"
+    echo -e "\n   * Preparing the snapshots for the backward cross-evaluation\n"
     for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD2}); do
 
         # Applying the crosseval trajectory stride
@@ -607,7 +613,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
         if [[ "${tdw_index}" == "1" ]]; then
 
             # Loop for preparing the restart files in tdsname_initialstate
-            echo -e "\n   * Preparing the snapshots for the re-evaluation of the initial state (${tdsname_initialstate})"
+            echo -e "\n   * Preparing the snapshots for the re-evaluation of the initial state (${tdsname_initialstate})\n"
             for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD1}); do
 
                 # Applying the crosseval trajectory stride
@@ -649,7 +655,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
         fi
         
         # Loop for preparing the restart files in tdsname_endstate
-        echo -e "\n   * Preparing the snapshots for the re-evaluation of the end state (${tdsname_endstate})"
+        echo -e "\n   * Preparing the snapshots for the re-evaluation of the end state (${tdsname_endstate})\n"
         for restart_id in $(seq ${ce_first_restart_id} ${restartfile_count_MD2}); do
 
             # Applying the crosseval trajectory stride
@@ -692,3 +698,6 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
 done
 
 cd ../../../
+
+# Printing script completion information
+echo -e "\n * The preparation of the cross evaluations for MSP (${msp_name}) has been successfully completed.\n\n"

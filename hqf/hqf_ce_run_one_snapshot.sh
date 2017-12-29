@@ -45,26 +45,26 @@ trap 'error_response_std $LINENO' ERR SIGINT SIGQUIT SIGTERM
 save_energy_value() {
 
     # Printing some information
-    echo -e "\n\nSaving the energy value in the common energy file\n"
+    echo -e "         * Saving the energy value in the common energy file"
 
     # Checking if for this snapshot there is already an entry in the energy file
-    echo -e " * Checking if for this snapshot there is already an entry in the energy file"
-    if energy_line_old="$(grep "^ ${snapshot_id} " "${common_energy_file}" &> /dev/null)"; then
+    echo -e "         * Checking if for this snapshot there is already an entry in the energy file"
+    if energy_line_old="$(grep "^ ${snapshot_id} " "${common_energy_file}" 2> /dev/null)"; then
 
         # Printing some information
-        echo -e " * Warning: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
+        echo -e "         * Warning: There is already an entry in the common energy file for this snapshot: ${energy_line_old}"
 
         # Removing all previous entries
-        echo -e " * All previous entries will be removed..."
+        echo -e "         * All previous entries will be removed..."
         sed -i "/^ ${snapshot_id} /d" "${common_energy_file}"
-        echo -e " * Removal completed. Continuing..."
+        echo -e "         * Removal completed. Continuing..."
     fi
 
     # Saving the energy value
     echo " ${snapshot_id} ${energy_value}" >> "${common_energy_file}"
 
     # Printing some information
-    echo -e "\n\nSnapshot ${snapshot_id} completed successfully after ${snapshot_time_total} seconds."
+    echo -e "\n         * Snapshot ${snapshot_id} has completed successfully after ${snapshot_time_total} seconds.\n"
 
     # Setting the success flag
     success_flag="true"
@@ -78,7 +78,7 @@ cleanup_exit() {
 
     # Printing some information
     echo
-    echo " * Cleaning up..."
+    echo "         * Cleaning up..."
 
     # Removing the snapshot folder if the run was successful
     cd ..
@@ -89,7 +89,7 @@ cleanup_exit() {
     fi
 
     # Terminating all remaining processes
-    echo " * Terminating all remaining processes..."
+    echo "         * Terminating all remaining processes..."
     # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
     setsid nohup bash -c "
 
@@ -134,7 +134,7 @@ trap "cleanup_exit" EXIT
 if [[ -z "${HQ_CONFIGFILE_MSP}" ]]; then
 
     # Printing some information
-    echo -e "\n * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
+    echo -e "\n         * Info: The variable HQ_CONFIGFILE_MSP was unset. Setting it to input-files/config/general.txt\n"
 
     # Setting and exporting the variable
     HQ_CONFIGFILE_MSP=input-files/config/general.txt
@@ -165,12 +165,12 @@ sim_counter=0
 success_flag="false"
 common_energy_file="../ce_potential_energies.txt"
 
-# Checking if the snapshot was computed already
+# Checking if the snapshot has been completed already
 if [ "${ce_continue^^}" == "TRUE" ]; then
     if [ -f ipi/ipi.out.properties ]; then
         propertylines_word_count=$(grep "^ *[0-9]" ipi/ipi.out.properties | wc -w )
         if [ "${propertylines_word_count}" -ge "3" ]; then
-             echo " * The snapshot ${snapshot_id} has been computed already, skipping."
+             echo "         * The snapshot ${snapshot_id} has been completed already, skipping."
              exit 0
         fi
     fi
@@ -181,7 +181,7 @@ if [[ "${md_programs^^}" == *"IPI"* ]]; then
 
     # Preparing files and folder
     cd ipi
-    echo -e " * Starting ipi"
+    echo -e "         * Starting ipi"
     rm ipi.out.* > /dev/null 2>&1 || true
     rm *RESTART* > /dev/null 2>&1 || true
 
@@ -215,7 +215,7 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
     # Loop for waiting until the socket file exists
     while true; do
         if [ -e "/tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.cp2k.${crosseval_folder//tds.}.r-${snapshot_id}" ]; then # -e for any fail, -f is only for regular files
-            echo " * The socket file for snapshot ${snapshot_id} has been detected. Starting CP2K..."
+            echo "         * The socket file for snapshot ${snapshot_id} has been detected. Starting CP2K..."
 
             # Loop for each bead
             for bead_folder in $(ls -v cp2k/); do
@@ -243,12 +243,12 @@ if [[ "${md_programs^^}" == *"CP2K"* ]]; then
             break
         else
             if [ "$iteration_no" -lt "$max_it" ]; then
-                echo " * The socket file for the CE running in ${PWD} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
+                echo "         * The socket file for the CE running in ${PWD} does not yet exist. Waiting 1 second (iteration $iteration_no)..."
                 sleep 1
                 iteration_no=$((iteration_no+1))
             else
-                echo " * The socket file for snapshot ${snapshot_id} does not yet exist."
-                echo " * The maximum number of iterations ($max_it) for snapshot ${snapshot_id} has been reached. Skipping this snapshot..."
+                echo "         * The socket file for snapshot ${snapshot_id} does not yet exist."
+                echo "         * The maximum number of iterations ($max_it) for snapshot ${snapshot_id} has been reached. Skipping this snapshot..."
                 exit 1
             fi
         fi
@@ -265,7 +265,7 @@ if [[ "${md_programs^^}" == *"IQI"* ]]; then
     sed -i "s|<address>.*iqi.*|<address>${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.iqi.${crosseval_folder//tds.}.r-${snapshot_id}</address>|g" iqi.in.*
 
     # Starting iqi
-    echo -e " * Starting iqi"
+    echo -e "         * Starting iqi"
     iqi iqi.in.main.xml > iqi.out.screen 2> iqi.out.err &
     pid=$!
 
@@ -284,7 +284,7 @@ while true; do
     if [ "${HQ_VERBOSITY_RUNTIME}" == "debug" ]; then
 
         # Printing some information
-        echo " * Checking if the computation running in folder ${PWD} has completed."
+        echo "         * Checking if the computation running in folder ${PWD} has completed."
     fi
 
     # Checking the condition of the properties output files
@@ -297,7 +297,7 @@ while true; do
         if [ "${propertylines_word_count}" -ge "4" ]; then
 
             # Printing some information
-            echo " * The i-PI property output file seems to contain the required values."
+            echo "         * The i-PI property output file seems to contain the required values."
 
             # Variables
             snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
@@ -313,7 +313,7 @@ while true; do
 
     # Checking the time difference
     if [[ "${waiting_time_diff}" -ge "${ce_timeout}" ]] && [[ "${waiting_time_diff}" -le "$((ce_timeout+10))" ]]; then
-        echo " * CE-Timeout for snapshot ${snapshot_id} reached. Skipping this snapshot..."
+        echo "         * CE-Timeout for snapshot ${snapshot_id} reached. Skipping this snapshot..."
         exit 1
 
     elif [[ "${waiting_time_diff}" -ge "$((ce_timeout+10))" ]]; then
@@ -342,7 +342,7 @@ while true; do
     if [ ! -e  /proc/${pid_ipi} ]; then
 
         # Printing some information
-        echo " * i-PI seems to have terminated without error."
+        echo "         * i-PI seems to have terminated without error."
 
         # Checking the condition of the properties output files
         if [ -f ipi/ipi.out.properties ]; then
@@ -354,7 +354,7 @@ while true; do
             if [ "${propertylines_word_count}" -ge "4" ]; then
 
                 # Printing some information
-                echo " * The i-PI property output file seems to contain the required values."
+                echo "         * The i-PI property output file seems to contain the required values."
 
                 # Variables
                 snapshot_time_total=$(($(date +%s) - ${snapshot_time_start}))
@@ -365,13 +365,13 @@ while true; do
             else
 
                 # The properties output file does not exist
-                echo " * But the properties output file does not seem to contain the required potential energy..."
+                echo "         * But the properties output file does not seem to contain the required potential energy..."
                 exit 1
             fi
         else
 
             # The properties output file does not exist
-            echo " * But the properties output file does not exist..."
+            echo "         * But the properties output file does not exist..."
             exit 1
         fi
     fi
