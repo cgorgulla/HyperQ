@@ -195,7 +195,7 @@ for crosseval_folder in ${crosseval_folders}; do
                     jobs
                 fi
                 echo -e " * Waiting for a free slot to start the cross evaluation of snapshot ${snapshot_folder/*-} of folder ${crosseval_folder}"
-                sleep 1.$RANDOM
+                sleep 3.$RANDOM
                 echo
 
                 # Checking if the job should be terminated

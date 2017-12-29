@@ -445,7 +445,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
 
     # Compressing all restart files which are uncompressed
     for restart_file in $(find ../../../md/${msp_name}/${subsystem}/{${tdsname_initialstate},${tdsname_endstate}}/ipi -iregex ".*ipi.out.run.*restart_[0-9]+$") ; do
-        bzip2 -f $restart_file
+        bzip2 -f $restart_file  || true              # Parallel robustness (since md pipelines might be running which also compress those files)
     done
 
     # Recompressing all restart files which were compressed with gz (backward compatibility) Todo: Remove later
