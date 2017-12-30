@@ -75,6 +75,8 @@ handle_snapshot_continuation() {
         skip_snapshot="false"
     fi
 
+    # We are not checking if there is already a valid ipi properties file whose values may not have been transferred yet to the common energy file, because this check is done by the hqf_ce_run_one_snapshot.sh script
+
     # Checking if there are entries in the common energy file in order to clean it up or to remove
     if energy_line_old="$(grep "^ ${restart_id_local} " ${crosseval_folder_local}/ce_potential_energies.txt 2>/dev/null)"; then
 
@@ -93,7 +95,7 @@ handle_snapshot_continuation() {
                 rm -r ${crosseval_folder_local}/snapshot-${restart_id_local}
             fi
 
-        # The next case should only happen if there are invalid entries in the common energy file
+        # The next case should only happen if there are invalid entries in the common energy file, thus skip_snapshot should  already be set to "false"
         else
 
             # Printing some information

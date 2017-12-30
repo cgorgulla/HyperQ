@@ -238,7 +238,7 @@ for crosseval_folder in ${crosseval_folders}; do
             cd ..
 
             # Removing empty remaining folders if there should be some (ideally not). The -delete flag should be the last argument in the command, if it is present before certain other options it will delete everything
-            find ../tds-*_tds-*/snapshot* -empty -delete -exec echo "       * Deleting empty file/folder" {} \;
+            #find ../tds-*_tds-*/snapshot* -empty -delete -exec echo "       * Deleting empty file/folder" {} \; || true # Parallel robustness, the hqf_ce_run_one_snapshot.sh scripts delete a subclass of these files
 
         done
     else

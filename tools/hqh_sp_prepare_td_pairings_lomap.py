@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-
-
 import sys
 print sys.version_info
 import lomap
+
 
 def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwise_mcs="false"):
     # Create the molecule database by using .mol2 files
@@ -31,7 +30,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
     db_mol.build_graph() 
     #print(nx_graph.edges(data=True))
     
-    # Calculate the Maximum Common Subgraph (MCS) between 
+    # Calculate the Maximum Common Subgraph (MCS) between
     # the first two molecules in the molecule database
     #MC = {}
     #for i in range(0, len(db_mol.dic_mapping)):
@@ -66,7 +65,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
 
 # Checking the output file
 def help():
-    print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
+    print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output filename> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':

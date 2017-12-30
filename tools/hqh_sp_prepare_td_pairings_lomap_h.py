@@ -1,8 +1,8 @@
 #!/usr/bin/env python
+
 import lomap
 import sys
 import networkx as nx
-
 
 
 def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwise_mcs="false"):
@@ -58,7 +58,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
             # Output the MCS in a .png file
             print " * Generating the png file " + "mcs." + str(atomIndex1) + "_" + str(atomIndex2) + ".png"
             try:
-                MC_noh[atomIndex1,atomIndex2].draw_mcs(atomIndex1, atomIndex2, fname="mcs." + str(atomIndex1) + "_" + str(atomIndex2) + ".png")
+                MC_noh[atomIndex1,atomIndex2].draw_mcs(atomIndex1, atomIndex2, fname='mcs_noh' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
             except:
                 print "Failed to generate image for this pair of molecules."
     
@@ -68,18 +68,18 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
         atomIndex1 = edge[0]
         atomIndex2 = edge[1]
         try:
-            MC_h[atomIndex1, atomIndex2] = lomap.MCS.getMapping(db_mol[0].getMolecule(), db_mol[1].getMolecule(), hydrogens=True, fname='mcs_noh' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
+            MC_h[atomIndex1, atomIndex2] = lomap.MCS.getMapping(db_mol[0].getMolecule(), db_mol[1].getMolecule(), hydrogens=True, fname='mcs_h' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
         except:
             print "* Trying again without hydrogens."
-            MC_h[atomIndex1, atomIndex2] = lomap.MCS.getMapping(db_mol[0].getMolecule(), db_mol[1].getMolecule(), hydrogens=False, fname='mcs_noh' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
-        with open("mcs_mapping_" + str(i) + "_" + str(j), "w") as mappingFile:  # cg
+            MC_h[atomIndex1, atomIndex2] = lomap.MCS.getMapping(db_mol[0].getMolecule(), db_mol[1].getMolecule(), hydrogens=False, fname='mcs_h' + str(atomIndex1) + "_" + str(atomIndex2) + '.png')
+        with open("mcs_mapping_" + str(atomIndex1) + "_" + str(atomIndex2), "w") as mappingFile:  # cg
             for item in MC_h[atomIndex1,atomIndex2]._MCS__map_moli_molj:  # cg
-                mappingFile.write(str(item[0] + 1) + " " + str(item[1] + 1) + "\n")  # Lomaps indices start at 0, we need a start at 1 (used by prepare_cp2k_mapping) # cg
+                mappingFile.write(str(item[0] + 1) + " " + str(item[1] + 1) + "\n")  # Lomap indices start at 0, we need a start at 1 (used by prepare_cp2k_mapping) # cg
 
 
 # Checking the output file
 def help():
-    print "\nUsage: hqh_sp_prepare_td_pairings_lomap_h.py <input file folder> <output fileaname> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
+    print "\nUsage: hqh_sp_prepare_td_pairings_lomap_h.py <input file folder> <output filename> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
