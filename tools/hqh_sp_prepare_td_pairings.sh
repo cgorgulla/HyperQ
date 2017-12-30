@@ -1,7 +1,9 @@
 #!/usr/bin/env bash  
 
 # Usage information
-usage="Usage: hqh_sp_prepare_td_pairings.sh\nShould be run in the root folder."
+usage="Usage: hqh_sp_prepare_td_pairings.sh
+
+Has to be run in the root folder."
 
 # Standard error response 
 error_response_std() {

@@ -65,7 +65,7 @@ def main(ligandFolder, outputFileBasename="lomap", ncpus=1, time=20, draw_pairwi
 
 # Checking the output file
 def help():
-    print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <output filename> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
+    print "\nUsage: hqh_sp_prepare_td_pairings_lomap.py <input file folder> <outputfile basename> <ncpus> <time> <draw pairwise MSC maps flag>\n\n"
 
 # Checking if this file is run as the main program 
 if __name__ == '__main__':
