@@ -64,12 +64,10 @@ clean_up() {
     echo
     echo " * Cleaning up..."
 
-    # Removing remaining empty folders if there should some (ideally not)
-    sleep 3
-    find ./ -empty -delete
-
     # Terminating all remaining processes.
     echo " * Terminating all remaining processes..."
+
+    # We are not removing empty files and folders here because the error function above might have changed the directory. Even though it should work when specifying the tds-*_tds-* directories, since they are only present in the ce folder. Alternative a success mechanism as in the run-one-snapshot scripts should work
 
     # Running the termination in an own process group to prevent it from preliminary termination. Since it will run in the background it will not cause any delays
     setsid nohup bash -c "
@@ -79,8 +77,6 @@ clean_up() {
 
         # Removing the socket files if still existent
         rm /tmp/ipi_${workflow_id}.${HQ_STARTDATE_ONEPIPE}.ce.* &>/dev/null || true
-        # Removing remaining empty folders if there should some (ideally not)
-        find ./ -empty -delete
 
         # Terminating everything which is still running and which was started by this script, which will also terminate the current exit code
         # We are not killing all processes individually because it might be thousands and the pids might have been recycled in the meantime
@@ -241,8 +237,8 @@ for crosseval_folder in ${crosseval_folders}; do
             i=$((i+1))
             cd ..
 
-            # Removing empty remaining folders if there should some (ideally not)
-            find ${snapshot_folder} -empty -delete
+            # Removing empty remaining folders if there should be some (ideally not). The -delete flag should be the last argument in the command, if it is present before certain other options it will delete everything
+            find ../tds-*_tds-*/snapshot* -empty -delete -exec echo "       * Deleting empty file/folder" {} \;
 
         done
     else
