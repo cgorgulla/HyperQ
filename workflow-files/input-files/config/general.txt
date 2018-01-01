@@ -480,6 +480,7 @@ ce_timeout_RLS=100
 
 ****************************************************************************** FEC ******************************************************************************
 
+umbrella_sampling=false
 method=BAR
 # Possible values: BAR, NBB-D, NBB-I, MBAR, NBB-MBAR-1S, NBB-MBAR-3S
 # These setting will affect the cross evaluations and the free energy computations
