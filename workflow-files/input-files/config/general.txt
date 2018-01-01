@@ -64,6 +64,7 @@ ligand_FFparameter_source=MATCH
 
 receptor_FFparameter_source=MATCH
 # Possible choices: folder, MATCH
+# Only relevant if receptor_type=H
 # If set to folder, then in the folder input-files/receptor there need to be for each receptor (common or all the individual ones) the following files:
 #   * receptorname.pdb
 #   * receptorname.rtf
@@ -199,11 +200,12 @@ tdcycle_si_consider_branches=true
 inputfolder_cp2k_opt_general_L=hqf.general.type1
 inputfolder_cp2k_eq_general_L=hqf.general.type1
 inputfolder_cp2k_md_general_L=hqf.general.type1
-inputfolder_cp2k_ce_general_L=hqf.general.type1
+inputfolder_cp2k_ce-bp_general_L=hqf.general.type1
 inputfolder_cp2k_opt_specific_L=hqf.specific.MM
 inputfolder_cp2k_eq_specific_L=hqf.specific.MM
 inputfolder_cp2k_md_specific_L=hqf.specific.MM
-inputfolder_cp2k_ce_specific_L=hqf.specific.MM
+inputfolder_cp2k_ce-high_specific_L=hqf.specific.MM
+# the ce-high folders are only used during the CE if the free energy method is a two level method (NBB,
 
 # Ligand, solvent (LS) input folder
 inputfolder_cp2k_opt_general_LS=hqf.general.type1
@@ -213,7 +215,7 @@ inputfolder_cp2k_ce_general_LS=hqf.general.type1
 inputfolder_cp2k_opt_specific_LS=hqf.specific.MM
 inputfolder_cp2k_eq_specific_LS=hqf.specific.MM
 inputfolder_cp2k_md_specific_LS=hqf.specific.MM
-inputfolder_cp2k_ce_specific_LS=hqf.specific.MM
+inputfolder_cp2k_ce-bp_specific_LS=hqf.specific.MM
 
 # Protein, ligand, solvent (RLS) input folder
 inputfolder_cp2k_opt_general_RLS=hqf.general.type1
@@ -223,7 +225,7 @@ inputfolder_cp2k_ce_general_RLS=hqf.general.type1
 inputfolder_cp2k_opt_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_eq_specific_RLS=hqf.specific.MM
 inputfolder_cp2k_md_specific_RLS=hqf.specific.MM
-inputfolder_cp2k_ce_specific_RLS=hqf.specific.MM
+inputfolder_cp2k_ce-bp_specific_RLS=hqf.specific.MM
 
 cp2k_random_seed=random
 # Possible values: random, <integer>
@@ -478,10 +480,9 @@ ce_timeout_RLS=100
 
 ****************************************************************************** FEC ******************************************************************************
 
-umbrella_sampling=false
-# Possible values: true, false
-# Will be used during cross_evaluation and the free energy computations
-# Todo: change to mbar-2, mbar-3, direct, indirect...
+method=BAR
+# Possible values: BAR, NBB-D, NBB-I, MBAR, NBB-MBAR-1S, NBB-MBAR-3S
+# These setting will affect the cross evaluations and the free energy computations
 
 fec_first_snapshot_index_L=1
 fec_first_snapshot_index_LS=1

@@ -77,9 +77,9 @@ draw_pairwise_mcs="$(grep -m 1 "^draw_pairwise_mcs" ${HQ_CONFIGFILE_GENERAL} | t
 lomap_mol2_folder="$(grep -m 1 "^lomap_mol2_folder" ${HQ_CONFIGFILE_GENERAL} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 
 # Creating required folders
-if [ -d "input-files/mappings" ]; then
-    rm -r "input-files/mappings"
-fi
+#if [ -d "input-files/mappings" ]; then
+#    rm -r "input-files/mappings"
+#fi
 mkdir -p input-files/mappings/raw
 mkdir -p input-files/mappings/curated
 mkdir -p input-files/mappings/hr
@@ -88,7 +88,7 @@ cd input-files/mappings/raw
 
 # Running Lomap
 echo "hqh_sp_prepare_td_pairings_lomap.py "../../ligands/${lomap_mol2_folder}" "${lomap_output_basename}" "${lomap_ncpus}" "${mcs_time}" "${draw_pairwise_mcs}""
-hqh_sp_prepare_td_pairings_lomap.py "../../ligands/${lomap_mol2_folder}" "${lomap_output_basename}" "${lomap_ncpus}" "${mcs_time}" "${draw_pairwise_mcs}"
+#hqh_sp_prepare_td_pairings_lomap.py "../../ligands/${lomap_mol2_folder}" "${lomap_output_basename}" "${lomap_ncpus}" "${mcs_time}" "${draw_pairwise_mcs}"
 
 # Processing the Lomap output
 cat ${lomap_output_basename}.dot | sed -e ':a' -e 'N' -e '$!ba' -e 's/,\n\s*/,/g' | sed "s/^\s//g" | grep -v [}{] > ${lomap_output_basename}.dot.2

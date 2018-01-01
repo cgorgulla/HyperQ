@@ -28,9 +28,12 @@ class SingleSystem:
                         self.atomCount["ligand"] += 1
                         self.indices["ligand"].add(int(lineSplit[1]))
                         self.pdblines["ligand"][int(lineSplit[1])] = line
-                    else:
+                    elif chain == "W" or chain == "S":
                         self.atomCount["solvent"] += 1
                         self.indices["solvent"].add(int(lineSplit[1]))
+                    else:
+                        raise ValueError("Unsupported chain identifier found in pdb file. Exiting...")
+
                     
         self.atomCount["total"] = self.atomCount["receptor"] + self.atomCount["ligand"] + self.atomCount["solvent"]
         
@@ -191,7 +194,7 @@ class JointSystem:
         counter = 0
         for index in system2.indices["solvent"]:
             counter += 1
-            self.mappingJointSystemToSystem2[self.system1.atomCount["receptor"] + self.system1.atomCount["ligand"]+system2.atomCount["dummy"] + counter] = index
+            self.mappingJointSystemToSystem2[self.system1.atomCount["receptor"] + self.system1.atomCount["ligand"] + system2.atomCount["dummy"] + counter] = index
 
 
     def write_cp2k_mapping_files(self):
@@ -444,6 +447,7 @@ class JointSystem:
 
 
     def writeSystemPDBX(self):
+
         with open("system.a1c1.pdbx", "w") as systemPDBXfile:
             with open(self.system1.PDBfilename + "x", "r") as system1PDBXfile:
                 for line in system1PDBXfile:
@@ -487,14 +491,15 @@ class JointSystem:
 
         # hr = human readable
         with open(output_filename, "w") as mappingFile:
+
             # Writing the heading
             mappingFile.write("# All indices are based on the order of the atoms in the pdb/psf files)\n")
             mappingFile.write("#\n")
             mappingFile.write("# Column 1: System 1 reduced indices (without receptor if present)\n")
-            mappingFile.write("# Column 2: System 1 total indices\n")
-            mappingFile.write("# Column 3: System 1 atom names\n")
-            mappingFile.write("# Column 4: System 2 reduced indices (without receptor if present)\n")
-            mappingFile.write("# Column 5: System 2 total indices\n")
+            mappingFile.write("# Column 2: System 2 reduced indices (without receptor if present)\n")
+            mappingFile.write("# Column 3: System 1 total indices\n")
+            mappingFile.write("# Column 4: System 2 total indices\n")
+            mappingFile.write("# Column 5: System 1 atom names\n")
             mappingFile.write("# Column 6: System 2 atom names\n\n")
     
             # Writing the mapping of the atoms
@@ -503,5 +508,4 @@ class JointSystem:
                 system2Index = self.mappingMCSLigandSystem1To2[system1Index]
                 system1IndexReduced = system1Index - self.system1.atomCount["receptor"]
                 system2IndexReduced = self.mappingMCSLigandSystem1To2[system1Index] - self.system2.atomCount["receptor"]
-                mappingFile.write(str(system1IndexReduced).rjust(5) + " " + str(system1Index).rjust(5) + " " + self.system1.atomIndexToName[system1Index].strip().ljust(5) + " " + str(
-                    system2IndexReduced).rjust(5) + " " + str(system2Index).rjust(5) + " " + self.system2.atomIndexToName[system2Index].strip().ljust(5) + "\n")
+                mappingFile.write(str(system1IndexReduced).rjust(5) + " " + str(system2IndexReduced).rjust(5) + " " + str(system1Index).rjust(5) + " " + str(system2Index).rjust(5) + " " + self.system1.atomIndexToName[system1Index].strip().ljust(5)  + " " + self.system2.atomIndexToName[system2Index].strip().ljust(5) + "\n")

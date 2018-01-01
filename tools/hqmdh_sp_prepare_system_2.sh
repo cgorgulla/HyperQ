@@ -88,10 +88,10 @@ echo -e "\n *** Patching the pdb and psf files (hqh_sp_patch_pdb_psf.sh) ***"
 hqh_sp_patch_pdb_psf.sh system_complete
 
 # Preparing the special atoms
-echo -e "\n *** Preparing the uatoms files (hqh_sp_prepare_uatoms_files.vmd) ***"
-vmdc ${dirname}/hqh_sp_prepare_uatoms_files.vmd -args system_complete ${subsystem}
-echo -e "\n *** Preparing the uatoms files (hqh_sp_prepare_uatoms_files.sh) ***"
-hqh_sp_prepare_uatoms_files.sh system_complete
+echo -e "\n *** Preparing the uatom files (hqh_sp_prepare_uatom_files.vmd) ***"
+vmdc ${dirname}/hqh_sp_prepare_uatom_files.vmd -args system_complete ${subsystem}
+echo -e "\n *** Preparing the uatom files (hqh_sp_prepare_uatom_files.sh) ***"
+hqh_sp_prepare_uatom_files.sh system_complete
 
 echo -e "\n *** Preparing the qatom files (hqh_sp_prepare_qatom_files.vmd) ***"
 vmdc ${dirname}/hqh_sp_prepare_qatom_files.vmd -args system_complete ${subsystem}

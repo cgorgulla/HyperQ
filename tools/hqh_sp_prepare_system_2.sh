@@ -84,10 +84,10 @@ hqh_sp_patch_pdb_psf.sh system_complete.reduced
 
 # Preparing the special atoms
 # uatoms
-echo -e "\n *** Determining the uatoms indices (prepare_uatoms_files.vmd) ***"
-vmdc ${dirname}/hqh_sp_prepare_uatoms_files.vmd -args system_complete.reduced ${subsystem}
-echo -e "\n *** Preparing the uatoms indices (hqh_sp_prepare_uatoms_files.sh) ***"
-hqh_sp_prepare_uatoms_files.sh system_complete.reduced
+echo -e "\n *** Determining the uatom indices (prepare_uatom_files.vmd) ***"
+vmdc ${dirname}/hqh_sp_prepare_uatom_files.vmd -args system_complete.reduced ${subsystem}
+echo -e "\n *** Preparing the uatom indices (hqh_sp_prepare_uatom_files.sh) ***"
+hqh_sp_prepare_uatom_files.sh system_complete.reduced
 
 # qatoms
 echo -e "\n *** Determining the qatom indices (hqh_sp_prepare_qatom_files.vmd) ***"

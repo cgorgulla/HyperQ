@@ -1,7 +1,7 @@
 #!/usr/bin/env bash 
 
 # Usage information
-usage="Usage: hqh_sp_prepare_uatoms_files.sh <system basename>"
+usage="Usage: hqh_sp_prepare_uatom_files.sh <system basename>"
 
 # Standard error response 
 error_response_std() {

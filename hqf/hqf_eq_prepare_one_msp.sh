@@ -263,7 +263,7 @@ else
     done
     if [ -f ../../../input-files/mappings/hr_override/${msp_name} ]; then
         echo " * A mapping file for this MSP in the hr_override folder has been found. Using it instead of the default mapping file ..."
-        grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $4}' > ./system.mcs.mapping || true   # Parallel robustness
+        grep  -E "^ *[0-9]+"  ../../../input-files/mappings/hr_override/${msp_name} | awk '{print $1, $2}' > ./system.mcs.mapping || true   # Parallel robustness
     elif [ -f ../../../input-files/mappings/curated/${msp_name} ]; then
         echo " * No mapping file for this MSP in the hr_override folder has been found. Using the default mapping file instead ..."
         cp ../../../input-files/mappings/curated/${msp_name} ./system.mcs.mapping || true   # Parallel robustness
