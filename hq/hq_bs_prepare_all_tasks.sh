@@ -104,8 +104,6 @@ fi
 msp_list_file="${1}"
 command_general="${2}"
 output_filename="${3}"
-tdw_count_total="$(grep -m 1 "^tdw_count_total=" ${HQ_CONFIGFILE_GENERAL} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-tds_count_total="$((tdw_count_total+1))"
 
 # Printing some information
 echo -e "\n *** Preparing the tasks for all MSPs in ${msp_list_file} ***\n"
@@ -121,21 +119,41 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         echo -e "Error: The msp-list-file contains an invalid line: ${line}. Exiting...\n\n"
         exit 1
     else
-        msp="${line}"
+        msp_name="${line}"
     fi
 
+
+    # Config file
+    if [ -f input-files/config/${msp_name}.txt ]; then
+
+        # Setting the variable
+        HQ_CONFIGFILE_MSP=input-files/config/${msp_name}.txt
+        export HQ_CONFIGFILE_MSP
+    else
+        # Printing some information
+        echo -e "\n * Info: For MSP ${msp_name} no individual configuration file has been found. Using the general configuration file...\n"
+
+        # Setting the variable
+        HQ_CONFIGFILE_MSP=${HQ_CONFIGFILE_GENERAL}
+        export HQ_CONFIGFILE_MSP
+    fi
+
+    # Variables
+    tdw_count_total="$(grep -m 1 "^tdw_count_total=" ${HQ_CONFIGFILE_MSP} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
+    tds_count_total="$((tdw_count_total+1))"# Config file setup
+
     # Preparing the corresponding tasks for this MSP
-    echo -e " * Preparing the tasks for MSP ${msp}..."
+    echo -e " * Preparing the tasks for MSP ${msp_name}..."
     if [[ "${command_general}" == *"TDS"* ]]; then
         echo "   * Preparing one task for each TDS..."
         for tds_id in $(seq 1 ${tds_count_total}); do
             echo "     * Preparing the task for TDS ${tds_id}/${tds_count_total}..."
-            command_specific="${command_general// MSP / ${msp} }"
+            command_specific="${command_general// MSP / ${msp_name} }"
             command_specific="${command_specific//TDS/${tds_id}:${tds_id}}"
             hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
         done
     else
-        command_specific="${command_general// MSP / ${msp} }"
+        command_specific="${command_general// MSP / ${msp_name} }"
         hq_bs_prepare_one_task.sh "${command_specific}" "${output_filename}"
     fi
 
