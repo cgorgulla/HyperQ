@@ -378,7 +378,7 @@ for tds_index in $(seq 1 ${tds_count_total}); do
             cp ../../cp2k.in.bonds.system${system_ID} ./
             cp ../../cp2k.in.angles.system${system_ID} ./
             cp ../../cp2k.in.dihedrals.system${system_ID} ./
-            cp ../../cp2k.in.impropers.system${system_ID} ./
+            #cp ../../cp2k.in.impropers.system${system_ID} ./   # impropers are used in three locations: here, the python file cp2k_dummies.py, and the cp2k input files
             cp ../../cp2k.in.lj.system${system_ID} ./
         done
     fi
