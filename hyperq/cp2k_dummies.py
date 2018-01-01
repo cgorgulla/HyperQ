@@ -543,23 +543,23 @@ def prepare_cp2k_FF(molecularSystem, FFParas):
                 cp2kDihedralFile.write("&TORSION\n  ATOMS %s %s %s %s\n  K [kcalmol] %f\n  M %d\n  PHI0 [deg] %f\n&END TORSION\n" % (atomName1, atomName2, atomName3, atomName4, Kchi, n, delta))
 
     # Preparing the impropers input file for CP2K
-    with open("cp2k.in.impropers." + molecularSystem.systemName, "w") as cp2kImproperFile:
-        for dummyAtomIndex in molecularSystem.dummyAtoms.indices:
-            for improper in molecularSystem.dummyAtoms.impropers[dummyAtomIndex]:
-                atomName1 = molecularSystem.atomIndexToName[improper[0]]
-                atomName2 = molecularSystem.atomIndexToName[improper[1]]
-                atomName3 = molecularSystem.atomIndexToName[improper[2]]
-                atomName4 = molecularSystem.atomIndexToName[improper[3]]
-                atomType1 = molecularSystem.atomNameToType[atomName1]
-                atomType2 = molecularSystem.atomNameToType[atomName2]
-                atomType3 = molecularSystem.atomNameToType[atomName3]
-                atomType4 = molecularSystem.atomNameToType[atomName4]
-                # Making the atom order unique to facilitate the parameter retrieval
-                improperAtoms = [atomType1, atomType2, atomType3, atomType4]
-                improperAtoms = [improperAtoms[0]] + sorted([improperAtoms[1:4], list(reversed(improperAtoms[1:4]))])[0]
-                Kpsi = FFParas.improperParas.Kpsi[tuple(improperAtoms)]
-                delta = FFParas.improperParas.delta[tuple(improperAtoms)]
-                cp2kImproperFile.write("&IMPROPER\n  ATOMS %s %s %s %s\n  K [kcalmol*rad^-2] %f\n  PHI0 [deg] %f\n&END TORSION\n" % (atomName1, atomName2, atomName3, atomName4, Kpsi, delta))
+    #with open("cp2k.in.impropers." + molecularSystem.systemName, "w") as cp2kImproperFile:
+    #    for dummyAtomIndex in molecularSystem.dummyAtoms.indices:
+    #        for improper in molecularSystem.dummyAtoms.impropers[dummyAtomIndex]:
+    #            atomName1 = molecularSystem.atomIndexToName[improper[0]]
+    #            atomName2 = molecularSystem.atomIndexToName[improper[1]]
+    #            atomName3 = molecularSystem.atomIndexToName[improper[2]]
+    #            atomName4 = molecularSystem.atomIndexToName[improper[3]]
+    #            atomType1 = molecularSystem.atomNameToType[atomName1]
+    #            atomType2 = molecularSystem.atomNameToType[atomName2]
+    #            atomType3 = molecularSystem.atomNameToType[atomName3]
+    #            atomType4 = molecularSystem.atomNameToType[atomName4]
+    #            # Making the atom order unique to facilitate the parameter retrieval
+    #            improperAtoms = [atomType1, atomType2, atomType3, atomType4]
+    #            improperAtoms = [improperAtoms[0]] + sorted([improperAtoms[1:4], list(reversed(improperAtoms[1:4]))])[0]
+    #            Kpsi = FFParas.improperParas.Kpsi[tuple(improperAtoms)]
+    #            delta = FFParas.improperParas.delta[tuple(improperAtoms)]
+    #            cp2kImproperFile.write("&IMPROPER\n  ATOMS %s %s %s %s\n  K [kcalmol*rad^-2] %f\n  PHI0 [deg] %f\n&END TORSION\n" % (atomName1, atomName2, atomName3, atomName4, Kpsi, delta))
 
     # Preparing LJ input file for CP2K
     with open("cp2k.in.lj." + molecularSystem.systemName, "w") as cp2k_LJ_file:
