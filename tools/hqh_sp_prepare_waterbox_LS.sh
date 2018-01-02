@@ -3,9 +3,11 @@
 # Usage information
 usage="Usage: hqh_sp_prepare_waterbox_LS.sh <ligand file basename> <output file basename>
 
-Required ligand files: pdb and rtf file."
+Required ligand files: pdb and rtf file.
 
-# Standard error response 
+Has to be run in the folder where the files are present."
+
+# Standard error response
 error_response_std() {
     # Printing some information
     echo
@@ -72,6 +74,6 @@ waterbox_padding_size_LS="$(grep -m 1 "^waterbox_padding_size_LS="  ../../../../
 
 # Body
 vmdc "${script_dir}/hqh_sp_prepare_waterbox_LS.vmd" -args $ligand_basename $output_basename ${script_dir} ${waterbox_padding_size_LS}
-sed -i "s/RCP   $/RCP  H/g" system_wb.pdb
-mv system_wb.pdb system_complete.pdb
-mv system_wb.psf system_complete.psf
+sed -i "s/RCP   $/RCP  H/g" ${output_basename}_wb.pdb
+mv ${output_basename}_wb.pdb ${output_basename}_complete.pdb
+mv ${output_basename}_wb.psf system_complete.psf

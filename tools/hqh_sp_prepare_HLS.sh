@@ -155,7 +155,9 @@ cat ${ligand_basename}_unique_typed.prm >> system_complete.prm
 # Some parameter files seem to contain the section keyword IMPROPERS instead of IMPROPER, but CP2K only understands the latter)
 sed -i "s/^IMPROPERS/IMPROPER/g" system_complete.prm
 # Removing any return statements (from Charmm stream files)
-sed -i "/return/d" system_complete.prm
+sed -i "/^return/d" system_complete.prm
+sed -i "/^read/d" system_complete.prm
+sed -i "s/@//g" system_complete.prm
 
 # Waterbox generation
 echo -e "\n *** Preparing the joint receptor-ligand-solvent system (hqh_sp_prepare_waterbox_HLS.sh) ***"
