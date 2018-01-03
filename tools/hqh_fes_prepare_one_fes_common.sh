@@ -222,7 +222,7 @@ else
     done
 fi
 
-# Preparing the cp2k qm_kind input files
+# Preparing the CP2k qm_kind input files
 hqh_gen_prepare_cp2k_qm_kind.sh system2.nonsolvent.qatoms.elements.* system2.solvent.qatoms.elements.*.indices
 mv cp2k.in.qm_kinds cp2k.in.qm_kinds.system2 || true    # Parallel robustness
 

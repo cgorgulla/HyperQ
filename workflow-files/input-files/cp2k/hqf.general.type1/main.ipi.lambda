@@ -7,6 +7,7 @@
 @SET cell_dimensions_odd_rounded cell_dimensions_odd_rounded_placeholder
 @SET cell_dimensions_scaled_odd_rounded cell_dimensions_scaled_odd_rounded_placeholder
 @SET lambda_value lambda_value_placeholder
+@SET potential_type potential_type_placeholder
 
 &GLOBAL
   PROJECT cp2k.out

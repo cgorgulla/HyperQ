@@ -315,7 +315,7 @@ md_programs="$(grep -m 1 "^md_programs_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr 
 tdcycle_msp_transformation_type="$(grep -m 1 "^tdcycle_msp_transformation_type=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_first_restart_id="$(grep -m 1 "^ce_first_restart_ID_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_stride="$(grep -m 1 "^ce_stride_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
-umbrella_sampling="$(grep -m 1 "^umbrella_sampling=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
+fec_method="$(grep -m 1 "^fec_method=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_type="$(grep -m 1 "^ce_type_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 ce_continue="$(grep -m 1 "^ce_continue=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
 inputfolder_cp2k_ce_general="$(grep -m 1 "^inputfolder_cp2k_ce_general_${subsystem}=" ${HQ_CONFIGFILE_MSP} | tr -d '[[:space:]]' | awk -F '[=#]' '{print $2}')"
@@ -380,9 +380,6 @@ fi
 if [ -f ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ]; then
     cp ../../../input-files/mappings/hr/${system1_basename}_${system2_basename} ./system.mcs.mapping.hr || true   # Parallel robustness
 fi
-if [ -f "TD_windows.list" ]; then
-    rm TD_windows.list
-fi
 
 # Preparing the shared CP2K input files
 hqh_fes_prepare_one_fes_common.sh
@@ -399,11 +396,105 @@ done
 # Copying the equilibration coordinate files (just for CP2K as some initial coordinate files which are not really used by CP2K)
 cp ../../../md/${msp_name}/${subsystem}/system.*.initial.pdb ./
 
-# Creating the list of intermediate states
-#echo md/methanol_ethane/L/*/ | tr " " "\n" | awk -F '/' '{print $(NF-1)}' >  TD_windows.states
+
+
+# Preparing the CEPP (cross eval potential pair) list
+# Creating an empty file/wiping existing file if present
+echo -n " "> cepp-list.txt
+# Loop for each TDS, for each TDS all CEPP will be determined in which the TDS is the sampling source
+for tds_index in $(seq 1 ${tdw_count_total}); do
+
+    # Variables
+    tdsname="tds-${tds_index}"
+    ce_sampling_potential="${tdsname}-u"
+
+    # BAR
+    if [ "${fec_method^^}" == "BAR" ]; then
+
+        # Variables
+        ce_sampling_potential="${tdsname}-U1"
+
+        # Checking if the TDS is not the first one
+        if [ "${tds_index}" -gt "1" ]; then
+            # There is an evaluation at the potential of the previous TDS (we have only one potential, U1)
+            ce_evaluation_potential="tds-$((tds_index-1))-U1"
+            echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+        fi
+        # Checking if the TDS is not the last one
+        if [ "${tds_index}" -lt "${tds_count_total}" ]; then
+            # There is an evaluation at the potential of the next TDS (we have only one potential, U1)
+            ce_evaluation_potential="tds-$((tds_index+1))-U1"
+            echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+        fi
+    fi
+
+
+    # NBB-D
+    if [ "${fec_method^^}" == "NBB-D" ]; then
+
+        # Variables
+        ce_sampling_potential="${tdsname}-U2"        # The sampling potential is always the biased potential U2
+
+        # Checking if the TDS is not the first one
+        if [ "${tds_index}" -gt "1" ]; then
+            # There is an evaluation at the unbiased potential (U1) of the previous TDS
+            ce_evaluation_potential="tds-$((tds_index-1))-U1"
+            echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+        fi
+        # Checking if the TDS is not the last one
+        if [ "${tds_index}" -lt "${tds_count_total}" ]; then
+            # There is an evaluation at the unbiased potential (U1) of the next TDS
+            ce_evaluation_potential="tds-$((tds_index+1))-U1"
+            echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+        fi
+        # There is an evaluation at the unbiased potential (U1) of the same TDS
+        ce_evaluation_potential="tds-${tds_index}-U1"
+        echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+    fi
+
+    # NBB-I
+    if [ "${fec_method^^}" == "NBB-I" ]; then
+
+        # Variables
+        ce_sampling_potential="${tdsname}-U2"        # The sampling potential is always U2 (only a biased potential at the endstates since there is only reweighting at the endstates)
+
+        # Checking if the TDS is not the first one
+        if [ "${tds_index}" -gt "1" ]; then
+            # Checking if the TDS is not the second one
+            if [[ "${tds_index}" -ne "2" ]]; then
+                # There is an evaluation at the sampling potential (U2, unbiased) of the previous TDS (biased potentials exist only at the endpoints)
+                ce_evaluation_potential="tds-$((tds_index-1))-U2"
+                echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+            else
+                # There is an evaluation at the unbiased potential (U1) of the previous TDS (the first one, TDS 1)
+                ce_evaluation_potential="tds-$((tds_index-1))-U1"
+                echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+            fi
+        fi
+        # Checking if the TDS is not the last one
+        if [ "${tds_index}" -lt "${tds_count_total}" ]; then
+            # Checking if the TDS is not the second last one
+            if [[ "${tds_index}" -ne "$((tds_count_total-1))" ]]; then
+                # There is an evaluation at the sampling potential (U2, unbiased) of the next TDS (biased potentials exist only at the endpoints)
+                ce_evaluation_potential="tds-$((tds_index-1))-U2"
+                echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+            else
+                # There is an evaluation at the unbiased potential (U1) of the next TDS (the last one)
+                ce_evaluation_potential="tds-$((tds_index-1))-U1"
+                echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+            fi
+        fi
+        # There is an evaluation at the unbiased potential of the same TDS if the TDS is the first or the last one
+        if [[ "${tds_index}" -eq "1" || "${tds_index}" -eq "${tds_count_total}" ]]; then
+            ce_evaluation_potential="tds-${tds_index}-U1"
+            echo "${ce_sampling_potential} ${ce_evaluation_potential}" >> cepp-list.txt
+        fi
+    fi
+done
+
 
 # Loop for each TD window/step
-for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
+for tdw_index in $(seq 1 ${tds_count_total} ); do
 
     # Variables
     tds_index_initialstate=${tdw_index}
@@ -434,7 +525,7 @@ for tdw_index in $(seq 1 $((tds_count_total-1)) ); do
     crosseval_folder_fw="${tdsname_initialstate}_${tdsname_endstate}"     # TDS folder1 (positions, sampling) is evaluated at mdfolder2's potential: samplingfolder-potentialfolder
     crosseval_folder_bw="${tdsname_endstate}_${tdsname_initialstate}"     # Opposite of fw
 
-    echo "${tdsname_initialstate} ${tdsname_endstate}" >> TD_windows.list           # Does not include the stationary evaluations naturally
+    echo "${tdsname_initialstate} ${tdsname_endstate}" >> tdw-list.txt           # Does not include the stationary evaluations naturally
     
     # Printing some information
     echo -e "\n * Preparing TDW ${tdw_index}"

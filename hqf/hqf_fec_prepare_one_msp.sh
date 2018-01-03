@@ -390,4 +390,4 @@ while read line; do
     # Increasing the tdw_index variable
     tdw_index=$((tdw_index+1))
 
-done <${ce_folder}/TD_windows.list
+done <${ce_folder}/tdw-list.txt
