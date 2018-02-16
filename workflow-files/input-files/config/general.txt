@@ -139,7 +139,7 @@ tdc_es_tds_configurations_system2=1
 # Usually
 #         * the first value for tdc_es_tds_configurations_system1 and the last value of tdc_es_tds_configurations_system2 are set to 1
 # Usually if the variables tdw_count_es_transformation_initial/final have the length tdw_count_total then
-#         * the number of different values for system 1 equals
+#         * the number of different values for system 1 equals tdw_count_es_transformation_initial + 1
 #         * the number of different values for system 2 equals tdw_count_es_transformation_final + 1
 #         * the values for system 1 change at the beginning during the first tdw_count_es_transformation_initial + 1 indices
 #         * the values for system 2 change at the end during the last tdw_count_es_transformation_final + 1 indices
@@ -175,7 +175,7 @@ tdcycle_si_separate_neighbors=true
 
 tdcycle_si_consider_branches=true
 # Possible values: true, false
-# Only relevant if tdcycle_si_activate=true
+# Only relevant if tdcycle_si_activate=true and tdcycle_si_separate_neighbors=true
 
 
 ****************************************************************************** CP2K *****************************************************************************

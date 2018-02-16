@@ -84,9 +84,9 @@ cp ../../../ligands/pdb/${ligand_basename}.pdb ./${ligand_basename}.pdb
 
 if [ "${ligand_FFparameter_source^^}" == "MATCH" ]; then
 
-    # Assigning uniqe atom names
+    # Assigning unique atom names
     echo -e "\n *** Assigning unique atom names (uniqe_atom_names_pdb.py) ***"
-    hqh_sp_prepare_unique_atom_names_pdb.py ${ligand_basename}.pdb ${ligand_basename}_unique.pdb
+    hqh_sp_prepare_unique_atom_names_pdb.py ${ligand_basename}.pdb ${ligand_basename}_unique.pdb Q
 
     # Atom typing with MATCH - and unique atom names (required also by us regarding cp2k and dummy atoms)
     echo -e "\n * Atom typing with MATCH\n"

@@ -41,7 +41,7 @@ def update_status(unconstrained_ids_filename, quantum_ids_filename, pdb_filename
                     pdbx_file.write(line)
 		    
 def help():
-    print "\nUsage: hqh_sp_prepare_pdbx <unconstrained_ids_filename> <quantum_ids_filenames> <input pdbfile>\n\n"
+    print "\nUsage: hqh_sp_prepare_pdbx.py <unconstrained_ids_filename> <quantum_ids_filenames> <input pdbfile>\n\n"
     
 # Checking if this file is run as the main program 
 if __name__ == '__main__':

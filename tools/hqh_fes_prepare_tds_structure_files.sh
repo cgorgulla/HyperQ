@@ -335,7 +335,7 @@ for tds_index in $(seq 1 ${tds_count_total}); do
     # Checking if serial insertion is activated
     if [ "${tdcycle_si_activate^^}" == "TRUE" ]; then
 
-        # Copying the dummy atom indices files (Not moving, parallel robustness, and convenience for us if we want to see all the files)
+        # Copying the dummy atom indices files (Not moving, parallel robustness, and convenience for us if we want to see all the files in the subsystem folder)
         cp ../../system1.tds_msp_transformation-${tds_to_msp_transformation_index[${tds_index}]}.dummy.indices system1.dummy.indices
         cp ../../system2.tds_msp_transformation-${tds_to_msp_transformation_index[${tds_index}]}.dummy.indices system2.dummy.indices
 
