@@ -122,9 +122,10 @@ while IFS= read -r line || [[ -n "$line" ]]; do
         msp_name="${line}"
     fi
 
-
     # Config file
     if [ -f input-files/config/${msp_name}.txt ]; then
+        # Printing some information
+        echo -e "\n * Info: For MSP ${msp_name} an individual configuration file has been found. Using this configuration file...\n"
 
         # Setting the variable
         HQ_CONFIGFILE_MSP=input-files/config/${msp_name}.txt
@@ -140,7 +141,7 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 
     # Variables
     tdw_count_total="$(grep -m 1 "^tdw_count_total=" ${HQ_CONFIGFILE_MSP} | tr -d '[:space:]' | awk -F '[=#]' '{print $2}')"
-    tds_count_total="$((tdw_count_total+1))"# Config file setup
+    tds_count_total="$((tdw_count_total+1))" # Config file setup
 
     # Preparing the corresponding tasks for this MSP
     echo -e " * Preparing the tasks for MSP ${msp_name}..."

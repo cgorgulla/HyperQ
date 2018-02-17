@@ -11,7 +11,7 @@ Summary: This script prepares the batchsystem files in a default mode:
          * Setting the cpus_per_task variable of batchsystem control files batchsystem/c-c:*.ctrl and d-d.*.ctrl to the number of beads
 
 Arguments:
-    <msp list>: One task per line, one task is represented by one command. No empty lines should be present.
+    <msp list>: One MSP per line, one MSP is represented as system1_system2. No empty lines should be present.
     <subsystems>: Possible values: L, LS, RLS. Multiple types can be specified separated by a colon (e.g. LS:RLS).
     <job types>: Multiple types can be specified separated by a colon (e.g. a:b:c). Possible values are:
         b: _opt_eq_

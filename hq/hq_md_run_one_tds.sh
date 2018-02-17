@@ -313,7 +313,7 @@ if [[ "${md_programs}" == *"iqi"* ]]; then
         iqi iqi.in.main.xml > iqi.out.run${run}.screen 2> iqi.out.run${run}.err &
         pid=$!
     elif [ "${md_keep_logfiles^^}" == "FALSE" ]; then
-        iqi ipi.in.main.xml 2> iqi.out.run${run}.err
+        iqi iqi.in.main.xml 2> iqi.out.run${run}.err
         pid_ipi=$!
     else
         # Printing some information
